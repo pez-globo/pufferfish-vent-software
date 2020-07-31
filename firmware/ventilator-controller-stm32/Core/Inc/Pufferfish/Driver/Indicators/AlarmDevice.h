@@ -38,5 +38,5 @@ class AlarmDevice {
 };
 
 }  // namespace Indicators
-}  // namespace HAL
+}  // namespace Driver
 }  // namespace Pufferfish

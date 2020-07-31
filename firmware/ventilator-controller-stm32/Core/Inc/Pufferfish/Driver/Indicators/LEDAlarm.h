@@ -44,5 +44,5 @@ class LEDAlarm : public AlarmDevice {
 };
 
 }  // namespace Indicators
-}  // namespace HAL
+}  // namespace Driver
 }  // namespace Pufferfish

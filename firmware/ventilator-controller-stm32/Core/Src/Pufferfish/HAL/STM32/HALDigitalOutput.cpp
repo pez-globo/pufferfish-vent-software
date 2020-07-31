@@ -4,12 +4,12 @@
  *      Author: March Boonyapaluk
  */
 
-#include "Pufferfish/HAL/STM32/DigitalOutput.h"
+#include "Pufferfish/HAL/STM32/HALDigitalOutput.h"
 
 namespace Pufferfish {
 namespace HAL {
 
-void DigitalOutput::write(bool output) {
+void HALDigitalOutput::write(bool output) {
   HAL_GPIO_WritePin(&mPort, mPin, output ? GPIO_PIN_SET : GPIO_PIN_RESET);
 }
 
