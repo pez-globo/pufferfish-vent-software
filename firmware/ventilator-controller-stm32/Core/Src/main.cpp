@@ -95,6 +95,13 @@ PF::Driver::Indicators::LEDAlarm alarmDevLed(alarmLedR, alarmLedG, alarmLedB);
 PF::Driver::Indicators::AuditoryAlarm alarmDevSound(alarmRegHigh, alarmRegMed, alarmRegLow, alarmBuzzer);
 PF::AlarmsManager hAlarms(alarmDevLed, alarmDevSound);
 
+// Buttons
+PF::HAL::DigitalInput buttonAlarmEn(*SET_ALARM_EN_GPIO_Port, SET_ALARM_EN_Pin);
+PF::HAL::DigitalInput buttonPwrOnOff(*SET_PWR_ON_OFF_GPIO_Port,
+                                     SET_PWR_ON_OFF_Pin);
+PF::HAL::DigitalInput buttonLock(*SET_LOCK_GPIO_Port, SET_LOCK_Pin);
+PF::HAL::DigitalInput buttonPwrSrc(*SET_PWR_SRC_GPIO_Port, SET_PWR_SRC_Pin);
+
 // Solenoid Valves
 PF::HAL::PWM drive1_ch1(htim2, TIM_CHANNEL_4);
 PF::HAL::PWM drive1_ch2(htim2, TIM_CHANNEL_2);
