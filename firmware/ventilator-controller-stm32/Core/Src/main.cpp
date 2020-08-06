@@ -28,6 +28,7 @@
 /* USER CODE BEGIN Includes */
 #include "Pufferfish/HAL/HAL.h"
 #include "Pufferfish/AlarmsManager.h"
+#include "Pufferfish/Driver/ShiftedOutput.h"
 #include "Pufferfish/Driver/Indicators/LEDAlarm.h"
 #include "Pufferfish/Driver/Indicators/AuditoryAlarm.h"
 #include "Pufferfish/HAL/STM32/HALI2CDevice.h"
@@ -82,14 +83,26 @@ namespace PF = Pufferfish;
 
 PF::HAL::HALDigitalOutput boardLed1(*LD1_GPIO_Port, LD1_Pin);
 
-PF::HAL::HALDigitalOutput alarmLedR(*LEDR_CNTRL_GPIO_Port, LEDR_CNTRL_Pin);
-PF::HAL::HALDigitalOutput alarmLedG(*LEDG_CNTRL_GPIO_Port, LEDG_CNTRL_Pin);
-PF::HAL::HALDigitalOutput alarmLedB(*LEDB_CNTRL_GPIO_Port, LEDB_CNTRL_Pin);
+// Interface Board
+PF::HAL::HALDigitalOutput serClock(*SER_CLK_GPIO_Port, SER_CLK_Pin);
+PF::HAL::HALDigitalOutput serClear(*SER_CLR_N_GPIO_Port, SER_CLR_N_Pin, true);
+PF::HAL::HALDigitalOutput serRClock(*SER_RCLK_GPIO_Port, SER_RCLK_Pin);
+PF::HAL::HALDigitalOutput serInput(*SER_IN_GPIO_Port, SER_IN_Pin);
+
+PF::Driver::ShiftRegister ledsReg(serInput, serClock, serRClock, serClear);
+
+PF::Driver::ShiftedOutput alarmLedR(ledsReg, 0);
+PF::Driver::ShiftedOutput alarmLedG(ledsReg, 1);
+PF::Driver::ShiftedOutput alarmLedB(ledsReg, 2);
+PF::Driver::ShiftedOutput ledAlarmEn(ledsReg, 3);
+PF::Driver::ShiftedOutput ledFullO2(ledsReg, 4);
+PF::Driver::ShiftedOutput ledManualBreath(ledsReg, 5);
+PF::Driver::ShiftedOutput ledLock(ledsReg, 6);
 
 PF::HAL::HALDigitalOutput alarmRegHigh(*ALARM1_HIGH_GPIO_Port, ALARM1_HIGH_Pin);
 PF::HAL::HALDigitalOutput alarmRegMed(*ALARM1_MED_GPIO_Port, ALARM1_MED_Pin);
 PF::HAL::HALDigitalOutput alarmRegLow(*ALARM1_LOW_GPIO_Port, ALARM1_LOW_Pin);
-PF::HAL::HALDigitalOutput alarmBuzzer(*ALARM2_CNTRL_GPIO_Port, ALARM2_CNTRL_Pin);
+PF::HAL::HALDigitalOutput alarmBuzzer(*BUZZ1_EN_GPIO_Port, BUZZ1_EN_Pin);
 
 PF::Driver::Indicators::LEDAlarm alarmDevLed(alarmLedR, alarmLedG, alarmLedB);
 PF::Driver::Indicators::AuditoryAlarm alarmDevSound(alarmRegHigh, alarmRegMed, alarmRegLow, alarmBuzzer);
@@ -97,10 +110,13 @@ PF::AlarmsManager hAlarms(alarmDevLed, alarmDevSound);
 
 // Buttons
 PF::HAL::DigitalInput buttonAlarmEn(*SET_ALARM_EN_GPIO_Port, SET_ALARM_EN_Pin);
+PF::HAL::DigitalInput buttonFullO2(*SET_100_O2_GPIO_Port, SET_100_O2_Pin);
+PF::HAL::DigitalInput buttonManualBreath(*SET_MANUAL_BREATH_GPIO_Port,
+                                         SET_MANUAL_BREATH_Pin);
+PF::HAL::DigitalInput buttonLock(*SET_LOCK_GPIO_Port, SET_LOCK_Pin);
+
 PF::HAL::DigitalInput buttonPwrOnOff(*SET_PWR_ON_OFF_GPIO_Port,
                                      SET_PWR_ON_OFF_Pin);
-PF::HAL::DigitalInput buttonLock(*SET_LOCK_GPIO_Port, SET_LOCK_Pin);
-PF::HAL::DigitalInput buttonPwrSrc(*SET_PWR_SRC_GPIO_Port, SET_PWR_SRC_Pin);
 
 // Solenoid Valves
 PF::HAL::PWM drive1_ch1(htim2, TIM_CHANNEL_4);
@@ -1293,44 +1309,44 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOE, BAT_MEAS_EN_Pin|LED1_EN_Pin|SET_EXTRA_Pin|GPIO3_Pin 
-                          |SENSE_O2_EN_Pin|MOTOR2_EN_Pin|PRESS1_EN_Pin|MOTOR2_DIR_Pin 
-                          |MOTOR3_DIR_Pin|MOTOR2_STEP_Pin|MOTOR3_EN_Pin|PRESS5_EN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOE, BAT_MEAS_EN_Pin | LED1_EN_Pin | SET_LOCK_Pin | GPIO3_Pin
+      | SENSE_O2_EN_Pin | MOTOR2_EN_Pin | PRESS1_EN_Pin | MOTOR2_DIR_Pin
+      | MOTOR3_DIR_Pin | MOTOR2_STEP_Pin | MOTOR3_EN_Pin | PRESS5_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOF, BAT_CHARGE_EN_Pin|PRESS2_EN_Pin|PRESS4_EN_Pin|MOTOR4_EN_Pin 
-                          |MOTOR3_STEP_Pin|PRESS3_EN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOF, BAT_CHARGE_EN_Pin | PRESS2_EN_Pin | PRESS4_EN_Pin | MOTOR4_EN_Pin
+      | MOTOR3_STEP_Pin | PRESS3_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, ALARM1_MED_Pin|BUZZ1_EN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, ALARM1_MED_Pin | BUZZ1_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, GPIO2_Pin|GPIO1_Pin|LEDR_CNTRL_Pin|LEDB_CNTRL_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, GPIO2_Pin | GPIO1_Pin | SER_CLK_Pin | SER_CLR_N_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, LD1_Pin|ALARM1_LOW_Pin|ALARM2_CNTRL_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, LD1_Pin | ALARM1_LOW_Pin | SER_IN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, MOTOR4_STEP_Pin|MOTOR1_STEP_Pin|MOTOR1_DIR_Pin|LEDG_CNTRL_Pin 
-                          |LTC4421_PWR_nDISABLE1_Pin|LTC4421_PWR_nDISABLE2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOD, MOTOR4_STEP_Pin | MOTOR1_STEP_Pin | MOTOR1_DIR_Pin | SER_RCLK_Pin
+      | LTC4421_PWR_nDISABLE1_Pin | LTC4421_PWR_nDISABLE2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOG, PRESS_VDD_EN_Pin|I2C1_RESET_Pin|I2C2_RESET_Pin|MOTOR1_EN_Pin 
-                          |PRESS6_EN_Pin|LED3_EN_Pin|ALARM1_HIGH_Pin|PRESSX_EN_Pin 
-                          |MOTOR4_DIR_Pin|LED2_EN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOG, PRESS_VDD_EN_Pin | I2C1_RESET_Pin | I2C2_RESET_Pin | MOTOR1_EN_Pin
+      | PRESS6_EN_Pin | LED3_EN_Pin | ALARM1_HIGH_Pin | PRESSX_EN_Pin
+      | MOTOR4_DIR_Pin | LED2_EN_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : SET_PWR_ON_OFF_Pin VSYS_3V3_PGOOD_Pin VSYS_5V0_PGOOD_Pin */
-  GPIO_InitStruct.Pin = SET_PWR_ON_OFF_Pin|VSYS_3V3_PGOOD_Pin|VSYS_5V0_PGOOD_Pin;
+  /*Configure GPIO pins : SET_MANUAL_BREATH_Pin VSYS_3V3_PGOOD_Pin VSYS_5V0_PGOOD_Pin */
+  GPIO_InitStruct.Pin = SET_MANUAL_BREATH_Pin | VSYS_3V3_PGOOD_Pin | VSYS_5V0_PGOOD_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : BAT_MEAS_EN_Pin LED1_EN_Pin SET_EXTRA_Pin GPIO3_Pin 
+  /*Configure GPIO pins : BAT_MEAS_EN_Pin LED1_EN_Pin SET_LOCK_Pin GPIO3_Pin 
                            SENSE_O2_EN_Pin MOTOR2_EN_Pin PRESS1_EN_Pin MOTOR2_DIR_Pin 
                            MOTOR3_DIR_Pin MOTOR2_STEP_Pin MOTOR3_EN_Pin PRESS5_EN_Pin */
-  GPIO_InitStruct.Pin = BAT_MEAS_EN_Pin|LED1_EN_Pin|SET_EXTRA_Pin|GPIO3_Pin 
-                          |SENSE_O2_EN_Pin|MOTOR2_EN_Pin|PRESS1_EN_Pin|MOTOR2_DIR_Pin 
-                          |MOTOR3_DIR_Pin|MOTOR2_STEP_Pin|MOTOR3_EN_Pin|PRESS5_EN_Pin;
+  GPIO_InitStruct.Pin = BAT_MEAS_EN_Pin | LED1_EN_Pin | SET_LOCK_Pin | GPIO3_Pin
+      | SENSE_O2_EN_Pin | MOTOR2_EN_Pin | PRESS1_EN_Pin | MOTOR2_DIR_Pin
+      | MOTOR3_DIR_Pin | MOTOR2_STEP_Pin | MOTOR3_EN_Pin | PRESS5_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -1358,42 +1374,42 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
 
   /*Configure GPIO pins : ALARM1_MED_Pin BUZZ1_EN_Pin */
-  GPIO_InitStruct.Pin = ALARM1_MED_Pin|BUZZ1_EN_Pin;
+  GPIO_InitStruct.Pin = ALARM1_MED_Pin | BUZZ1_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : GPIO2_Pin GPIO1_Pin LEDR_CNTRL_Pin LEDB_CNTRL_Pin */
-  GPIO_InitStruct.Pin = GPIO2_Pin|GPIO1_Pin|LEDR_CNTRL_Pin|LEDB_CNTRL_Pin;
+  /*Configure GPIO pins : GPIO2_Pin GPIO1_Pin SER_CLK_Pin SER_CLR_N_Pin */
+  GPIO_InitStruct.Pin = GPIO2_Pin | GPIO1_Pin | SER_CLK_Pin | SER_CLR_N_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LD1_Pin ALARM1_LOW_Pin ALARM2_CNTRL_Pin */
-  GPIO_InitStruct.Pin = LD1_Pin|ALARM1_LOW_Pin|ALARM2_CNTRL_Pin;
+  /*Configure GPIO pins : LD1_Pin ALARM1_LOW_Pin SER_IN_Pin */
+  GPIO_InitStruct.Pin = LD1_Pin | ALARM1_LOW_Pin | SER_IN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : SET_PWR_SRC_Pin */
-  GPIO_InitStruct.Pin = SET_PWR_SRC_Pin;
+  /*Configure GPIO pin : SET_PWR_ON_OFF_Pin */
+  GPIO_InitStruct.Pin = SET_PWR_ON_OFF_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(SET_PWR_SRC_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(SET_PWR_ON_OFF_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LTC4421_PWR_nCH1_Pin LTC4421_PWR_nCH2_Pin SET_ALARM_EN_Pin SET_LOCK_Pin */
-  GPIO_InitStruct.Pin = LTC4421_PWR_nCH1_Pin|LTC4421_PWR_nCH2_Pin|SET_ALARM_EN_Pin|SET_LOCK_Pin;
+  /*Configure GPIO pins : LTC4421_PWR_nCH1_Pin LTC4421_PWR_nCH2_Pin SET_ALARM_EN_Pin SET_100_O2_Pin */
+  GPIO_InitStruct.Pin = LTC4421_PWR_nCH1_Pin | LTC4421_PWR_nCH2_Pin | SET_ALARM_EN_Pin | SET_100_O2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : MOTOR4_STEP_Pin MOTOR1_STEP_Pin MOTOR1_DIR_Pin LEDG_CNTRL_Pin 
+  /*Configure GPIO pins : MOTOR4_STEP_Pin MOTOR1_STEP_Pin MOTOR1_DIR_Pin SER_RCLK_Pin 
                            LTC4421_PWR_nDISABLE1_Pin LTC4421_PWR_nDISABLE2_Pin */
-  GPIO_InitStruct.Pin = MOTOR4_STEP_Pin|MOTOR1_STEP_Pin|MOTOR1_DIR_Pin|LEDG_CNTRL_Pin 
-                          |LTC4421_PWR_nDISABLE1_Pin|LTC4421_PWR_nDISABLE2_Pin;
+  GPIO_InitStruct.Pin = MOTOR4_STEP_Pin | MOTOR1_STEP_Pin | MOTOR1_DIR_Pin | SER_RCLK_Pin
+      | LTC4421_PWR_nDISABLE1_Pin | LTC4421_PWR_nDISABLE2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -1402,9 +1418,9 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pins : PRESS_VDD_EN_Pin I2C1_RESET_Pin I2C2_RESET_Pin MOTOR1_EN_Pin 
                            PRESS6_EN_Pin LED3_EN_Pin ALARM1_HIGH_Pin PRESSX_EN_Pin 
                            MOTOR4_DIR_Pin LED2_EN_Pin */
-  GPIO_InitStruct.Pin = PRESS_VDD_EN_Pin|I2C1_RESET_Pin|I2C2_RESET_Pin|MOTOR1_EN_Pin 
-                          |PRESS6_EN_Pin|LED3_EN_Pin|ALARM1_HIGH_Pin|PRESSX_EN_Pin 
-                          |MOTOR4_DIR_Pin|LED2_EN_Pin;
+  GPIO_InitStruct.Pin = PRESS_VDD_EN_Pin | I2C1_RESET_Pin | I2C2_RESET_Pin | MOTOR1_EN_Pin
+      | PRESS6_EN_Pin | LED3_EN_Pin | ALARM1_HIGH_Pin | PRESSX_EN_Pin
+      |MOTOR4_DIR_Pin|LED2_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

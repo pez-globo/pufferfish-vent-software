@@ -7,11 +7,10 @@
  *      Author: March Boonyapaluk
  */
 
-#include "Pufferfish/Driver/Indicators/ShiftRegister.h"
+#include "Pufferfish/Driver/ShiftRegister.h"
 
 namespace Pufferfish {
 namespace Driver {
-namespace Indicators {
 
 void ShiftRegister::setChannel(uint8_t chan, bool out) {
   if (out) {
@@ -54,6 +53,5 @@ void ShiftRegister::clear() {
   mSerialClear.write(false);
 }
 
-}  // namespace Indicators
 }  // namespace HAL
 }  // namespace Pufferfish

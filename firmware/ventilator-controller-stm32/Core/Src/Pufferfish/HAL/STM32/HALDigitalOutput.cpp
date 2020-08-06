@@ -10,7 +10,11 @@ namespace Pufferfish {
 namespace HAL {
 
 void HALDigitalOutput::write(bool output) {
-  HAL_GPIO_WritePin(&mPort, mPin, output ? GPIO_PIN_SET : GPIO_PIN_RESET);
+  if (mInverted) {
+    HAL_GPIO_WritePin(&mPort, mPin, output ? GPIO_PIN_RESET : GPIO_PIN_SET);
+  } else {
+    HAL_GPIO_WritePin(&mPort, mPin, output ? GPIO_PIN_SET : GPIO_PIN_RESET);
+  }
 }
 
 } // namespace HAL

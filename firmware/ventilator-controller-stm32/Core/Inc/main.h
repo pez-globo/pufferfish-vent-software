@@ -59,8 +59,8 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define SET_PWR_ON_OFF_Pin GPIO_PIN_2
-#define SET_PWR_ON_OFF_GPIO_Port GPIOE
+#define SET_MANUAL_BREATH_Pin GPIO_PIN_2
+#define SET_MANUAL_BREATH_GPIO_Port GPIOE
 #define VSYS_3V3_PGOOD_Pin GPIO_PIN_3
 #define VSYS_3V3_PGOOD_GPIO_Port GPIOE
 #define VSYS_5V0_PGOOD_Pin GPIO_PIN_4
@@ -99,8 +99,8 @@ void Error_Handler(void);
 #define LD1_GPIO_Port GPIOB
 #define DRIVE1_CH3_EN_Pin GPIO_PIN_1
 #define DRIVE1_CH3_EN_GPIO_Port GPIOB
-#define SET_PWR_SRC_Pin GPIO_PIN_2
-#define SET_PWR_SRC_GPIO_Port GPIOB
+#define SET_PWR_ON_OFF_Pin GPIO_PIN_2
+#define SET_PWR_ON_OFF_GPIO_Port GPIOB
 #define PRESS4_EN_Pin GPIO_PIN_11
 #define PRESS4_EN_GPIO_Port GPIOF
 #define MOTOR4_EN_Pin GPIO_PIN_12
@@ -113,8 +113,8 @@ void Error_Handler(void);
 #define LTC4421_PWR_nCH1_GPIO_Port GPIOG
 #define LTC4421_PWR_nCH2_Pin GPIO_PIN_1
 #define LTC4421_PWR_nCH2_GPIO_Port GPIOG
-#define SET_EXTRA_Pin GPIO_PIN_7
-#define SET_EXTRA_GPIO_Port GPIOE
+#define SET_LOCK_Pin GPIO_PIN_7
+#define SET_LOCK_GPIO_Port GPIOE
 #define GPIO3_Pin GPIO_PIN_8
 #define GPIO3_GPIO_Port GPIOE
 #define SENSE_O2_EN_Pin GPIO_PIN_9
@@ -133,8 +133,8 @@ void Error_Handler(void);
 #define MOTOR3_EN_GPIO_Port GPIOE
 #define ALARM1_LOW_Pin GPIO_PIN_13
 #define ALARM1_LOW_GPIO_Port GPIOB
-#define ALARM2_CNTRL_Pin GPIO_PIN_14
-#define ALARM2_CNTRL_GPIO_Port GPIOB
+#define SER_IN_Pin GPIO_PIN_14
+#define SER_IN_GPIO_Port GPIOB
 #define DRIVE2_CH7_EN_Pin GPIO_PIN_15
 #define DRIVE2_CH7_EN_GPIO_Port GPIOB
 #define STLINK_RX_Pin GPIO_PIN_8
@@ -153,8 +153,8 @@ void Error_Handler(void);
 #define DRIVE2_CH2_EN_GPIO_Port GPIOD
 #define SET_ALARM_EN_Pin GPIO_PIN_2
 #define SET_ALARM_EN_GPIO_Port GPIOG
-#define SET_LOCK_Pin GPIO_PIN_3
-#define SET_LOCK_GPIO_Port GPIOG
+#define SET_100_O2_Pin GPIO_PIN_3
+#define SET_100_O2_GPIO_Port GPIOG
 #define PRESS_VDD_EN_Pin GPIO_PIN_4
 #define PRESS_VDD_EN_GPIO_Port GPIOG
 #define I2C1_RESET_Pin GPIO_PIN_5
@@ -183,16 +183,16 @@ void Error_Handler(void);
 #define CPU_UART_RTS_GPIO_Port GPIOA
 #define BUZZ1_EN_Pin GPIO_PIN_15
 #define BUZZ1_EN_GPIO_Port GPIOA
-#define LEDR_CNTRL_Pin GPIO_PIN_10
-#define LEDR_CNTRL_GPIO_Port GPIOC
-#define LEDB_CNTRL_Pin GPIO_PIN_11
-#define LEDB_CNTRL_GPIO_Port GPIOC
+#define SER_CLK_Pin GPIO_PIN_10
+#define SER_CLK_GPIO_Port GPIOC
+#define SER_CLR_N_Pin GPIO_PIN_11
+#define SER_CLR_N_GPIO_Port GPIOC
 #define MOTOR2_UART_Pin GPIO_PIN_12
 #define MOTOR2_UART_GPIO_Port GPIOC
 #define MOTOR1_UART_Pin GPIO_PIN_1
 #define MOTOR1_UART_GPIO_Port GPIOD
-#define LEDG_CNTRL_Pin GPIO_PIN_2
-#define LEDG_CNTRL_GPIO_Port GPIOD
+#define SER_RCLK_Pin GPIO_PIN_2
+#define SER_RCLK_GPIO_Port GPIOD
 #define LTC4421_PWR_nVALID1_Pin GPIO_PIN_4
 #define LTC4421_PWR_nVALID1_GPIO_Port GPIOD
 #define LTC4421_PWR_nVALID2_Pin GPIO_PIN_5

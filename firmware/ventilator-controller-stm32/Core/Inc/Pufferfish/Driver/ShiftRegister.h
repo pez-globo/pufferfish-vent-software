@@ -13,7 +13,6 @@
 
 namespace Pufferfish {
 namespace Driver {
-namespace Indicators {
 
 class ShiftRegister {
  public:
@@ -42,7 +41,6 @@ class ShiftRegister {
   uint8_t mOutputReg;
 };
 
-}  // namespace Indicators
 }  // namespace Driver
 }  // namespace Pufferfish
 

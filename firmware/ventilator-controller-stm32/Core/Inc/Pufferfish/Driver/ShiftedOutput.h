@@ -12,7 +12,6 @@
 
 namespace Pufferfish {
 namespace Driver {
-namespace Indicators {
 
 /**
  * Represents an output in shift register
@@ -27,6 +26,5 @@ class ShiftedOutput : public HAL::DigitalOutput {
   const uint8_t mChannel;
 };
 
-}  // namespace Indicators
 }  // namespace Driver
 }  // namespace Pufferfish

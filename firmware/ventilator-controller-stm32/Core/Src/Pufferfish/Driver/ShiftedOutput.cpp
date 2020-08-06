@@ -5,17 +5,15 @@
  *      Author: March Boonyapaluk
  */
 
-#include "Pufferfish/Driver/Indicators/ShiftedOutput.h"
+#include "Pufferfish/Driver/ShiftedOutput.h"
 
 namespace Pufferfish {
 namespace Driver {
-namespace Indicators {
 
 void ShiftedOutput::write(bool output) {
   mDev.setChannel(mChannel, output);
 }
 
-}  // namespace Indicators
 }  // namespace HAL
 }  // namespace Pufferfish
 
