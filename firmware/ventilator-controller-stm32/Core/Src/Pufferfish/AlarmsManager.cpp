@@ -11,7 +11,7 @@
 
 namespace Pufferfish {
 
-AlarmManagerStatus Pufferfish::AlarmsManager::add(AlarmStatus a) {
+AlarmManagerStatus AlarmsManager::add(AlarmStatus a) {
   int ind = static_cast<int>(a);
 
   if (ind < 0 || ind >= static_cast<int>(AlarmStatus::noAlarm)) {
@@ -24,7 +24,7 @@ AlarmManagerStatus Pufferfish::AlarmsManager::add(AlarmStatus a) {
   return AlarmManagerStatus::ok;
 }
 
-AlarmManagerStatus Pufferfish::AlarmsManager::remove(AlarmStatus a) {
+AlarmManagerStatus AlarmsManager::remove(AlarmStatus a) {
   int ind = static_cast<int>(a);
 
   if (ind < 0 || ind >= static_cast<int>(AlarmStatus::noAlarm)) {
@@ -41,7 +41,15 @@ AlarmManagerStatus Pufferfish::AlarmsManager::remove(AlarmStatus a) {
   return AlarmManagerStatus::ok;
 }
 
-AlarmManagerStatus Pufferfish::AlarmsManager::update(uint32_t currentTime) {
+void AlarmsManager::clearAll() {
+  for (int i = 0; i < static_cast<int>(AlarmStatus::noAlarm); i++) {
+    mAlarmsCnt[i] = 0;
+  }
+
+  this->updateActive();
+}
+
+AlarmManagerStatus AlarmsManager::update(uint32_t currentTime) {
   AlarmManagerStatus led_stat = mLED.update(currentTime);
   AlarmManagerStatus audi_stat = mAuditory.update(currentTime);
 
@@ -56,11 +64,11 @@ AlarmManagerStatus Pufferfish::AlarmsManager::update(uint32_t currentTime) {
   return AlarmManagerStatus::ok;
 }
 
-AlarmStatus Pufferfish::AlarmsManager::getActive() {
+AlarmStatus AlarmsManager::getActive() {
   return mActive;
 }
 
-void Pufferfish::AlarmsManager::updateActive() {
+void AlarmsManager::updateActive() {
   for (int i = 0; i < static_cast<int>(AlarmStatus::noAlarm); i++) {
     if (mAlarmsCnt[i]) {
       if (static_cast<AlarmStatus>(i) != mActive) {
@@ -73,6 +81,8 @@ void Pufferfish::AlarmsManager::updateActive() {
     }
   }
 
+  mLED.setAlarm(AlarmStatus::noAlarm);
+  mAuditory.setAlarm(AlarmStatus::noAlarm);
   mActive = AlarmStatus::noAlarm;
 }
 

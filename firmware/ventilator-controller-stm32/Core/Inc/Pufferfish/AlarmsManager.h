@@ -49,6 +49,11 @@ class AlarmsManager {
   AlarmManagerStatus remove(AlarmStatus a);
 
   /**
+   * Clears all the active alarm
+   */
+  void clearAll();
+
+  /**
    * Performs necessary updates on the alarm indicators,
    *    must be called with frequency at least 500 Hz
    * @param currentTime current system time, in ms
