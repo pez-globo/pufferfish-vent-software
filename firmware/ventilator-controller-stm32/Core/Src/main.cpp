@@ -80,6 +80,9 @@ UART_HandleTypeDef huart3;
 /* USER CODE BEGIN PV */
 namespace PF = Pufferfish;
 
+/* Create an object for ADC3 of AnalogInput Class */
+PF::HAL::AnalogInput ADC3Input(&hadc3, ADC_POLL_TIMEOUT);
+
 PF::HAL::DigitalOutput boardLed1(*LD1_GPIO_Port, LD1_Pin);
 
 PF::HAL::DigitalOutput alarmLedR(*LEDR_CNTRL_GPIO_Port, LEDR_CNTRL_Pin);
@@ -201,7 +204,13 @@ static void MX_TIM12_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+  
+  /* 
+   * FIXME: Added for testing 
+   * Local variable to read ADC3 input
+   */
+  uint32_t ADC3Data;
+  
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -242,6 +251,10 @@ int main(void)
   MX_TIM12_Init();
   /* USER CODE BEGIN 2 */
   PF::HAL::microsDelayInit();
+
+  /* Start the ADC3 by invoking AnalogInput::Start() */
+  ADC3Input.Start();
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -263,6 +276,19 @@ int main(void)
     PF::HAL::delay(500);
 
     /* USER CODE END WHILE */
+
+    /* 
+     * FIXME: Added for testing 
+     * Read the Analog data of ADC3 and validate the return value
+     */
+    if (ADC3Input.read(&ADC3Data) != HAL_OK)
+    {
+      /* Error Handle */
+    }
+    else
+    {
+      /* Else statements*/
+    }
 
     /* USER CODE BEGIN 3 */
   }
@@ -365,6 +391,7 @@ static void MX_ADC3_Init(void)
 
   /* USER CODE END ADC3_Init 0 */
 
+  ADC_AnalogWDGConfTypeDef AnalogWDGConfig = {0};
   ADC_ChannelConfTypeDef sConfig = {0};
 
   /* USER CODE BEGIN ADC3_Init 1 */
@@ -378,7 +405,7 @@ static void MX_ADC3_Init(void)
   hadc3.Init.ScanConvMode = ADC_SCAN_DISABLE;
   hadc3.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
   hadc3.Init.LowPowerAutoWait = DISABLE;
-  hadc3.Init.ContinuousConvMode = DISABLE;
+  hadc3.Init.ContinuousConvMode = ENABLE;
   hadc3.Init.NbrOfConversion = 1;
   hadc3.Init.DiscontinuousConvMode = DISABLE;
   hadc3.Init.ExternalTrigConv = ADC_SOFTWARE_START;
@@ -388,6 +415,14 @@ static void MX_ADC3_Init(void)
   hadc3.Init.LeftBitShift = ADC_LEFTBITSHIFT_NONE;
   hadc3.Init.OversamplingMode = DISABLE;
   if (HAL_ADC_Init(&hadc3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  AnalogWDGConfig.WatchdogNumber = ADC_ANALOGWATCHDOG_3;
+  AnalogWDGConfig.ITMode = DISABLE;
+  AnalogWDGConfig.HighThreshold = 3;
+  AnalogWDGConfig.LowThreshold = 1;
+  if (HAL_ADC_AnalogWDGConfig(&hadc3, &AnalogWDGConfig) != HAL_OK)
   {
     Error_Handler();
   }
