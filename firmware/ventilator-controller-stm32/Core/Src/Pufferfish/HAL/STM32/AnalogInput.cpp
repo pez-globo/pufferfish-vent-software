@@ -10,15 +10,15 @@ namespace Pufferfish {
 namespace HAL {
 
 /**
-  * @brief Invokes HAL_ADC_Start of Adc_Input
-  * @param None
-  * @retval HAL_StatusTypeDef returns HAL_BUSY/HAL_ERROR/HAL_OK
-  */
-HAL_StatusTypeDef AnalogInput::Start() {
+ * @brief Calls HAL_ADC_Start
+ * @param  None
+ * @return ADCStatus returns error/ok/busy
+ */
+ADCStatus AnalogInput::start() {
   /*
    * return HAL_ADC_Start
    */
-  return HAL_ADC_Start(AdcInput);
+  return static_cast<ADCStatus>(HAL_ADC_Start(&AdcInput));
 
 }
 
@@ -27,29 +27,26 @@ HAL_StatusTypeDef AnalogInput::Start() {
   *         for the polling conversion of read data.
   * @brief  Invokes HAL_ADC_GetValue to read data of Adc_Input
   * @param  AnalogDataRead, Out parameter returns the read data
-  * @retval HAL_StatusTypeDef returns HAL_TIMEOUT/HAL_ERROR/HAL_OK
+  * @retval ADCStatus returns error/ok/timeout
   */
-HAL_StatusTypeDef AnalogInput::read(uint32_t* AnalogDataRead) {
+ADCStatus AnalogInput::read(uint32_t &AnalogDataRead) {
 
   /* */
-  HAL_StatusTypeDef tmp_pollCvrRtn {HAL_OK};
+  ADCStatus tmp_pollCvrRtn = ADCStatus::ok;
 
   /**
     * @brief  Polling conversion of ADC3, based on EOCSelection
-    * @param  Adc_Input and Timeout
-    * @return HAL_StatusTypeDef returns HAL_ERROR/HAL_TIMEOUT/HAL_OK
     */
-  tmp_pollCvrRtn = HAL_ADC_PollForConversion(AdcInput, Timeout);
+  tmp_pollCvrRtn = static_cast<ADCStatus>(HAL_ADC_PollForConversion(&AdcInput, Timeout));
 
   /* Check for the return value of HAL_ADC_PollForConversion */
-  if (tmp_pollCvrRtn == HAL_OK)
+  if (tmp_pollCvrRtn == ADCStatus::ok)
   {
     /**
       * @brief  invoking HAL_ADC_GetValue to read analog data
-      * @param  Adc_Input
-      * @retval AnalogDataRead, returns 4 bytes of analog read data
+      *         returns analog read data of 4 bytes
       */
-    *AnalogDataRead = HAL_ADC_GetValue(AdcInput);
+    AnalogDataRead = HAL_ADC_GetValue(&AdcInput);
   }
   else
   {
@@ -63,13 +60,13 @@ HAL_StatusTypeDef AnalogInput::read(uint32_t* AnalogDataRead) {
 /**
   * @brief Invokes HAL_ADC_Stop of Adc_Input
   * @param None
-  * @retval HAL_StatusTypeDef returns HAL_BUSY/HAL_ERROR/HAL_OK
+  * @retval ADCStatus returns error/ok
   */
-HAL_StatusTypeDef AnalogInput::Stop() {
+ADCStatus AnalogInput::stop() {
   /*
    * return HAL_ADC_Stop
    */
-  return HAL_ADC_Stop(AdcInput);
+  return static_cast<ADCStatus>(HAL_ADC_Stop(&AdcInput));
 }
 
 } // namespace HAL

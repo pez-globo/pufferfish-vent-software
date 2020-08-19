@@ -36,6 +36,7 @@
 #include "Pufferfish/Driver/I2C/SDP.h"
 #include "Pufferfish/Driver/I2C/SFM3000.h"
 #include "Pufferfish/Driver/I2C/TCA9548A.h"
+#include "Pufferfish/Statuses.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -78,10 +79,14 @@ UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
+
+/* Timeout for the Adc poll conversion */
+static const uint32_t adcPollTimeout = 10;
+
 namespace PF = Pufferfish;
 
 /* Create an object for ADC3 of AnalogInput Class */
-PF::HAL::AnalogInput ADC3Input(&hadc3, ADC_POLL_TIMEOUT);
+PF::HAL::AnalogInput ADC3Input(hadc3, adcPollTimeout);
 
 PF::HAL::DigitalOutput boardLed1(*LD1_GPIO_Port, LD1_Pin);
 
@@ -253,7 +258,7 @@ int main(void)
   PF::HAL::microsDelayInit();
 
   /* Start the ADC3 by invoking AnalogInput::Start() */
-  ADC3Input.Start();
+  ADC3Input.start();
 
   /* USER CODE END 2 */
 
@@ -281,7 +286,7 @@ int main(void)
      * FIXME: Added for testing 
      * Read the Analog data of ADC3 and validate the return value
      */
-    if (ADC3Input.read(&ADC3Data) != HAL_OK)
+    if (ADC3Input.read(ADC3Data) != PF::ADCStatus::ok)
     {
       /* Error Handle */
     }
@@ -411,7 +416,7 @@ static void MX_ADC3_Init(void)
   hadc3.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc3.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
   hadc3.Init.ConversionDataManagement = ADC_CONVERSIONDATA_DR;
-  hadc3.Init.Overrun = ADC_OVR_DATA_PRESERVED;
+  hadc3.Init.Overrun = ADC_OVR_DATA_OVERWRITTEN;
   hadc3.Init.LeftBitShift = ADC_LEFTBITSHIFT_NONE;
   hadc3.Init.OversamplingMode = DISABLE;
   if (HAL_ADC_Init(&hadc3) != HAL_OK)

@@ -8,11 +8,7 @@
 
 #include "stm32h7xx_hal.h"
 
-/*
- * FIXME: Need to find proper header file to define this macro
- * Defines the timeout for the Adc poll conversion timeout
- */
-#define ADC_POLL_TIMEOUT 10
+#include "Pufferfish/Statuses.h"
 
 namespace Pufferfish {
 namespace HAL {
@@ -24,35 +20,36 @@ class AnalogInput{
 
  public:
   /**
-   * Constructs a new Analog Input
+   * @brief Constructs a new Analog Input
    * @param hadc and tTimeout
    */
-  AnalogInput(ADC_HandleTypeDef *hadc, uint32_t tTimeout) : AdcInput(hadc),  Timeout(tTimeout){}
+  AnalogInput(ADC_HandleTypeDef &hadc, uint32_t tTimeout) : AdcInput(hadc),  Timeout(tTimeout){}
 
   /**
-   * Calls HAL_ADC_Start
+   * @brief Calls HAL_ADC_Start
    * @param  None
-   * @return HAL_StatusTypeDef returns HAL_ERROR/HAL_TIMEOUT/HAL_OK
+   * @return ADCStatus returns error/ok/busy
    */
-  HAL_StatusTypeDef Start();
+  ADCStatus start();
 
   /**
-   * Reads a Analog conversion data
+   * @brief Reads a Analog conversion data
    * @param  AnalogDataRead, Out parameter returns the read data
-   * @return HAL_StatusTypeDef returns HAL_ERROR/HAL_TIMEOUT/HAL_OK
+   * @return ADCStatus returns error/ok/timeout
    */
-  HAL_StatusTypeDef read(uint32_t* AnalogDataRead);
+  ADCStatus read(uint32_t &AnalogDataRead);
 
   /**
    * Calls HAL_ADC_Stop
    * @param  None
-   * @return HAL_StatusTypeDef returns HAL_ERROR/HAL_TIMEOUT/HAL_OK
+   * @return ADCStatus returns error/ok
    */
-  HAL_StatusTypeDef Stop();
+  ADCStatus stop();
 
  private:
-  ADC_HandleTypeDef *AdcInput {nullptr};
-  uint32_t Timeout {0};
+  ADC_HandleTypeDef &AdcInput;
+  uint32_t Timeout = 0;
+
 };
 
 } // namespace HAL
