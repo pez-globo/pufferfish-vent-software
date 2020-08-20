@@ -60,16 +60,8 @@ enum class PWMStatus {
  */
 enum class SPIDeviceStatus {
   ok = 0, /// success
-  notSupported, /// the operation is not supported
   writeError, /// an error occur when writing to an SPI device
   readError, /// an error occur when reading from an SPI device
-  invalidArguments, /// invalid input to the function
-  crcCheckFailed, /// The CRC code received is inconsistent
-  invalidExtSlot, /// The MUX slot of ExtendedSPIDevice is invalid
-  testFailed, /// unit tests are failing
-  noNewData /// no new data is received from the sensor
 };
-
-
 
 }  // namespace Pufferfish
