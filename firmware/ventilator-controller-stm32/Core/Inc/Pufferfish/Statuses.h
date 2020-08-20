@@ -60,9 +60,7 @@ enum class PWMStatus {
   */
 enum class ADCStatus {
   ok = 0,
-  error,
-  busy,
-  timeout
+  error
 };
 
 }  // namespace Pufferfish
