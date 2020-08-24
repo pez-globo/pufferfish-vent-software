@@ -17,3 +17,6 @@
 #include "Pufferfish/HAL/STM32/HALI2CDevice.h"
 #include "Pufferfish/HAL/STM32/Time.h"
 #include "Pufferfish/HAL/STM32/PWM.h"
+
+#include "Pufferfish/HAL/Mock/MockDigitalInput.h"
+#include "Pufferfish/HAL/Mock/MockDigitalOutput.h"
