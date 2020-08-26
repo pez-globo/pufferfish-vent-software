@@ -11,14 +11,12 @@ namespace HAL {
 
 bool MockDigitalInput::read() {
 
+  /* return lastInput, set during the setRead */
   return lastInput;
-
-  /*
-  return HAL_GPIO_ReadPin(&mPort, mPin) == GPIO_PIN_SET;
-  */
 }
 
 void MockDigitalInput::setRead(bool setting){
+  /* Update the lastInput with input setting value */
   lastInput = setting;
 }
 

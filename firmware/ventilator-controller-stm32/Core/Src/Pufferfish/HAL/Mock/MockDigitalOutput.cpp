@@ -11,11 +11,13 @@ namespace HAL {
 
 void MockDigitalOutput::write(bool output) {
 
+  /* Update the lastOutput with parameter output value */
   lastOutput = output;
 }
 
 bool MockDigitalOutput::getWrite() {
 
+  /* return the write value, written during the write method */
   return lastOutput;
 
 }

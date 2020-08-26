@@ -7,6 +7,7 @@
 #pragma once
 
 #include "stm32h7xx_hal.h"
+#include "Pufferfish/HAL/Interfaces/DigitalInput.h"
 
 namespace Pufferfish {
 namespace HAL {
@@ -14,14 +15,14 @@ namespace HAL {
 /**
  * Represents a GPIO input in STM32
  */
-class DigitalInput {
+class HALDigitalInput : public DigitalInput {
  public:
   /**
-   * Constructs a new Digital Input
+   * Constructs a new HALDigitalInput
    * @param m_port  GPIO port of the MCU (A, B, ...)
    * @param m_pin   GPIO pin of the MCU (1, 2, ...)
    */
-  DigitalInput(GPIO_TypeDef &m_port, const uint16_t m_pin) : mPort(m_port), mPin(m_pin) {}
+  HALDigitalInput(GPIO_TypeDef &m_port, const uint16_t m_pin) : mPort(m_port), mPin(m_pin) {}
 
   /**
    * Reads a digital input from the GPIO pin

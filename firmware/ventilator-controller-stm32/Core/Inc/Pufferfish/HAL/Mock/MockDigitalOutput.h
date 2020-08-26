@@ -7,6 +7,7 @@
 #pragma once
 
 #include "stm32h7xx_hal.h"
+#include "Pufferfish/HAL/Interfaces/DigitalOutput.h"
 
 namespace Pufferfish {
 namespace HAL {
@@ -14,14 +15,13 @@ namespace HAL {
 /**
  * Represents a GPIO output in STM32, for mock functional testing
  */
-class MockDigitalOutput{
+class MockDigitalOutput : public DigitalOutput{
  public:
   /**
    * Constructs a new DigitalOutput
-   * @param m_port
-   * @param m_pin
+   * @param None
    */
-  MockDigitalOutput(GPIO_TypeDef &m_port, const uint16_t m_pin) : mPort(m_port), mPin(m_pin) {
+  MockDigitalOutput(){
 
   }
 
@@ -29,7 +29,7 @@ class MockDigitalOutput{
    * Writes a digital output to the GPIO pin,
    * @param set the output value to lastOutput
    */
-  void write(bool output);
+  void write(bool output) override;
 
   /**
    * Test method to get value passed on write method
@@ -37,10 +37,6 @@ class MockDigitalOutput{
   bool getWrite();
 
  private:
-
-  GPIO_TypeDef &mPort;
-
-  uint16_t const mPin;
 
   bool lastOutput;
 };

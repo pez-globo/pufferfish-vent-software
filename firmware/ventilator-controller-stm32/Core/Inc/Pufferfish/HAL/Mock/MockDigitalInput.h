@@ -7,6 +7,7 @@
 #pragma once
 
 #include "stm32h7xx_hal.h"
+#include "Pufferfish/HAL/Interfaces/DigitalInput.h"
 
 namespace Pufferfish {
 namespace HAL {
@@ -14,31 +15,30 @@ namespace HAL {
 /**
  * Represents a GPIO input in STM32
  */
-class MockDigitalInput{
+class MockDigitalInput : public DigitalInput{
  public:
   /**
    * Constructs a new Digital Input
-   * @param m_port
-   * @param m_pin
+   * @param None
    */
-  MockDigitalInput(GPIO_TypeDef &m_port, const uint16_t m_pin) : mPort(m_port), mPin(m_pin) {}
+  MockDigitalInput(){
+
+  }
 
   /**
    * Reads a digital input from the GPIO pin
-   * @return true/false based on the value set on setRead
+   * @return TRUE/FALSE based on the value set on setRead
    */
-  bool read();
+  bool read() override;
 
   /*
-   * Test method to set value to be returned by the read method
+   * @brief  Test method to set value to be returned by the read method
+   * @param  setting - Set TRUE/FASLE to read
    * @return None
    */
   void setRead(bool setting);
 
  private:
-  GPIO_TypeDef &mPort;
-
-  uint16_t const mPin;
 
   bool lastInput = 0;
 };
