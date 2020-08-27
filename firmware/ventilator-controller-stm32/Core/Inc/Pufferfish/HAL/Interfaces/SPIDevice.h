@@ -35,6 +35,16 @@ class SPIDevice {
    * @return ok on success, error code otherwise
    */
   virtual SPIDeviceStatus write(uint8_t *buf, size_t count) = 0;
+  
+  /**
+   * Write and Read data to and from the device
+   * @param txBuf pointer to transmission data buffer
+   * @param rxBuf pointer to reception data buffer
+   * @param count amount of data to be sent and received
+   * @return ok on success
+   */
+  
+  virtual SPIDeviceStatus writeread(uint8_t *txBuf, uint8_t *rxBuf, size_t count) = 0;
 };
 
 }  // namespace HAL
