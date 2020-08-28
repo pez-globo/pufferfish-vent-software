@@ -96,20 +96,20 @@ PF::Driver::Indicators::AuditoryAlarm alarmDevSound(alarmRegHigh, alarmRegMed, a
 PF::AlarmsManager hAlarms(alarmDevLed, alarmDevSound);
 
 // Solenoid Valves
-PF::HAL::PWM drive1_ch1(htim2, TIM_CHANNEL_4);
-PF::HAL::PWM drive1_ch2(htim2, TIM_CHANNEL_2);
-PF::HAL::PWM drive1_ch3(htim3, TIM_CHANNEL_4);
-PF::HAL::PWM drive1_ch4(htim3, TIM_CHANNEL_1);
-PF::HAL::PWM drive1_ch5(htim3, TIM_CHANNEL_2);
-PF::HAL::PWM drive1_ch6(htim3, TIM_CHANNEL_3);
-PF::HAL::PWM drive1_ch7(htim4, TIM_CHANNEL_2);
-PF::HAL::PWM drive2_ch1(htim4, TIM_CHANNEL_3);
-PF::HAL::PWM drive2_ch2(htim4, TIM_CHANNEL_4);
-PF::HAL::PWM drive2_ch3(htim5, TIM_CHANNEL_1);
-PF::HAL::PWM drive2_ch4(htim8, TIM_CHANNEL_1);
-PF::HAL::PWM drive2_ch5(htim8, TIM_CHANNEL_2);
-PF::HAL::PWM drive2_ch6(htim8, TIM_CHANNEL_4);
-PF::HAL::PWM drive2_ch7(htim12, TIM_CHANNEL_2);
+PF::HAL::HALPWM drive1_ch1(htim2, TIM_CHANNEL_4);
+PF::HAL::HALPWM drive1_ch2(htim2, TIM_CHANNEL_2);
+PF::HAL::HALPWM drive1_ch3(htim3, TIM_CHANNEL_4);
+PF::HAL::HALPWM drive1_ch4(htim3, TIM_CHANNEL_1);
+PF::HAL::HALPWM drive1_ch5(htim3, TIM_CHANNEL_2);
+PF::HAL::HALPWM drive1_ch6(htim3, TIM_CHANNEL_3);
+PF::HAL::HALPWM drive1_ch7(htim4, TIM_CHANNEL_2);
+PF::HAL::HALPWM drive2_ch1(htim4, TIM_CHANNEL_3);
+PF::HAL::HALPWM drive2_ch2(htim4, TIM_CHANNEL_4);
+PF::HAL::HALPWM drive2_ch3(htim5, TIM_CHANNEL_1);
+PF::HAL::HALPWM drive2_ch4(htim8, TIM_CHANNEL_1);
+PF::HAL::HALPWM drive2_ch5(htim8, TIM_CHANNEL_2);
+PF::HAL::HALPWM drive2_ch6(htim8, TIM_CHANNEL_4);
+PF::HAL::HALPWM drive2_ch7(htim12, TIM_CHANNEL_2);
 
 // Base I2C Devices
 PF::HAL::HALI2CDevice i2c_hal_mux1(hi2c1, PF::Driver::I2C::TCA9548A::defaultI2CAddr);

@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "Pufferfish/HAL/STM32/HALPWM.h"
 #include "Pufferfish/HAL/Interfaces/I2CDevice.h"
 #include "Pufferfish/HAL/CRC.h"
 
@@ -16,7 +17,5 @@
 #include "Pufferfish/HAL/STM32/Endian.h"
 #include "Pufferfish/HAL/STM32/HALI2CDevice.h"
 #include "Pufferfish/HAL/STM32/Time.h"
-#include "Pufferfish/HAL/STM32/PWM.h"
-
 #include "Pufferfish/HAL/Mock/MockDigitalInput.h"
 #include "Pufferfish/HAL/Mock/MockDigitalOutput.h"
