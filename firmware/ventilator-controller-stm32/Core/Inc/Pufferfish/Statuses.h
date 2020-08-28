@@ -62,6 +62,8 @@ enum class SPIDeviceStatus {
   ok = 0, /// success
   writeError, /// an error occur when writing to an SPI device
   readError, /// an error occur when reading from an SPI device
+  busy, /// when SPI device is not ready
+  error, /// fail
 };
 
 }  // namespace Pufferfish

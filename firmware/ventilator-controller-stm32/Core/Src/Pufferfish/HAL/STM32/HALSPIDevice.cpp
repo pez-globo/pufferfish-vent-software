@@ -35,15 +35,16 @@ SPIDeviceStatus HALSPIDevice::write(uint8_t *buf, size_t count) {
   }
 }
 
-SPIDeviceStatus HALSPIDevice::writeread(uint8_t *txBuf, uint8_t *rxBuf, size_t count) {
+SPIDeviceStatus HALSPIDevice::writeRead(uint8_t *txBuf, uint8_t *rxBuf, size_t count) {
 
   HAL_StatusTypeDef stat = HAL_SPI_TransmitReceive(
       &mDev, txBuf, rxBuf, count, HALSPIDevice::DefaultTimeout);
   if (stat == HAL_OK){
     return SPIDeviceStatus::ok;
-  }
-  else {
-	return SPIDeviceStatus::noNewData;
+  } else if(stat == HAL_BUSY) {
+    return SPIDeviceStatus::busy;
+  } else{
+    return SPIDeviceStatus::error;
   }
 
 }

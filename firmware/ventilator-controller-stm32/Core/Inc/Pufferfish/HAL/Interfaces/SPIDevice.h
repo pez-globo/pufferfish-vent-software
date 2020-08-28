@@ -44,7 +44,7 @@ class SPIDevice {
    * @return ok on success
    */
   
-  virtual SPIDeviceStatus writeread(uint8_t *txBuf, uint8_t *rxBuf, size_t count) = 0;
+  virtual SPIDeviceStatus writeRead(uint8_t *txBuf, uint8_t *rxBuf, size_t count) = 0;
 };
 
 }  // namespace HAL

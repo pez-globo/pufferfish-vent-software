@@ -54,7 +54,7 @@ class HALSPIDevice : public SPIDevice {
      * @param count amount of data to be sent and received
      * @return ok on success
      */
-  SPIDeviceStatus writeread(uint8_t *txBuf, uint8_t *rxBuf, size_t count) override;
+  SPIDeviceStatus writeRead(uint8_t *txBuf, uint8_t *rxBuf, size_t count) override;
 
   /**
      * To make the chip select as high or low
