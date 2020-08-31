@@ -103,51 +103,46 @@ SPIDeviceStatus SPIFlash::eraseBlock32KB(uint32_t addr){
   uint8_t txbuf[4] = {0};
   txbuf[0]= blockErase32KBInstruction;
 
-  SPIDeviceStatus protectStatus = this->readBlockProtectStatus();
-  SPIDeviceStatus blockStatus = this->unLockBlock(addr);
-  if(protectStatus == SPIDeviceStatus::blockNotProtect
-      && blockStatus == SPIDeviceStatus::blockUnLock ){
-       this->enableWrite();
-       for (uint8_t index = 1; index<=3 ; index++){
+  SPIDeviceStatus blockStatus = this->readBlockLockStatus(addr);
+  if(blockStatus == SPIDeviceStatus::blockUnLock ){
+     this->enableWrite();
+      for (uint8_t index = 1; index<=3 ; index++){
          txbuf[index] = (addr >> (8 * (3-index))) & 0xFF;
        }
 
-       SPIDeviceStatus stat = mSpi.write(txbuf, 4);
-       this->disableWrite();
-       if (stat == SPIDeviceStatus::ok) {
+      SPIDeviceStatus stat = mSpi.write(txbuf, 4);
+      this->disableWrite();
+      if (stat == SPIDeviceStatus::ok) {
          return SPIDeviceStatus::ok;
-       } else {
+      } else {
          return SPIDeviceStatus::writeError;
-       }
-  } else {
-    return SPIDeviceStatus::blockProtect;
+      }
+   } else {
+    return SPIDeviceStatus::blockLock;
   }
-
 }
 
 SPIDeviceStatus SPIFlash::eraseBlock64KB(uint32_t addr){
   uint8_t txbuf[4] = {0};
   txbuf[0]= blockErase64KBInstruction;
 
-  SPIDeviceStatus protectStatus = this->readBlockProtectStatus();
-  SPIDeviceStatus blockStatus = this->unLockBlock(addr);
-  if(protectStatus == SPIDeviceStatus::blockNotProtect
-      && blockStatus == SPIDeviceStatus::blockUnLock ){
-       this->enableWrite();
-       for (uint8_t index = 1; index<=3 ; index++){
-           txbuf[index] = (addr >> (8 * (3-index))) & 0xFF;
-       }
+  SPIDeviceStatus blockStatus = this->readBlockLockStatus(addr);
+  if(blockStatus == SPIDeviceStatus::blockUnLock){
+     this->enableWrite();
+     for (uint8_t index = 1; index<=3 ; index++){
+         txbuf[index] = (addr >> (8 * (3-index))) & 0xFF;
+     }
 
-       SPIDeviceStatus stat = mSpi.write(txbuf, 4);
-       this->disableWrite();
-       if (stat == SPIDeviceStatus::ok) {
-         return SPIDeviceStatus::ok;
-       } else {
-         return SPIDeviceStatus::writeError;
-       }
- } else {
-   return SPIDeviceStatus::blockProtect;
- }
+     SPIDeviceStatus stat = mSpi.write(txbuf, 4);
+     this->disableWrite();
+     if (stat == SPIDeviceStatus::ok) {
+       return SPIDeviceStatus::ok;
+     } else {
+       return SPIDeviceStatus::writeError;
+     }
+  } else {
+   return SPIDeviceStatus::blockLock;
+  }
 
 }
 
@@ -158,30 +153,32 @@ SPIDeviceStatus SPIFlash::writeByte(uint32_t addr, uint8_t input){
 
   SPIDeviceStatus status = this->readSpiStatus();
   if(status == SPIDeviceStatus::notbusy){
+    SPIDeviceStatus blockStatus = this->unLockBlock(addr);
+    if(blockStatus == SPIDeviceStatus::blockUnLock){
+      this->enableWrite();
+      mSpi.write(&temp, defaultsize);
 
-    this->enableWrite();
-    mSpi.write(&temp, defaultsize);
+      byteAddr = static_cast<uint8_t>(((addr&0xFF000000) >> 24) & 0xFF);
+      mSpi.write(&byteAddr, defaultsize);
 
-    byteAddr = static_cast<uint8_t>(((addr&0xFF000000) >> 24) & 0xFF);
-    mSpi.write(&byteAddr, defaultsize);
+      byteAddr = static_cast<uint8_t>(((addr&0x00FF00000) >> 16) & 0xFF);
+      mSpi.write(&byteAddr, defaultsize);
 
-    byteAddr = static_cast<uint8_t>(((addr&0x00FF00000) >> 16) & 0xFF);
-    mSpi.write(&byteAddr, defaultsize);
+      byteAddr = static_cast<uint8_t>(((addr&0x0000FF00) >> 8) & 0xFF);
+      mSpi.write(&byteAddr, defaultsize);
 
-    byteAddr = static_cast<uint8_t>(((addr&0x0000FF00) >> 8) & 0xFF);
-    mSpi.write(&byteAddr, defaultsize);
+      byteAddr = static_cast<uint8_t>((addr&0x000000FF) & 0xFF);
+      mSpi.write(&byteAddr, defaultsize);
 
-    byteAddr = static_cast<uint8_t>((addr&0x000000FF) & 0xFF);
-    mSpi.write(&byteAddr, defaultsize);
+      mSpi.write(&input, defaultsize);
 
-    mSpi.write(&input, defaultsize);
-    this->disableWrite();
-
+      this->lockBlock(addr);
+      return SPIDeviceStatus::ok;
+    } else {
+      return SPIDeviceStatus::blockLock;
+  } } else {
     return status;
-  } else {
-    return status;
-  }
-
+    }
 }
 
 SPIDeviceStatus SPIFlash::readSpiStatus(void){
@@ -302,6 +299,25 @@ SPIDeviceStatus SPIFlash::unLockBlock(uint32_t addr){
     ret = SPIDeviceStatus::busy;
   }
     return ret;
+}
+
+SPIDeviceStatus SPIFlash::readBlockLockStatus(uint32_t addr){
+  uint8_t txbuf[4] = {0};
+  uint8_t rxbuf[1] = {0};
+  uint8_t  defaultsize = 1;
+
+  txbuf[0]= readBlockStatusInstruction;
+  for (uint8_t index = 1; index<=3 ; index++){
+    txbuf[index] = (addr >> (8 * (3-index))) & 0xFF;
+  }
+
+  mSpi.writeRead(txbuf, rxbuf, defaultsize);
+  if(((*rxbuf) & 0x01) == 1){
+    return SPIDeviceStatus::blockLock;
+  } else {
+    return SPIDeviceStatus::blockUnLock;
+  }
+
 }
 
 

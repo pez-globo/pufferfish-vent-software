@@ -126,6 +126,13 @@ public:
      */
    SPIDeviceStatus unLockBlock(uint32_t addr);
 
+   /** read the block status
+     *
+     * @param addr address of the block
+     * @return lockBlock on success, lockUnBlock otherwise
+     */
+   SPIDeviceStatus readBlockLockStatus(uint32_t addr);
+
 private:
    HAL::SPIDevice &mSpi;
    static const uint8_t deviceIdInstruction =0x90;
@@ -143,6 +150,7 @@ private:
    static const uint8_t writeProtectSelection =0x04;
    static const uint8_t lockBlockInstruction =0x36;
    static const uint8_t unlockBlockInstruction =0x39;
+   static const uint8_t readBlockStatusInstruction =0x3D;
 };
 
 }  // namespace SPI
