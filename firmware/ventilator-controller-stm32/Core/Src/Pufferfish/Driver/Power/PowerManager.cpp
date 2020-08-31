@@ -10,120 +10,111 @@ namespace Pufferfish {
 namespace Driver {
 namespace Power {
 
-/*
- *  FIXME: Required to optimize code
- */
-PwrSource LTC4421::readPwrSource(void)
+
+PowerAvialability LTC4421::checkInputPower()
 {
-  if(( mLTC4421Input.regCh1.read() != true) && ( mExtPwrFault == false )  )
+    PowerAvialability powerSource;
+    if(mRegCh1.read() != true ){
+      powerSource.wall_outlet_power = true;
+    }else{
+      powerSource.wall_outlet_power = false;
+    }
+    if(mRegCh2.read() != true ){
+      powerSource.internal_battery_power = true;
+    }else{
+      powerSource.internal_battery_power = false;
+    }
+return powerSource;
+}
+
+PowerFaultStatus  LTC4421::checkInputPowerFaults()
+{
+  PowerAvialability inputPowerSource;
+  inputPowerSource = this->checkInputPower();
+  if( (inputPowerSource.wall_outlet_power != true)
+        && (inputPowerSource.internal_battery_power != true) ){
+    currentFaultStatus.BatteryDisableFault = true;
+  }else
   {
-    if(mLTC4421Input.regFault1.read() != true ){
-      mLTC4421Input.regDisable1.write(false);
-      mExtPwrFault = true;
-      /*
-       * FIXME: Required timer for cool down the cycle
-       */
-      //AVINTBD
-      return PwrSource::external12vPwr;
+    currentFaultStatus.BatteryDisableFault = false;
+    if( mRegFault1.read() != true){
+      currentFaultStatus.externalPowerFault = true;
+    }else{
+      currentFaultStatus.externalPowerFault = false;
     }
-    else
-    {
-      if(mLTC4421Input.regValid1.read() != true)
-      {
-        mLTC4421Input.regPgood3V3.write(true);
-        mLTC4421Input.regPgood5V0.write(true);
-        mExtPwr = true;
-        mIntPwr = false;
-        mExtPwrFault = false;
-        return PwrSource::external12vPwr;
-      }
-      else
-      {
-        mLTC4421Input.regPgood3V3.write(false);
-        mLTC4421Input.regPgood5V0.write(false);
-        mExtPgoodFault = true;
-        //AVINTBD
-        return PwrSource::noPwr;
-      }
-    }
+    if( mRegFault2.read() != true){
+      currentFaultStatus.internalPowerFault = true;
+     }else{
+       currentFaultStatus.internalPowerFault = false;
+     }
   }
-  else if( (mLTC4421Input.regCh2.read() != true) && ( mIntPwrFault == false )  )
-  {
-    if(mLTC4421Input.regFault2.read() != true )
-    {
-      mLTC4421Input.regDisable2.write(false);
-      mIntPwrFault = true;
-      /*
-      * FIXME: Required timer for cool down the cycle
-      */
-      //AVINTBD
-      return PwrSource::internal12Vpwr;
-     }
-    else
-    {
-       if(mLTC4421Input.regValid2.read() != true)
-       {
-         mLTC4421Input.regPgood3V3.write(true);
-         mLTC4421Input.regPgood5V0.write(true);
-         mIntPwr = true;
-         mIntPgoodFault = false;
-         return PwrSource::internal12Vpwr;
-       }
-       else
-       {
-         mLTC4421Input.regPgood3V3.write(false);
-         mLTC4421Input.regPgood5V0.write(false);
-         mIntPgoodFault = true;
-         //AVINTBD
-         return PwrSource::noPwr;
-       }
-     }
-   }
-  else
-  {
-    return PwrSource::noPwr;
+  return currentFaultStatus;
+}
+
+PowerSource  LTC4421::validateInputPower()
+{
+  /* FIXME: Fault handling need to be done */
+  //currentFaultStatus = this->checkInputPowerFaults;
+  /*Check any fault on input power source */
+  if(mRegValid1.read() != true){
+    return PowerSource::external12vPower;
+  }else if(mRegValid2.read() != true){
+    return PowerSource::internal12VPower;
+  }else{
+    return PowerSource::noPower;
   }
 }
 
-/*
- * FIXME: Is it required to report multiple faults
- */
-PwrFaults LTC4421::fault()
+PowerFaultStatus LTC4421::enableOutputPower()
 {
-  if( mExtPwrFault == true ){
-    return PwrFaults::external12vPwrfault;
-  }else if( mIntPwrFault == true ){
-    return PwrFaults::internal12Vpwrfault;
-  }else if( mExtPgoodFault == true ){
-    return PwrFaults::extPgoodFault;
-  }else if (mIntPgoodFault == true ){
-    return PwrFaults::intPgoodFault;
+  PowerSource ret = this->validateInputPower();
+  if(ret != PowerSource::external12vPower){
+    mRegPgood3V3.write(true);
+    mRegPgood5V0.write(true);
+    currentFaultStatus.externalPGoodFault = false;
+  }else{
+    mRegPgood3V3.write(false);
+     mRegPgood5V0.write(false);
+    currentFaultStatus.externalPGoodFault = true;
   }
-  else{
-    return PwrFaults::noFault;
+  if(ret!= PowerSource::internal12VPower){
+    mRegPgood3V3.write(true);
+    mRegPgood5V0.write(true);
+    currentFaultStatus.internalPGoodFault = false;
+  }else{
+    mRegPgood3V3.write(false);
+    mRegPgood5V0.write(false);
+    currentFaultStatus.internalPGoodFault = true;
   }
+  return currentFaultStatus;
 }
 
-BatStatus Battery::readVoltage()
+BatStatus Battery::readBatteryStatus()
 {
+  float batteryVoltage;
   static const uint16_t adcSamples = 0;
-  static const float offset = 13.80f;
-  mRegEnMeas.write(true);
-
-  mSamples.read(VolageRawValue);
-
-  if( VolageRawValue != adcSamples )
-  {
-    batteryVoltage = static_cast<float>( ( offset * VolageRawValue ) / 65536);
+  batteryVoltage = this->readVoltage();
+  if( batteryVoltage != adcSamples ){
     return BatStatus::detected;
-  }
-  else
-  {
+  }else{
     return BatStatus::notDetected;
   }
 }
 
-void Battery::enBatteryCharge(bool &status)
+float Battery::readVoltage()
+{
+  float batteryVoltage;
+  static const float offset = 13.80f;
+
+  uint32_t VolageRawValue = 0;
+  mSamples.read(VolageRawValue);
+
+  batteryVoltage = static_cast<float>( ( offset * VolageRawValue ) / 65536);
+
+  return batteryVoltage;
+}
+
+void Battery::enableBatteryCharge(bool &status)
 {
   if(status == true){
     mRegEnCharge.write(true);
@@ -132,8 +123,11 @@ void Battery::enBatteryCharge(bool &status)
   }
 }
 
-float Battery::capacity ()
+float Battery::readCapacity ()
 {
+  static float batteryCapicity;
+  static float batteryVoltage = this->readVoltage();
+
   /* Calculate the battery voltage capacity */
   batteryCapicity = (batteryVoltage - batteryDeepDischargeVoltage) / (batteryTotalCapacityVoltage - batteryDeepDischargeVoltage);
 
@@ -143,7 +137,7 @@ float Battery::capacity ()
   return batteryCapicity;
 }
 
-BatSOCLevels Battery::socLevels()
+BatSOCLevels Battery::readSOClevels()
 {
   /// TBD: Need to identify levels based on battery soc levels
   static const float Drained = 50.0f;
@@ -151,38 +145,20 @@ BatSOCLevels Battery::socLevels()
   static const float midRange = 80.0f;
   static const float HighLimit = 100.0f;
 
-  if (batteryCapicity == Drained){
+  static float batterySocPercentage = this->readCapacity();
+
+  if (batterySocPercentage == Drained){
     return BatSOCLevels::Drained;
-  }else if (batteryCapicity < lowerLimit){
+  }else if (batterySocPercentage < lowerLimit){
     return BatSOCLevels::lowerLimit;
-  }else if ((batteryCapicity >= lowerLimit) && (batteryCapicity < midRange)){
+  }else if ((batterySocPercentage >= lowerLimit) && (batterySocPercentage < midRange)){
     return BatSOCLevels::midRange;
-  }else if ((batteryCapicity >= midRange) && (batteryCapicity < HighLimit))
+  }else if ((batterySocPercentage >= midRange) && (batterySocPercentage < HighLimit))
   {
     return BatSOCLevels::HighLimit;
   }else{
     return BatSOCLevels::MaxCharge;
   }
-}
-
-
-BatChargeStatus Battery::status()
-{
-  if(batteryVoltage == batteryTotalCapacityVoltage)
-  {
-    BatteryChargeStatus = BatChargeStatus::fullCharged;
-  }else if(batteryVoltage == batteryDeepDischargeVoltage)
-  {
-    BatteryChargeStatus = BatChargeStatus::fullDischarged;
-  }else if (lastBatteryVoltage < batteryVoltage)
-  {
-    BatteryChargeStatus = BatChargeStatus::charging;
-  }else if (lastBatteryVoltage > batteryVoltage)
-  {
-   BatteryChargeStatus = BatChargeStatus::discharging;
-  }
-
-  return BatteryChargeStatus;
 }
 
 }  // namespace Power
