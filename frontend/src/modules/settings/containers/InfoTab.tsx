@@ -28,6 +28,9 @@ const useStyles = makeStyles((theme: Theme) => ({
     },
     optionPanel: {
         padding: theme.spacing(2),
+    },
+    content: {
+        fontFamily:'sans-serif'
     }
 }))
 
@@ -76,7 +79,7 @@ export const InfoTab = ({
                             </Typography>
                         </Grid>
                         <Grid item xs>
-                            <Typography variant='h6'>
+                            <Typography variant='h5' className={classes.content}>
                                 {info.content}
                             </Typography>
                         </Grid>
@@ -88,7 +91,7 @@ export const InfoTab = ({
                     <Typography variant='h5'>Options:</Typography>
                     <br></br>
                     {options.map((option) =>
-                        <Typography align='left' variant='h5'>
+                        <Typography align='left' variant='h5' className={classes.content}>
                             {option}
                         </Typography>)
                     }

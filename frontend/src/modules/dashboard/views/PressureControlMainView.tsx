@@ -31,10 +31,6 @@ const useStyles = makeStyles((theme: Theme) => ({
         padding: theme.spacing(1),
         backgroundColor: theme.palette.background.paper,
     },
-    graph: {
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-    },
     tabs: {
         width: '100%',
         paddingTop: theme.spacing(0),
@@ -47,6 +43,9 @@ const useStyles = makeStyles((theme: Theme) => ({
         zIndex: 1,
         minHeight: 40,
     },
+
+    selectedTab:{color:theme.palette.primary.contrastText},
+
     tabIndicator: {
         borderRadius: 8,
         border: '2px solid ' + theme.palette.primary.main,
@@ -99,33 +98,43 @@ const PressureControlMainView = () => {
                     </Grid>
                 </Grid>
                 <Grid container item xs direction='column' className={classes.graphPanel} wrap='nowrap'>
-                    <Grid container item justify="center" alignItems='center'>
-                        <Tabs value={value} onChange={handleTabChange} variant='fullWidth' className={classes.tabs} classes={{ indicator: classes.tabIndicator }}>
-                            <Tab label="Waveforms" {...a11yProps(0)} className={classes.tab} />
+                    <Grid container item direction='row' justify="center" alignItems='center'>
+                        <Tabs value={value} onChange={handleTabChange} variant='fullWidth'
+                        className={classes.tabs} classes={{ indicator: classes.tabIndicator }}>
+                            <Tab
+                            label="Waveforms" {...a11yProps(0)}
+                            className={classes.tab}
+                            classes={{selected:classes.selectedTab}}/>
                             {/* NOTE: The 2 tabs below are disabled until their functionality is implemented. */}
-                            <Tab label="PV Loops" {...a11yProps(1)} className={classes.tab} disabled />
-                            <Tab label="Compliance" {...a11yProps(2)} className={classes.tab} disabled />
+                            <Tab label="PV Loops" {...a11yProps(1)} className={classes.tab} disabled
+                            classes={{selected:classes.selectedTab}}/>
+                            <Tab label="Compliance" {...a11yProps(2)} className={classes.tab} disabled
+                            classes={{selected:classes.selectedTab}}/>
                         </Tabs>
                     </Grid>
                     <TabPanel value={value} index={0}>
-                        <Grid container item xs className={classes.graph}>
-                            <Grid item xs>
+                        <Grid container item xs justify="space-between" style={{height:'100%'}}>
+                            <Grid item container style={{height:'48%'}}>
                                 <PawGraphInfo />
                             </Grid>
                             <Grid item xs>
                                 <FlowGraphInfo />
                             </Grid>
+                            <Grid item style={{height:'4%'}}/>
+                            <Grid item container style={{height:'48%'}}>
+                                <PawGraphInfo />
+                            </Grid>
                         </Grid>
                     </TabPanel>
                     <TabPanel value={value} index={1}>
-                        <Grid container item xs className={classes.graph}>
+                        <Grid container item xs style={{height:'100%'}}>
                             <Grid item xs>
                                 <Typography>PV Loops</Typography>
                             </Grid>
                         </Grid>
                     </TabPanel>
                     <TabPanel value={value} index={2}>
-                        <Grid container item xs className={classes.graph}>
+                        <Grid container item xs style={{height:'100%'}}>
                             <Grid item xs>
                                 <Typography>Compliance</Typography>
                             </Grid>

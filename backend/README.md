@@ -56,7 +56,7 @@ Currently there is no application to execute.
 
 Linting is a great way to ensure code quality and style remain consistent
 between developers.  This project uses pylint with
-(Google pystyle)[https://github.com/google/styleguide/blob/gh-pages/pyguide.md]
+[Google pystyle](https://github.com/google/styleguide/blob/gh-pages/pyguide.md)
 rules and will check whether the code adheres to these rules during a pull request.
 
 To improve development time, you can configure your IDE to run pyLint as
@@ -70,7 +70,7 @@ common IDEs:
 To run the pylint commands, do:
 
 ```bash
-(backend) $ pylint ventserver
+(ventserver) $ poetry run pylint ventserver
 ```
 
 ### Type-Checking
@@ -79,22 +79,22 @@ Type hints are a great way to help document and automatically check code. To run
 type-checking, do:
 
 ```bash
-(backend) $ mypy ventserver
+(ventserver) $ poetry run mypy ventserver
 ```
 
 ### Testing
 
 Unit testing is done utilizing [pytest](https://docs.pytest.org/en/latest/) and
-(tox)[https://tox.readthedocs.io/en/latest/] for automation.
+[tox](https://tox.readthedocs.io/en/latest/) for automation.
 
 To execute the test suite, run:
 
 ```bash
-(backend) $ tox
+(ventserver) $ poetry run tox
 ```
 
 Afterwards, you can quickly re-run tests without running the full tox process:
 
 ```bash
-coverage run --parallel -m pytest --basetemp=.tox/py37/tmp --verbose tests
+(ventserver) $ poetry run coverage run --parallel -m pytest --basetemp=.tox/py37/tmp --verbose tests
 ```

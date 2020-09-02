@@ -17,6 +17,7 @@ const displaySelector = createStructuredSelector<StoreState, ValueProps>({
 const MVeDisplay = connect(displaySelector)(ValueDisplay)
 
 const label = 'MVe'
+const stateKey = "mve"
 const units = LMIN
 
 /**
@@ -30,7 +31,7 @@ const MVeInfo = () => (
     <Knob
         valueDisplay={<MVeDisplay label={label} units={units} isLive={true} />}
         valueModal={null}
-        alarmModal={<AlarmModal label={label} units={units} requestCommitRange={() => null} />}
+        alarmModal={<AlarmModal label={label} units={units} stateKey={stateKey} requestCommitRange={() => null} />}
     />
 )
 

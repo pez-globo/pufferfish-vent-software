@@ -19,12 +19,14 @@ const StyledSlider = withStyles({
     },
     thumb: {
         height: 28,
-        width: 28,
-        backgroundColor: '#fff',
+        width: 32,
+        backgroundColor: '#0053b1',
+        borderRadius: 5,
         boxShadow: boxShadow,
         marginTop: -14,
         marginLeft: -14,
         '&:focus, &:hover, &$active': {
+            border: '1px solid #fff',
             boxShadow: '0 3px 1px rgba(0,0,0,0.1),0 4px 8px rgba(0,0,0,0.3),0 0 0 1px rgba(0,0,0,0.02)',
             // Reset on touch devices, it doesn't add specificity
             '@media (hover: none)': {
@@ -34,8 +36,8 @@ const StyledSlider = withStyles({
     },
     active: {},
     valueLabel: {
-        left: 'calc(-50% + 12px)',
-        top: -22,
+        left: 'calc(-38% + 12px)',
+        top: 8,
         '& *': {
             background: 'transparent',
             // color: '#000',
@@ -67,11 +69,15 @@ interface Props {
     label?: string,  // TODO: This prop should be removed.
     onChange?(values: number[]): any,
     rangeValues?: number[],
+    step?: number
 }
 
-export const ValueSlider = ({ min, max, onChange, rangeValues }: Props) => {
+export const ValueSlider = ({ min, max, onChange, rangeValues, step }: Props) => {
     const classes = useStyles()
     const [value, setValue] = React.useState<number[]>([min, max])
+    if(rangeValues) {
+        setValue(rangeValues)
+    }
 
     const handleChange = (event: any, newValue: number | number[]) => {
         setValue(newValue as number[])
@@ -89,7 +95,8 @@ export const ValueSlider = ({ min, max, onChange, rangeValues }: Props) => {
                 <Grid container item xs={8} alignItems='center'>
                     <StyledSlider
                         valueLabelDisplay='on'
-                        value={rangeValues || value}
+                        value={value}
+                        step={step || 1}
                         onChange={handleChange}
                         defaultValue={60}
                     />

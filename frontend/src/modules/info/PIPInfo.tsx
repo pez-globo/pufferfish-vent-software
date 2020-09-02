@@ -11,21 +11,19 @@ import {
 import { AlarmModal, Knob } from '../controllers'
 import store from '../../store'
 import { StoreState } from '../../store/types'
-import { PARAMETER_COMMITTED } from '../../store/controller/types'
 import {
   getCycleMeasurementsPIP,
   getParametersPIP
 } from '../../store/controller/selectors'
 import { CMH20 } from './units'
+import { updateCommittedParameter } from '../../store/controller/actions'
 
 const displaySelector = createStructuredSelector<StoreState, ValueProps>({
   value: getCycleMeasurementsPIP
 })
 const PIPDisplay = connect(displaySelector)(ValueDisplay)
 
-const doSetPIP = (setting: number) => ({
-  type: PARAMETER_COMMITTED, update: { pip: setting }
-})
+const doSetPIP = (setting: number) => updateCommittedParameter({ pip: setting })
 const boundDoSetPIP = bindActionCreators(doSetPIP, store.dispatch)
 
 const settingSelector = createStructuredSelector<StoreState, SettingAdjustProps>({
@@ -34,6 +32,7 @@ const settingSelector = createStructuredSelector<StoreState, SettingAdjustProps>
 const PIPValueModal = connect(settingSelector)(ValueModal)
 
 const label = 'PIP'
+const stateKey = "pip"
 const units = CMH20
 
 /**
@@ -47,7 +46,7 @@ const PIPInfo = () => (
   <Knob
     valueDisplay={<PIPDisplay label={label} units={units} isLive={true} />}
     valueModal={<PIPValueModal label={label} units={units} requestCommitSetting={boundDoSetPIP} />}
-    alarmModal={<AlarmModal label={label} units={units} requestCommitRange={() => null} />}
+    alarmModal={<AlarmModal label={label} units={units} stateKey={stateKey} requestCommitRange={() => null} />}
   />
 )
 

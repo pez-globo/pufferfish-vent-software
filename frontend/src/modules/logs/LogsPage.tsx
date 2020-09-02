@@ -1,5 +1,5 @@
 import React from 'react'
-import { createStyles, makeStyles, Theme } from '@material-ui/core/styles'
+import { createStyles, makeStyles, Theme, useTheme } from '@material-ui/core/styles'
 import {
     Grid,
     Table,
@@ -107,8 +107,8 @@ interface EnhancedTableProps {
 const StyledTableRow = withStyles((theme: Theme) =>
     createStyles({
         root: {
-            '&:nth-of-type(even)': {
-                backgroundColor: theme.palette.action.hover,
+            '&:nth-of-type(odd)': {
+                backgroundColor: theme.palette.primary.dark,
             },
         },
     }),
@@ -117,7 +117,8 @@ const StyledTableRow = withStyles((theme: Theme) =>
 const StyledTableCell = withStyles((theme: Theme) =>
     createStyles({
         head: {
-            backgroundColor: theme.palette.action.hover,
+            backgroundColor: theme.palette.background.paper,
+            borderBottom: '1px solid' + theme.palette.text.primary
         },
         body: {
             fontSize: 14,
@@ -173,7 +174,8 @@ const useStyles = makeStyles((theme: Theme) =>
         },
         table: {
             minWidth: 750,
-            padding: '3px solid black'
+            padding: '3px solid black',
+            backgroundColor: theme.palette.background.paper
         },
         visuallyHidden: {
             border: 0,
@@ -186,6 +188,12 @@ const useStyles = makeStyles((theme: Theme) =>
             top: 20,
             width: 1,
         },
+        typeWrapper: {
+            width:'50%',
+            textAlign: 'center',
+            borderRadius: 3,
+            padding:4,
+        }
     }),
 )
 
@@ -248,6 +256,14 @@ export const LogsPage = () => {
 
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage)
 
+    const theme = useTheme()
+    function typeColor (type:string) {
+        if (type==='Operator') return {backgroundColor:theme.palette.primary.main}
+        else if (type==='Patient') return {backgroundColor:'#92D25B', color:'black'}
+        else if (type==='System') return {backgroundColor:'#E68619'}
+        return {backgroundColor:'#E68619'}
+    }
+
     return (
         <Grid
             container
@@ -257,7 +273,7 @@ export const LogsPage = () => {
             className={classes.root}
         >
             <Grid item>
-                <Typography variant='h3'>Log</Typography>
+                <Typography variant='h3'>Events Log</Typography>
             </Grid>
             <Grid item >
                 <TableContainer className={classes.tableContainer}>
@@ -291,7 +307,11 @@ export const LogsPage = () => {
                                             key={row.details}
                                         >
                                             <TableCell align='left' component="th" id={labelId} scope="row" >
-                                                {row.type}
+                                                <Grid
+                                            className={classes.typeWrapper}
+                                            style={typeColor(row.type)}>
+                                                    {row.type}
+                                                </Grid>
                                             </TableCell>
                                             <TableCell align='left' component="th" id={labelId} scope="row" >
                                                 {row.alarm}

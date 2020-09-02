@@ -10,6 +10,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     },
     displayContainer: {
         padding: 0,
+        alignItems: 'flex-start'
         // border: '1px solid orange',
     },
     valueContainer: {

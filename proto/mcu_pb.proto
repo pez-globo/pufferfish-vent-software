@@ -6,6 +6,53 @@ message Alarms {
   bool alarm_two = 3;
 }
 
+message AlarmLimitsRequest {
+  uint32 rr_min = 1;
+  uint32 rr_max = 2;
+  uint32 pip_min = 3;
+  uint32 pip_max = 4;
+  uint32 peep_min = 5;
+  uint32 peep_max = 6;
+  uint32 ip_above_peep_min = 7;
+  uint32 ip_above_peep_max = 8;
+  uint32 insp_time_min = 9;
+  uint32 insp_time_max = 10;
+  uint32 fio2_min = 11;
+  uint32 fio2_max = 12;
+  uint32 paw_min = 13;
+  uint32 paw_max = 14;
+  uint32 mve_min = 15;
+  uint32 mve_max = 16;
+  uint32 tv_min = 17;
+  uint32 tv_max = 18;
+  uint32 etco2_min = 19;
+  uint32 etco2_max = 20;
+  uint32 flow_min = 21;
+  uint32 flow_max = 22;
+  uint32 apnea_min = 23;
+  uint32 apnea_max = 24;
+}
+
+enum Unit {
+  imperial = 0;
+  metric = 1;
+}
+
+enum ThemeVariant {
+  dark = 0;
+  light = 1;
+}
+
+message FrontendDisplaySetting {
+  ThemeVariant theme = 1;
+  Unit unit = 2;
+}
+
+message SystemSettingRequest {
+  uint32 brightness = 1;
+  uint32 date = 2;
+}
+
 message SensorMeasurements {
   uint32 time = 1;
   float paw = 2;
@@ -24,20 +71,13 @@ message CycleMeasurements {
   float ve = 7;
 }
 
-enum SpontaneousSupport {
-  ac = 0;
-  simv = 1;
-}
-
-enum VentilationCycling {
-  pc = 0;
-  vc = 1;
-  psv = 2;
-}
-
-message VentilationMode {
-  SpontaneousSupport support = 1;
-  VentilationCycling cycling = 2;
+enum VentilationMode {
+  pc_ac = 0;
+  pc_simv = 1;
+  vc_ac = 2;
+  vc_simv = 3;
+  psv = 4;
+  hfnc = 5;
 }
 
 message Parameters {

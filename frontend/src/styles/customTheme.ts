@@ -25,7 +25,7 @@ function createCustomTheme(options: ThemeOptions) {
     })
 }
 
-const darkTheme = createCustomTheme({
+export const darkTheme = createCustomTheme({
     palette: {
         type: 'dark',
         background: {
@@ -34,13 +34,25 @@ const darkTheme = createCustomTheme({
         },
         primary: {
             light: '#254764',
-            main: '#0053b1',
+            main: '#0053b3',
+            dark: '#124876',
+            contrastText: 'white'
         },
         secondary: {
-            main: '#53d769',
+            main: '#4CD964',
         },
+        info:{
+            main: '#B2C0FC'
+        }
     },
     typography: {
+        fontFamily: [
+            'Roboto',
+            'sans-serif',
+        ].join(','),
+        body1: {
+            color: 'white'
+        },
         subtitle2: {
             fontSize: 12,
         },
@@ -55,4 +67,45 @@ const darkTheme = createCustomTheme({
     },
 })
 
-export const customTheme = darkTheme
+export const lightTheme = createCustomTheme({
+    palette: {
+        type: 'light',
+        background: {
+            paper: '#CEDEF0',
+            default: 'white',
+        },
+        primary: {
+            light: '#96B3D3',
+            main: '#0053b1',
+            dark: '#A9C2D8',
+            contrastText: 'white'
+        },
+        secondary: {
+            main: '#53d769',
+        },
+        info:{
+            main:'#2c396f'
+        }
+    },
+    typography: {
+        fontFamily: [
+            'Roboto',
+            'sans-serif',
+        ].join(','),
+        body1:{
+            color: 'black'
+        },
+        subtitle2: {
+            fontSize: 12
+        },
+
+        button: {
+            textTransform: 'none'
+        }
+    },
+    mixins: {
+        toolbar: {
+            minHeight: 80
+        }
+    },
+})

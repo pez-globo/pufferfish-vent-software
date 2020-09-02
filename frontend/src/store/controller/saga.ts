@@ -1,6 +1,6 @@
 import {eventChannel} from 'redux-saga'
 import {
-  put, call, take, takeEvery, fork, delay, select, apply
+  put, call, take, takeEvery, fork, delay, select, apply, takeLatest, all
 } from 'redux-saga/effects'
 import {BufferReader} from 'protobufjs/minimal'
 import {
@@ -8,27 +8,30 @@ import {
   MessageTypes,
 } from './types'
 import {ParametersRequest} from './proto/mcu_pb'
-import {INITIALIZED} from '../app/types'
+import {INITIALIZED, CLOCK_UPDATED} from '../app/types'
 import {updateState} from './actions'
 import {getParametersRequest} from './selectors'
 
-function createEventChannel() {
-  console.log('Connecting to WebSocket...')
-  const sock = new WebSocket('ws://localhost:8000/')
-  return [
-    eventChannel((emit) => {
-      sock.onmessage = (message) => emit(message.data)
-      return () => {
-        sock.close()
-      }
-    }),
-    eventChannel((emit) => {
-      sock.onopen = (event) => emit(sock)
-      return () => {
-        sock.close()
-      }
-    })
-  ]
+function createConnectionChannel() {
+  return eventChannel((emit) => {
+    const sock = new WebSocket('ws://localhost:8000/')
+    sock.onerror = (err) => emit({'err': err, 'sock': null})
+    sock.onopen = (event) => emit({'err': null, 'sock': sock})
+    sock.onclose = (event) => emit({'err': 'Closing!', 'sock': sock})
+    return () => {
+      console.log('Closing WebSocket...')
+      sock.close()
+    }
+  })
+}
+
+function createReceiveChannel(sock: WebSocket) {
+  return eventChannel((emit) => {
+    sock.onmessage = (message) => emit(message.data)
+    return () => {
+      sock.close()
+    }
+  })
 }
 
 function *receive(message: any) {
@@ -70,7 +73,7 @@ function *sendParametersRequest(
 }
 
 function *sendAll(sock: WebSocket) {
-  var clock = 0
+  let clock = 0
   while (sock.readyState === WebSocket.OPEN) {
     const parametersRequest = yield select(getParametersRequest)
     yield sendParametersRequest(
@@ -78,16 +81,46 @@ function *sendAll(sock: WebSocket) {
     )
     clock += 1
   }
+  console.log('Websocket is no longer open!')
 }
 
 function* initConnection() {
-  const [receiveChannel, sendChannel] = yield call(createEventChannel)
+  let connectionChannel
+  let connection
+  while (true) {
+    connectionChannel = yield call(createConnectionChannel)
+    connection = yield take(connectionChannel)
+    if (connection.err == null) {
+      break
+    }
+    // console.warn('WebSocket connection error', connection.err)
+    yield delay(1)
+  }
   console.log('Connected to WebSocket!')
+  const receiveChannel = createReceiveChannel(connection.sock)
   yield fork(receiveAll, receiveChannel)
-  const sock = yield take(sendChannel)
-  yield fork(sendAll, sock)
+  yield fork(sendAll, connection.sock)
+  connection = yield take(connectionChannel)
+  receiveChannel.close()
+}
+
+function* initConnectionPersistently() {
+  while (true) {
+    yield initConnection()
+    console.log('Reestablishing WebSocket connection...')
+  }
+}
+
+function* updateClock() {
+  while(true) {
+    yield delay(1000)
+    yield put({type: CLOCK_UPDATED})
+  }
 }
 
 export function* controllerSaga() {
-  yield takeEvery(INITIALIZED, initConnection)
+  yield all([
+    yield takeEvery(INITIALIZED, initConnectionPersistently),
+    yield takeLatest(INITIALIZED, updateClock)
+  ])
 }

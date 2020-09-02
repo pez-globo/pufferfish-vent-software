@@ -1,9 +1,13 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { makeStyles, Theme } from '@material-ui/core/styles'
 import { Typography, Button, Grid } from '@material-ui/core'
 import Pagination from '@material-ui/lab/Pagination'
 import ValueSlider from '../controllers/ValueSlider'
 import ModeBanner from '../displays/ModeBanner'
+import { useDispatch, useSelector } from 'react-redux'
+import { getAlarmLimitsRequest } from '../../store/controller/selectors'
+import { ALARM_LIMITS } from '../../store/controller/types'
+import { updateCommittedState } from '../../store/controller/actions'
 
 const useStyles = makeStyles((theme: Theme) => ({
     root: {
@@ -41,19 +45,64 @@ const useStyles = makeStyles((theme: Theme) => ({
 interface AlarmProps {
     label: string,
     min: number,
-    max: number
+    max: number,
+    stateKey: string,
+    step?: number,
+    alarmLimits: any,
+    setAlarmLimits(alarmLimits: Object): any
 }
 
-const Alarm = ({ label, min, max }: AlarmProps) => {
+interface AlarmConfigurationProps {
+    page: number,
+    alarmLimits: any,
+    setAlarmLimits(alarmLimits: Object): any
+}
+
+const Alarm = ({ label, min, max, stateKey, step, alarmLimits, setAlarmLimits }: AlarmProps) => {
+    const rangeValues = [ alarmLimits[`${stateKey}Min`], alarmLimits[`${stateKey}Max`] ]
+    const setRangevalue = (range: number[]) => {
+        setAlarmLimits({ [`${stateKey}Min`]: range[0], [`${stateKey}Max`]: range[1] })
+    }
     return (
         <Grid container>
             <Grid item xs={12} style={{paddingBottom: 20}}>
                 <Typography variant='h5'>{label}</Typography>
             </Grid>
             <Grid item xs={12}>
-                <ValueSlider min={min} max={max} />
+                <ValueSlider min={min} max={max} step={step} onChange={setRangevalue} rangeValues={rangeValues}/>
             </Grid>
         </Grid>
+    )
+}
+
+const AlarmConfiguration = ({ page, alarmLimits, setAlarmLimits }: AlarmConfigurationProps) => {
+    const classes = useStyles()
+    /**
+     * TODO: Fill in the `ValueSlider` placeholders with sliders that actually
+     *       change the alarm states in the redux store.
+     */
+    const page1 =
+    <Grid container item xs direction='column' className={classes.rightContainer}>
+        <Alarm label='RR' min={0} max={100} stateKey="rr" alarmLimits={alarmLimits} setAlarmLimits={setAlarmLimits} />
+        <Alarm label='TV' min={0} max={100} stateKey="tv" alarmLimits={alarmLimits} setAlarmLimits={setAlarmLimits} />
+        <Alarm label='Flow' min={0} max={100} stateKey="flow" alarmLimits={alarmLimits} setAlarmLimits={setAlarmLimits} />
+        <Alarm label='MVe' min={0} max={100} stateKey="mve" alarmLimits={alarmLimits} setAlarmLimits={setAlarmLimits} />
+        <Alarm label='Apnea' min={0} max={100} stateKey="apnea" alarmLimits={alarmLimits} setAlarmLimits={setAlarmLimits} />
+    </Grid>
+
+    const page2 =
+        <Grid container item xs direction='column' className={classes.rightContainer}>
+            <Alarm label='Pressure above PEEP' min={0} max={100} stateKey="ipAbovePeep" alarmLimits={alarmLimits} setAlarmLimits={setAlarmLimits} />
+            <Alarm label='PAW' min={0} max={100} stateKey="paw" alarmLimits={alarmLimits} setAlarmLimits={setAlarmLimits} />
+            <Alarm label='PiP' min={0} max={100} stateKey="pip" alarmLimits={alarmLimits} setAlarmLimits={setAlarmLimits} />
+            <Alarm label='PEEP' min={0} max={100} stateKey="peep" alarmLimits={alarmLimits} setAlarmLimits={setAlarmLimits} />
+            <Alarm label='Insp. Time' min={0} max={100} stateKey="inspTime" step={0.5} alarmLimits={alarmLimits} setAlarmLimits={setAlarmLimits} />
+        </Grid>
+
+    return (
+        <React.Fragment>
+            {page === 1 ? page1 : page2}
+        </React.Fragment>
     )
 }
 
@@ -70,27 +119,11 @@ export const AlarmsPage = () => {
         setPage(value)
     }
 
-    /**
-     * TODO: Fill in the `ValueSlider` placeholders with sliders that actually
-     *       change the alarm states in the redux store.
-     */
-    const page1 =
-        <Grid container item xs direction='column' className={classes.rightContainer}>
-            <Alarm label='Pressure above PEEP' min={0} max={100} />
-            <Alarm label='PAW' min={0} max={100} />
-            <Alarm label='PiP' min={0} max={100} />
-            <Alarm label='PEEP' min={0} max={100} />
-            <Alarm label='Insp. Time' min={0} max={100} />
-        </Grid>
-
-    const page2 =
-        <Grid container item xs direction='column' className={classes.rightContainer}>
-            <Alarm label='RR' min={0} max={100} />
-            <Alarm label='TV' min={0} max={100} />
-            <Alarm label='Flow' min={0} max={100} />
-            <Alarm label='MVe' min={0} max={100} />
-            <Alarm label='Apnea' min={0} max={100} />
-        </Grid>
+    const alarmLimitsRequest: any = useSelector(getAlarmLimitsRequest)
+    const dispatch = useDispatch()
+    const [alarmLimits, setAlarmLimits] = useState(alarmLimitsRequest)
+    const updateAlarmLimits = (data: Object) => setAlarmLimits({...alarmLimits, ...data})
+    const applyChanges = () => dispatch(updateCommittedState(ALARM_LIMITS, alarmLimits))
 
     return (
         <Grid container direction='column' className={classes.root}>
@@ -104,18 +137,18 @@ export const AlarmsPage = () => {
                             <Pagination count={2} page={page} onChange={handleChange} variant='outlined' shape="rounded" size="large" />
                         </Grid>
                         <Grid item style={{ width: '100%' }}>
-                            <Button color='secondary' variant='contained' className={classes.applyButton}>
+                            <Button onClick={applyChanges} color='secondary' variant='contained' className={classes.applyButton}>
                                 Apply Changes
                             </Button>
                         </Grid>
                     </Grid>
                 </Grid>
                 {/* Right Container for Storing Alarm Slides */}
-                {page === 1 ? page1 : page2}
+                <AlarmConfiguration setAlarmLimits={updateAlarmLimits} alarmLimits={alarmLimits} page={page}/>
             </Grid>
             {/* Title */}
             <Grid item>
-                <ModeBanner />
+                <ModeBanner bannerType='normal'/>
             </Grid>
         </Grid>
     )

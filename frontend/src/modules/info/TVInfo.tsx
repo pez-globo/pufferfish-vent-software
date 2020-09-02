@@ -17,6 +17,7 @@ const displaySelector = createStructuredSelector<StoreState, ValueProps>({
 const TVDisplay = connect(displaySelector)(ValueDisplay)
 
 const label = 'TV'
+const stateKey = "tv"
 const units = LMIN
 
 /**
@@ -30,7 +31,7 @@ const TVInfo = () => (
   <Knob
     valueDisplay={<TVDisplay label={label} units={units} isLive={true} />}
     valueModal={null}
-    alarmModal={<AlarmModal label={label} units={units} requestCommitRange={() => null} />}
+    alarmModal={<AlarmModal label={label} units={units} stateKey={stateKey} requestCommitRange={() => null} />}
   />
 )
 

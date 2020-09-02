@@ -29,7 +29,7 @@ const useStyles = makeStyles((theme: Theme) => ({
         zIndex: 1,
     },
     indicator: {
-        color: theme.palette.text.primary,
+        color: 'theme.palette.text.primary',
         backgroundColor: theme.palette.primary.light,
         borderLeft: '4px solid ' + theme.palette.primary.main,
         opacity: '1',

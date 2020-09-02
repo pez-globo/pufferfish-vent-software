@@ -17,6 +17,7 @@ const displaySelector = createStructuredSelector<StoreState, ValueProps>({
 const EtCO2Display = connect(displaySelector)(ValueDisplay)
 
 const label = 'EtCO2'
+const stateKey = "etco2"
 const units = MMHG
 
 /**
@@ -30,7 +31,7 @@ const EtCO2Info = () => (
     <Knob
         valueDisplay={<EtCO2Display label={label} units={units} isLive={true} />}
         valueModal={null}
-        alarmModal={<AlarmModal label={label} units={units} requestCommitRange={() => null} />}
+        alarmModal={<AlarmModal label={label} units={units} stateKey={stateKey} requestCommitRange={() => null} />}
     />
 )
 

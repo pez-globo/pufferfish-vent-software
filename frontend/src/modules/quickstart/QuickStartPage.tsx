@@ -11,6 +11,7 @@ import {
 import TestTool from '../controllers/TestTool'
 import ValueClicker from '../controllers/ValueController'
 import ModeBanner from '../displays/ModeBanner'
+import ToggleValue from '../displays/ToggleValue'
 
 const useStyles = makeStyles((theme: Theme) => ({
     root: {
@@ -34,6 +35,9 @@ const useStyles = makeStyles((theme: Theme) => ({
     padding: {
         padding: theme.spacing(2),
         // border: '1px solid red'
+    },
+    paddingTop: {
+        paddingTop: theme.spacing(5)
     },
     middleContainer: {
         flexWrap: 'nowrap',
@@ -84,29 +88,15 @@ class QuickStartPage extends React.Component {
                     </Grid>
                     <Grid item xs className={classes.padding}>
                         <Typography variant='h6'>Age:</Typography>
-                        <FormControl component="fieldset">
-                            <RadioGroup
-                                value={patientAge}
-                                onChange={(event) => setPatientAge(+event.target.value as PatientAge)}
-                                name="age-radios"
-                            >
-                                <FormControlLabel value={PatientAge.ADULT} control={<Radio color='primary' />} label="Adult" />
-                                <FormControlLabel value={PatientAge.PEDIATRIC} control={<Radio color='primary' />} label="Pediatric" />
-                            </RadioGroup>
-                        </FormControl>
+                        <Grid item xs className={classes.paddingTop}>
+                            <ToggleValue toggleBetween={[{ label: "Adult", value: PatientAge.ADULT }, { label: "Pediatric", value: PatientAge.PEDIATRIC }]} onToggle={(selected: number) => setPatientAge(selected as PatientAge)} selected={patientAge} />
+                        </Grid>
                     </Grid>
                     <Grid item xs className={classes.padding}>
                         <Typography variant='h6'>Sex:</Typography>
-                        <FormControl component="fieldset">
-                            <RadioGroup
-                                value={patientSex}
-                                onChange={(event) => setPatientSex(+event.target.value as PatientSex)}
-                                name="age-radios"
-                            >
-                                <FormControlLabel value={PatientSex.MALE} control={<Radio color='primary' />} label="Male" />
-                                <FormControlLabel value={PatientSex.FEMALE} control={<Radio color='primary' />} label="Female" />
-                            </RadioGroup>
-                        </FormControl>
+                        <Grid item xs className={classes.paddingTop}>
+                            <ToggleValue toggleBetween={[{ label: "Male", value: PatientSex.MALE }, { label: "Female", value: PatientSex.FEMALE }]} onToggle={(selected: number) => setPatientSex(selected as PatientSex)} selected={patientSex} />
+                        </Grid>
                     </Grid>
                     <Grid item xs={3}>
                         <ValueClicker
@@ -176,7 +166,7 @@ class QuickStartPage extends React.Component {
                     </Grid>
                 </Grid>
                 <Grid item>
-                    <ModeBanner />
+                    <ModeBanner bannerType='normal'/>
                 </Grid>
             </Grid >
         )

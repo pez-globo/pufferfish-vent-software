@@ -17,6 +17,7 @@ const displaySelector = createStructuredSelector<StoreState, ValueProps>({
 const IPAbovePEEPDisplay = connect(displaySelector)(ValueDisplay)
 
 const label = 'IP > PEEP'
+const stateKey = "ipAbovePeep"
 const units = CMH20
 
 /**
@@ -30,7 +31,7 @@ const IPAbovePEEPInfo = () => (
     <Knob
         valueDisplay={<IPAbovePEEPDisplay label={label} units={units} isLive={true} />}
         valueModal={<ValueModal label={label} units={units} committedSetting={12} requestCommitSetting={() => null} />}
-        alarmModal={<AlarmModal label={label} units={units} requestCommitRange={() => null} />}
+        alarmModal={<AlarmModal label={label} units={units} stateKey={stateKey} requestCommitRange={() => null} />}
     />
 )
 

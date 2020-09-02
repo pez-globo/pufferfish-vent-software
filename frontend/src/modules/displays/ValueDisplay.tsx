@@ -35,8 +35,9 @@ const useStyles = makeStyles((theme: Theme) => ({
         // border: '1px solid red',
     },
     unitsLabel: {
-        paddingLeft: theme.spacing(0),
-        paddingTop: theme.spacing(4)
+        paddingLeft: theme.spacing(1),
+        paddingTop: theme.spacing(4),
+        opacity: .8,
         // border: '1px solid red'
     },
 }))

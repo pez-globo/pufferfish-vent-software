@@ -1,6 +1,10 @@
 import React from 'react'
 import { makeStyles, Theme } from '@material-ui/core/styles'
 import { Grid, Typography, Button } from '@material-ui/core'
+import { updateCommittedParameter } from '../../store/controller/actions'
+import { useDispatch, useSelector } from 'react-redux'
+import { getParametersRequestMode } from '../../store/controller/selectors'
+import { VentilationMode } from '../../store/controller/proto/mcu_pb'
 
 const useStyles = makeStyles((theme: Theme) => ({
     root: {
@@ -53,6 +57,9 @@ const useStyles = makeStyles((theme: Theme) => ({
         minHeight: '60px',
         alignItems: 'center',
         padding: theme.spacing(2),
+    },
+    selected: {
+        background: theme.palette.primary.main,
     }
 }))
 
@@ -64,7 +71,10 @@ const useStyles = makeStyles((theme: Theme) => ({
  */
 export const ModesPage = () => {
     const classes = useStyles()
-
+    const dispatch = useDispatch()
+    const currentMode = useSelector(getParametersRequestMode)
+    const updateMode = (mode: VentilationMode) => dispatch(updateCommittedParameter({ mode: mode }))
+    const buttonClass = (mode: VentilationMode) => mode === currentMode ? `${classes.modeButton} ${classes.selected}`: `${classes.modeButton}`
     return (
         <Grid container className={classes.root}>
             <Grid container item xs className={classes.modesPanel}>
@@ -78,12 +88,12 @@ export const ModesPage = () => {
                         </Grid>
                         <Grid container item xs>
                             <Grid container item xs className={classes.leftModeButtonOutline}>
-                                <Button className={classes.modeButton} variant='outlined'>
+                                <Button  onClick={() => updateMode(VentilationMode.pc_ac) } className={buttonClass(VentilationMode.pc_ac)} variant='outlined'>
                                     <Typography variant='h5'>AC</Typography>
                                 </Button>
                             </Grid>
                             <Grid container item xs className={classes.modeButtonOutline}>
-                                <Button className={classes.modeButton} variant='outlined'>
+                                <Button onClick={() => updateMode(VentilationMode.pc_simv) } className={buttonClass(VentilationMode.pc_simv)} variant='outlined'>
                                     <Typography variant='h5'>SIMV</Typography>
                                 </Button>
                             </Grid>
@@ -95,12 +105,12 @@ export const ModesPage = () => {
                         </Grid>
                         <Grid container item xs>
                             <Grid container item xs className={classes.leftModeButtonOutline}>
-                                <Button className={classes.modeButton} variant='outlined'>
+                                <Button onClick={() => updateMode(VentilationMode.vc_ac) } className={buttonClass(VentilationMode.vc_ac)} variant='outlined'>
                                     <Typography variant='h5'>AC</Typography>
                                 </Button>
                             </Grid>
                             <Grid container item xs className={classes.modeButtonOutline}>
-                                <Button className={classes.modeButton} variant='outlined'>
+                                <Button onClick={() => updateMode(VentilationMode.vc_simv) } className={buttonClass(VentilationMode.vc_simv)} variant='outlined'>
                                     <Typography variant='h5'>SIMV</Typography>
                                 </Button>
                             </Grid>
@@ -112,7 +122,7 @@ export const ModesPage = () => {
                         </Grid>
                         <Grid container item xs>
                             <Grid container item xs className={classes.leftModeButtonOutline}>
-                                <Button className={classes.modeButton} variant='outlined'>
+                                <Button onClick={() => updateMode(VentilationMode.hfnc) } className={buttonClass(VentilationMode.hfnc)} variant='outlined'>
                                     <Typography variant='h5'>NIV</Typography>
                                 </Button>
                             </Grid>
@@ -156,4 +166,4 @@ export const ModesPage = () => {
     )
 }
 
-export default ModesPage
+export default  ModesPage

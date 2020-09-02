@@ -10,24 +10,33 @@ packages = [
 [tool.poetry.dependencies]
 # Language
 python = "^3.7"
-attrs = "^19.3.0"
+attrs = { version = "^19.3.0" }
 # Protocols
-cobs = "^1.1.4"
+cobs = { version = "^1.1.4" }
+betterproto = { version = "^1.2.5" }
+# I/O: Flow Control
+trio = { version = "^0.16.0" }
+trio-typing = { version = "^0.5.0" }
+# I/O: Devices
+pyserial = { version = "^3.4" }
+trio-websocket = { version = "^0.8.0" }
 
 [tool.poetry.dev-dependencies]
 # Code quality
-pylint = "^2.4.4"
-mypy = "^0.770"
+pylint = "^2.5.3"
+mypy = "^0.782"
+flake8 = "^3.8.3"
 # Testing
-tox = "^3.14.6"
-coverage = "^5.0.4"
-pytest = "^5.4.1"
-pytest-sugar = "^0.9.3"
-pytest-cov = "^2.8.1"
-hypothesis = "^5.14.0"
+tox = "^3.19.0"
+coverage = "^5.2.1"
+pytest = "^5.4.3"
+pytest-sugar = "^0.9.4"
+pytest-cov = "^2.10.1"
+hypothesis = "^5.26.0"
+pytest-trio = "^0.6.0"
 # Unit Test Support
 crcmod = "^1.7"
 
 [build-system]
-requires = ["poetry>=0.12"]
+requires = ["poetry>=1.0.0"]
 build-backend = "poetry.masonry.api"

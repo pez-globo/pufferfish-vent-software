@@ -8,6 +8,43 @@ export interface Alarms {
   alarmTwo: boolean;
 }
 
+export interface AlarmLimitsRequest {
+  rrMin: number;
+  rrMax: number;
+  pipMin: number;
+  pipMax: number;
+  peepMin: number;
+  peepMax: number;
+  ipAbovePeepMin: number;
+  ipAbovePeepMax: number;
+  inspTimeMin: number;
+  inspTimeMax: number;
+  fio2Min: number;
+  fio2Max: number;
+  pawMin: number;
+  pawMax: number;
+  mveMin: number;
+  mveMax: number;
+  tvMin: number;
+  tvMax: number;
+  etco2Min: number;
+  etco2Max: number;
+  flowMin: number;
+  flowMax: number;
+  apneaMin: number;
+  apneaMax: number;
+}
+
+export interface FrontendDisplaySetting {
+  theme: ThemeVariant;
+  unit: Unit;
+}
+
+export interface SystemSettingRequest {
+  brightness: number;
+  date: number;
+}
+
 export interface SensorMeasurements {
   time: number;
   paw: number;
@@ -26,14 +63,9 @@ export interface CycleMeasurements {
   ve: number;
 }
 
-export interface VentilationMode {
-  support: SpontaneousSupport;
-  cycling: VentilationCycling;
-}
-
 export interface Parameters {
   time: number;
-  mode: VentilationMode | undefined;
+  mode: VentilationMode;
   pip: number;
   peep: number;
   vt: number;
@@ -44,7 +76,7 @@ export interface Parameters {
 
 export interface ParametersRequest {
   time: number;
-  mode: VentilationMode | undefined;
+  mode: VentilationMode;
   pip: number;
   peep: number;
   vt: number;
@@ -69,6 +101,43 @@ const baseAlarms: object = {
   alarmTwo: false,
 };
 
+const baseAlarmLimitsRequest: object = {
+  rrMin: 0,
+  rrMax: 0,
+  pipMin: 0,
+  pipMax: 0,
+  peepMin: 0,
+  peepMax: 0,
+  ipAbovePeepMin: 0,
+  ipAbovePeepMax: 0,
+  inspTimeMin: 0,
+  inspTimeMax: 0,
+  fio2Min: 0,
+  fio2Max: 0,
+  pawMin: 0,
+  pawMax: 0,
+  mveMin: 0,
+  mveMax: 0,
+  tvMin: 0,
+  tvMax: 0,
+  etco2Min: 0,
+  etco2Max: 0,
+  flowMin: 0,
+  flowMax: 0,
+  apneaMin: 0,
+  apneaMax: 0,
+};
+
+const baseFrontendDisplaySetting: object = {
+  theme: 0,
+  unit: 0,
+};
+
+const baseSystemSettingRequest: object = {
+  brightness: 0,
+  date: 0,
+};
+
 const baseSensorMeasurements: object = {
   time: 0,
   paw: 0,
@@ -87,14 +156,9 @@ const baseCycleMeasurements: object = {
   ve: 0,
 };
 
-const baseVentilationMode: object = {
-  support: 0,
-  cycling: 0,
-};
-
 const baseParameters: object = {
   time: 0,
-  mode: undefined,
+  mode: 0,
   pip: 0,
   peep: 0,
   vt: 0,
@@ -105,7 +169,7 @@ const baseParameters: object = {
 
 const baseParametersRequest: object = {
   time: 0,
-  mode: undefined,
+  mode: 0,
   pip: 0,
   peep: 0,
   vt: 0,
@@ -124,75 +188,125 @@ const baseAnnouncement: object = {
   announcement: undefined,
 };
 
-export const SpontaneousSupport = {
-  ac: 0 as const,
-  simv: 1 as const,
+export const Unit = {
+  imperial: 0 as const,
+  metric: 1 as const,
   UNRECOGNIZED: -1 as const,
-  fromJSON(object: any): SpontaneousSupport {
+  fromJSON(object: any): Unit {
     switch (object) {
       case 0:
-      case "ac":
-        return SpontaneousSupport.ac;
+      case "imperial":
+        return Unit.imperial;
       case 1:
-      case "simv":
-        return SpontaneousSupport.simv;
+      case "metric":
+        return Unit.metric;
       case -1:
       case "UNRECOGNIZED":
       default:
-        return SpontaneousSupport.UNRECOGNIZED;
+        return Unit.UNRECOGNIZED;
     }
   },
-  toJSON(object: SpontaneousSupport): string {
+  toJSON(object: Unit): string {
     switch (object) {
-      case SpontaneousSupport.ac:
-        return "ac";
-      case SpontaneousSupport.simv:
-        return "simv";
+      case Unit.imperial:
+        return "imperial";
+      case Unit.metric:
+        return "metric";
       default:
         return "UNKNOWN";
     }
   },
 }
 
-export type SpontaneousSupport = 0 | 1 | -1;
+export type Unit = 0 | 1 | -1;
 
-export const VentilationCycling = {
-  pc: 0 as const,
-  vc: 1 as const,
-  psv: 2 as const,
+export const ThemeVariant = {
+  dark: 0 as const,
+  light: 1 as const,
   UNRECOGNIZED: -1 as const,
-  fromJSON(object: any): VentilationCycling {
+  fromJSON(object: any): ThemeVariant {
     switch (object) {
       case 0:
-      case "pc":
-        return VentilationCycling.pc;
+      case "dark":
+        return ThemeVariant.dark;
       case 1:
-      case "vc":
-        return VentilationCycling.vc;
+      case "light":
+        return ThemeVariant.light;
+      case -1:
+      case "UNRECOGNIZED":
+      default:
+        return ThemeVariant.UNRECOGNIZED;
+    }
+  },
+  toJSON(object: ThemeVariant): string {
+    switch (object) {
+      case ThemeVariant.dark:
+        return "dark";
+      case ThemeVariant.light:
+        return "light";
+      default:
+        return "UNKNOWN";
+    }
+  },
+}
+
+export type ThemeVariant = 0 | 1 | -1;
+
+export const VentilationMode = {
+  pc_ac: 0 as const,
+  pc_simv: 1 as const,
+  vc_ac: 2 as const,
+  vc_simv: 3 as const,
+  psv: 4 as const,
+  hfnc: 5 as const,
+  UNRECOGNIZED: -1 as const,
+  fromJSON(object: any): VentilationMode {
+    switch (object) {
+      case 0:
+      case "pc_ac":
+        return VentilationMode.pc_ac;
+      case 1:
+      case "pc_simv":
+        return VentilationMode.pc_simv;
       case 2:
+      case "vc_ac":
+        return VentilationMode.vc_ac;
+      case 3:
+      case "vc_simv":
+        return VentilationMode.vc_simv;
+      case 4:
       case "psv":
-        return VentilationCycling.psv;
+        return VentilationMode.psv;
+      case 5:
+      case "hfnc":
+        return VentilationMode.hfnc;
       case -1:
       case "UNRECOGNIZED":
       default:
-        return VentilationCycling.UNRECOGNIZED;
+        return VentilationMode.UNRECOGNIZED;
     }
   },
-  toJSON(object: VentilationCycling): string {
+  toJSON(object: VentilationMode): string {
     switch (object) {
-      case VentilationCycling.pc:
-        return "pc";
-      case VentilationCycling.vc:
-        return "vc";
-      case VentilationCycling.psv:
+      case VentilationMode.pc_ac:
+        return "pc_ac";
+      case VentilationMode.pc_simv:
+        return "pc_simv";
+      case VentilationMode.vc_ac:
+        return "vc_ac";
+      case VentilationMode.vc_simv:
+        return "vc_simv";
+      case VentilationMode.psv:
         return "psv";
+      case VentilationMode.hfnc:
+        return "hfnc";
       default:
         return "UNKNOWN";
     }
   },
 }
 
-export type VentilationCycling = 0 | 1 | 2 | -1;
+export type VentilationMode = 0 | 1 | 2 | 3 | 4 | 5 | -1;
 
 export const Alarms = {
   encode(message: Alarms, writer: Writer = Writer.create()): Writer {
@@ -201,7 +315,8 @@ export const Alarms = {
     writer.uint32(24).bool(message.alarmTwo);
     return writer;
   },
-  decode(reader: Reader, length?: number): Alarms {
+  decode(input: Uint8Array | Reader, length?: number): Alarms {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = Object.create(baseAlarms) as Alarms;
     while (reader.pos < end) {
@@ -270,6 +385,522 @@ export const Alarms = {
   },
 };
 
+export const AlarmLimitsRequest = {
+  encode(message: AlarmLimitsRequest, writer: Writer = Writer.create()): Writer {
+    writer.uint32(8).uint32(message.rrMin);
+    writer.uint32(16).uint32(message.rrMax);
+    writer.uint32(24).uint32(message.pipMin);
+    writer.uint32(32).uint32(message.pipMax);
+    writer.uint32(40).uint32(message.peepMin);
+    writer.uint32(48).uint32(message.peepMax);
+    writer.uint32(56).uint32(message.ipAbovePeepMin);
+    writer.uint32(64).uint32(message.ipAbovePeepMax);
+    writer.uint32(72).uint32(message.inspTimeMin);
+    writer.uint32(80).uint32(message.inspTimeMax);
+    writer.uint32(88).uint32(message.fio2Min);
+    writer.uint32(96).uint32(message.fio2Max);
+    writer.uint32(104).uint32(message.pawMin);
+    writer.uint32(112).uint32(message.pawMax);
+    writer.uint32(120).uint32(message.mveMin);
+    writer.uint32(128).uint32(message.mveMax);
+    writer.uint32(136).uint32(message.tvMin);
+    writer.uint32(144).uint32(message.tvMax);
+    writer.uint32(152).uint32(message.etco2Min);
+    writer.uint32(160).uint32(message.etco2Max);
+    writer.uint32(168).uint32(message.flowMin);
+    writer.uint32(176).uint32(message.flowMax);
+    writer.uint32(184).uint32(message.apneaMin);
+    writer.uint32(192).uint32(message.apneaMax);
+    return writer;
+  },
+  decode(input: Uint8Array | Reader, length?: number): AlarmLimitsRequest {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = Object.create(baseAlarmLimitsRequest) as AlarmLimitsRequest;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.rrMin = reader.uint32();
+          break;
+        case 2:
+          message.rrMax = reader.uint32();
+          break;
+        case 3:
+          message.pipMin = reader.uint32();
+          break;
+        case 4:
+          message.pipMax = reader.uint32();
+          break;
+        case 5:
+          message.peepMin = reader.uint32();
+          break;
+        case 6:
+          message.peepMax = reader.uint32();
+          break;
+        case 7:
+          message.ipAbovePeepMin = reader.uint32();
+          break;
+        case 8:
+          message.ipAbovePeepMax = reader.uint32();
+          break;
+        case 9:
+          message.inspTimeMin = reader.uint32();
+          break;
+        case 10:
+          message.inspTimeMax = reader.uint32();
+          break;
+        case 11:
+          message.fio2Min = reader.uint32();
+          break;
+        case 12:
+          message.fio2Max = reader.uint32();
+          break;
+        case 13:
+          message.pawMin = reader.uint32();
+          break;
+        case 14:
+          message.pawMax = reader.uint32();
+          break;
+        case 15:
+          message.mveMin = reader.uint32();
+          break;
+        case 16:
+          message.mveMax = reader.uint32();
+          break;
+        case 17:
+          message.tvMin = reader.uint32();
+          break;
+        case 18:
+          message.tvMax = reader.uint32();
+          break;
+        case 19:
+          message.etco2Min = reader.uint32();
+          break;
+        case 20:
+          message.etco2Max = reader.uint32();
+          break;
+        case 21:
+          message.flowMin = reader.uint32();
+          break;
+        case 22:
+          message.flowMax = reader.uint32();
+          break;
+        case 23:
+          message.apneaMin = reader.uint32();
+          break;
+        case 24:
+          message.apneaMax = reader.uint32();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+  fromJSON(object: any): AlarmLimitsRequest {
+    const message = Object.create(baseAlarmLimitsRequest) as AlarmLimitsRequest;
+    if (object.rrMin !== undefined && object.rrMin !== null) {
+      message.rrMin = Number(object.rrMin);
+    } else {
+      message.rrMin = 0;
+    }
+    if (object.rrMax !== undefined && object.rrMax !== null) {
+      message.rrMax = Number(object.rrMax);
+    } else {
+      message.rrMax = 0;
+    }
+    if (object.pipMin !== undefined && object.pipMin !== null) {
+      message.pipMin = Number(object.pipMin);
+    } else {
+      message.pipMin = 0;
+    }
+    if (object.pipMax !== undefined && object.pipMax !== null) {
+      message.pipMax = Number(object.pipMax);
+    } else {
+      message.pipMax = 0;
+    }
+    if (object.peepMin !== undefined && object.peepMin !== null) {
+      message.peepMin = Number(object.peepMin);
+    } else {
+      message.peepMin = 0;
+    }
+    if (object.peepMax !== undefined && object.peepMax !== null) {
+      message.peepMax = Number(object.peepMax);
+    } else {
+      message.peepMax = 0;
+    }
+    if (object.ipAbovePeepMin !== undefined && object.ipAbovePeepMin !== null) {
+      message.ipAbovePeepMin = Number(object.ipAbovePeepMin);
+    } else {
+      message.ipAbovePeepMin = 0;
+    }
+    if (object.ipAbovePeepMax !== undefined && object.ipAbovePeepMax !== null) {
+      message.ipAbovePeepMax = Number(object.ipAbovePeepMax);
+    } else {
+      message.ipAbovePeepMax = 0;
+    }
+    if (object.inspTimeMin !== undefined && object.inspTimeMin !== null) {
+      message.inspTimeMin = Number(object.inspTimeMin);
+    } else {
+      message.inspTimeMin = 0;
+    }
+    if (object.inspTimeMax !== undefined && object.inspTimeMax !== null) {
+      message.inspTimeMax = Number(object.inspTimeMax);
+    } else {
+      message.inspTimeMax = 0;
+    }
+    if (object.fio2Min !== undefined && object.fio2Min !== null) {
+      message.fio2Min = Number(object.fio2Min);
+    } else {
+      message.fio2Min = 0;
+    }
+    if (object.fio2Max !== undefined && object.fio2Max !== null) {
+      message.fio2Max = Number(object.fio2Max);
+    } else {
+      message.fio2Max = 0;
+    }
+    if (object.pawMin !== undefined && object.pawMin !== null) {
+      message.pawMin = Number(object.pawMin);
+    } else {
+      message.pawMin = 0;
+    }
+    if (object.pawMax !== undefined && object.pawMax !== null) {
+      message.pawMax = Number(object.pawMax);
+    } else {
+      message.pawMax = 0;
+    }
+    if (object.mveMin !== undefined && object.mveMin !== null) {
+      message.mveMin = Number(object.mveMin);
+    } else {
+      message.mveMin = 0;
+    }
+    if (object.mveMax !== undefined && object.mveMax !== null) {
+      message.mveMax = Number(object.mveMax);
+    } else {
+      message.mveMax = 0;
+    }
+    if (object.tvMin !== undefined && object.tvMin !== null) {
+      message.tvMin = Number(object.tvMin);
+    } else {
+      message.tvMin = 0;
+    }
+    if (object.tvMax !== undefined && object.tvMax !== null) {
+      message.tvMax = Number(object.tvMax);
+    } else {
+      message.tvMax = 0;
+    }
+    if (object.etco2Min !== undefined && object.etco2Min !== null) {
+      message.etco2Min = Number(object.etco2Min);
+    } else {
+      message.etco2Min = 0;
+    }
+    if (object.etco2Max !== undefined && object.etco2Max !== null) {
+      message.etco2Max = Number(object.etco2Max);
+    } else {
+      message.etco2Max = 0;
+    }
+    if (object.flowMin !== undefined && object.flowMin !== null) {
+      message.flowMin = Number(object.flowMin);
+    } else {
+      message.flowMin = 0;
+    }
+    if (object.flowMax !== undefined && object.flowMax !== null) {
+      message.flowMax = Number(object.flowMax);
+    } else {
+      message.flowMax = 0;
+    }
+    if (object.apneaMin !== undefined && object.apneaMin !== null) {
+      message.apneaMin = Number(object.apneaMin);
+    } else {
+      message.apneaMin = 0;
+    }
+    if (object.apneaMax !== undefined && object.apneaMax !== null) {
+      message.apneaMax = Number(object.apneaMax);
+    } else {
+      message.apneaMax = 0;
+    }
+    return message;
+  },
+  fromPartial(object: DeepPartial<AlarmLimitsRequest>): AlarmLimitsRequest {
+    const message = Object.create(baseAlarmLimitsRequest) as AlarmLimitsRequest;
+    if (object.rrMin !== undefined && object.rrMin !== null) {
+      message.rrMin = object.rrMin;
+    } else {
+      message.rrMin = 0;
+    }
+    if (object.rrMax !== undefined && object.rrMax !== null) {
+      message.rrMax = object.rrMax;
+    } else {
+      message.rrMax = 0;
+    }
+    if (object.pipMin !== undefined && object.pipMin !== null) {
+      message.pipMin = object.pipMin;
+    } else {
+      message.pipMin = 0;
+    }
+    if (object.pipMax !== undefined && object.pipMax !== null) {
+      message.pipMax = object.pipMax;
+    } else {
+      message.pipMax = 0;
+    }
+    if (object.peepMin !== undefined && object.peepMin !== null) {
+      message.peepMin = object.peepMin;
+    } else {
+      message.peepMin = 0;
+    }
+    if (object.peepMax !== undefined && object.peepMax !== null) {
+      message.peepMax = object.peepMax;
+    } else {
+      message.peepMax = 0;
+    }
+    if (object.ipAbovePeepMin !== undefined && object.ipAbovePeepMin !== null) {
+      message.ipAbovePeepMin = object.ipAbovePeepMin;
+    } else {
+      message.ipAbovePeepMin = 0;
+    }
+    if (object.ipAbovePeepMax !== undefined && object.ipAbovePeepMax !== null) {
+      message.ipAbovePeepMax = object.ipAbovePeepMax;
+    } else {
+      message.ipAbovePeepMax = 0;
+    }
+    if (object.inspTimeMin !== undefined && object.inspTimeMin !== null) {
+      message.inspTimeMin = object.inspTimeMin;
+    } else {
+      message.inspTimeMin = 0;
+    }
+    if (object.inspTimeMax !== undefined && object.inspTimeMax !== null) {
+      message.inspTimeMax = object.inspTimeMax;
+    } else {
+      message.inspTimeMax = 0;
+    }
+    if (object.fio2Min !== undefined && object.fio2Min !== null) {
+      message.fio2Min = object.fio2Min;
+    } else {
+      message.fio2Min = 0;
+    }
+    if (object.fio2Max !== undefined && object.fio2Max !== null) {
+      message.fio2Max = object.fio2Max;
+    } else {
+      message.fio2Max = 0;
+    }
+    if (object.pawMin !== undefined && object.pawMin !== null) {
+      message.pawMin = object.pawMin;
+    } else {
+      message.pawMin = 0;
+    }
+    if (object.pawMax !== undefined && object.pawMax !== null) {
+      message.pawMax = object.pawMax;
+    } else {
+      message.pawMax = 0;
+    }
+    if (object.mveMin !== undefined && object.mveMin !== null) {
+      message.mveMin = object.mveMin;
+    } else {
+      message.mveMin = 0;
+    }
+    if (object.mveMax !== undefined && object.mveMax !== null) {
+      message.mveMax = object.mveMax;
+    } else {
+      message.mveMax = 0;
+    }
+    if (object.tvMin !== undefined && object.tvMin !== null) {
+      message.tvMin = object.tvMin;
+    } else {
+      message.tvMin = 0;
+    }
+    if (object.tvMax !== undefined && object.tvMax !== null) {
+      message.tvMax = object.tvMax;
+    } else {
+      message.tvMax = 0;
+    }
+    if (object.etco2Min !== undefined && object.etco2Min !== null) {
+      message.etco2Min = object.etco2Min;
+    } else {
+      message.etco2Min = 0;
+    }
+    if (object.etco2Max !== undefined && object.etco2Max !== null) {
+      message.etco2Max = object.etco2Max;
+    } else {
+      message.etco2Max = 0;
+    }
+    if (object.flowMin !== undefined && object.flowMin !== null) {
+      message.flowMin = object.flowMin;
+    } else {
+      message.flowMin = 0;
+    }
+    if (object.flowMax !== undefined && object.flowMax !== null) {
+      message.flowMax = object.flowMax;
+    } else {
+      message.flowMax = 0;
+    }
+    if (object.apneaMin !== undefined && object.apneaMin !== null) {
+      message.apneaMin = object.apneaMin;
+    } else {
+      message.apneaMin = 0;
+    }
+    if (object.apneaMax !== undefined && object.apneaMax !== null) {
+      message.apneaMax = object.apneaMax;
+    } else {
+      message.apneaMax = 0;
+    }
+    return message;
+  },
+  toJSON(message: AlarmLimitsRequest): unknown {
+    const obj: any = {};
+    obj.rrMin = message.rrMin || 0;
+    obj.rrMax = message.rrMax || 0;
+    obj.pipMin = message.pipMin || 0;
+    obj.pipMax = message.pipMax || 0;
+    obj.peepMin = message.peepMin || 0;
+    obj.peepMax = message.peepMax || 0;
+    obj.ipAbovePeepMin = message.ipAbovePeepMin || 0;
+    obj.ipAbovePeepMax = message.ipAbovePeepMax || 0;
+    obj.inspTimeMin = message.inspTimeMin || 0;
+    obj.inspTimeMax = message.inspTimeMax || 0;
+    obj.fio2Min = message.fio2Min || 0;
+    obj.fio2Max = message.fio2Max || 0;
+    obj.pawMin = message.pawMin || 0;
+    obj.pawMax = message.pawMax || 0;
+    obj.mveMin = message.mveMin || 0;
+    obj.mveMax = message.mveMax || 0;
+    obj.tvMin = message.tvMin || 0;
+    obj.tvMax = message.tvMax || 0;
+    obj.etco2Min = message.etco2Min || 0;
+    obj.etco2Max = message.etco2Max || 0;
+    obj.flowMin = message.flowMin || 0;
+    obj.flowMax = message.flowMax || 0;
+    obj.apneaMin = message.apneaMin || 0;
+    obj.apneaMax = message.apneaMax || 0;
+    return obj;
+  },
+};
+
+export const FrontendDisplaySetting = {
+  encode(message: FrontendDisplaySetting, writer: Writer = Writer.create()): Writer {
+    writer.uint32(8).int32(message.theme);
+    writer.uint32(16).int32(message.unit);
+    return writer;
+  },
+  decode(input: Uint8Array | Reader, length?: number): FrontendDisplaySetting {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = Object.create(baseFrontendDisplaySetting) as FrontendDisplaySetting;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.theme = reader.int32() as any;
+          break;
+        case 2:
+          message.unit = reader.int32() as any;
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+  fromJSON(object: any): FrontendDisplaySetting {
+    const message = Object.create(baseFrontendDisplaySetting) as FrontendDisplaySetting;
+    if (object.theme !== undefined && object.theme !== null) {
+      message.theme = ThemeVariant.fromJSON(object.theme);
+    } else {
+      message.theme = 0;
+    }
+    if (object.unit !== undefined && object.unit !== null) {
+      message.unit = Unit.fromJSON(object.unit);
+    } else {
+      message.unit = 0;
+    }
+    return message;
+  },
+  fromPartial(object: DeepPartial<FrontendDisplaySetting>): FrontendDisplaySetting {
+    const message = Object.create(baseFrontendDisplaySetting) as FrontendDisplaySetting;
+    if (object.theme !== undefined && object.theme !== null) {
+      message.theme = object.theme;
+    } else {
+      message.theme = 0;
+    }
+    if (object.unit !== undefined && object.unit !== null) {
+      message.unit = object.unit;
+    } else {
+      message.unit = 0;
+    }
+    return message;
+  },
+  toJSON(message: FrontendDisplaySetting): unknown {
+    const obj: any = {};
+    obj.theme = ThemeVariant.toJSON(message.theme);
+    obj.unit = Unit.toJSON(message.unit);
+    return obj;
+  },
+};
+
+export const SystemSettingRequest = {
+  encode(message: SystemSettingRequest, writer: Writer = Writer.create()): Writer {
+    writer.uint32(8).uint32(message.brightness);
+    writer.uint32(16).uint32(message.date);
+    return writer;
+  },
+  decode(input: Uint8Array | Reader, length?: number): SystemSettingRequest {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = Object.create(baseSystemSettingRequest) as SystemSettingRequest;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.brightness = reader.uint32();
+          break;
+        case 2:
+          message.date = reader.uint32();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+  fromJSON(object: any): SystemSettingRequest {
+    const message = Object.create(baseSystemSettingRequest) as SystemSettingRequest;
+    if (object.brightness !== undefined && object.brightness !== null) {
+      message.brightness = Number(object.brightness);
+    } else {
+      message.brightness = 0;
+    }
+    if (object.date !== undefined && object.date !== null) {
+      message.date = Number(object.date);
+    } else {
+      message.date = 0;
+    }
+    return message;
+  },
+  fromPartial(object: DeepPartial<SystemSettingRequest>): SystemSettingRequest {
+    const message = Object.create(baseSystemSettingRequest) as SystemSettingRequest;
+    if (object.brightness !== undefined && object.brightness !== null) {
+      message.brightness = object.brightness;
+    } else {
+      message.brightness = 0;
+    }
+    if (object.date !== undefined && object.date !== null) {
+      message.date = object.date;
+    } else {
+      message.date = 0;
+    }
+    return message;
+  },
+  toJSON(message: SystemSettingRequest): unknown {
+    const obj: any = {};
+    obj.brightness = message.brightness || 0;
+    obj.date = message.date || 0;
+    return obj;
+  },
+};
+
 export const SensorMeasurements = {
   encode(message: SensorMeasurements, writer: Writer = Writer.create()): Writer {
     writer.uint32(8).uint32(message.time);
@@ -279,7 +910,8 @@ export const SensorMeasurements = {
     writer.uint32(45).float(message.fio2);
     return writer;
   },
-  decode(reader: Reader, length?: number): SensorMeasurements {
+  decode(input: Uint8Array | Reader, length?: number): SensorMeasurements {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = Object.create(baseSensorMeasurements) as SensorMeasurements;
     while (reader.pos < end) {
@@ -387,7 +1019,8 @@ export const CycleMeasurements = {
     writer.uint32(61).float(message.ve);
     return writer;
   },
-  decode(reader: Reader, length?: number): CycleMeasurements {
+  decode(input: Uint8Array | Reader, length?: number): CycleMeasurements {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = Object.create(baseCycleMeasurements) as CycleMeasurements;
     while (reader.pos < end) {
@@ -512,73 +1145,10 @@ export const CycleMeasurements = {
   },
 };
 
-export const VentilationMode = {
-  encode(message: VentilationMode, writer: Writer = Writer.create()): Writer {
-    writer.uint32(8).int32(message.support);
-    writer.uint32(16).int32(message.cycling);
-    return writer;
-  },
-  decode(reader: Reader, length?: number): VentilationMode {
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = Object.create(baseVentilationMode) as VentilationMode;
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.support = reader.int32() as any;
-          break;
-        case 2:
-          message.cycling = reader.int32() as any;
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-  fromJSON(object: any): VentilationMode {
-    const message = Object.create(baseVentilationMode) as VentilationMode;
-    if (object.support !== undefined && object.support !== null) {
-      message.support = SpontaneousSupport.fromJSON(object.support);
-    } else {
-      message.support = 0;
-    }
-    if (object.cycling !== undefined && object.cycling !== null) {
-      message.cycling = VentilationCycling.fromJSON(object.cycling);
-    } else {
-      message.cycling = 0;
-    }
-    return message;
-  },
-  fromPartial(object: DeepPartial<VentilationMode>): VentilationMode {
-    const message = Object.create(baseVentilationMode) as VentilationMode;
-    if (object.support !== undefined && object.support !== null) {
-      message.support = object.support;
-    } else {
-      message.support = 0;
-    }
-    if (object.cycling !== undefined && object.cycling !== null) {
-      message.cycling = object.cycling;
-    } else {
-      message.cycling = 0;
-    }
-    return message;
-  },
-  toJSON(message: VentilationMode): unknown {
-    const obj: any = {};
-    obj.support = SpontaneousSupport.toJSON(message.support);
-    obj.cycling = VentilationCycling.toJSON(message.cycling);
-    return obj;
-  },
-};
-
 export const Parameters = {
   encode(message: Parameters, writer: Writer = Writer.create()): Writer {
     writer.uint32(8).uint32(message.time);
-    if (message.mode !== undefined && message.mode !== undefined) {
-      VentilationMode.encode(message.mode, writer.uint32(18).fork()).ldelim();
-    }
+    writer.uint32(16).int32(message.mode);
     writer.uint32(29).float(message.pip);
     writer.uint32(37).float(message.peep);
     writer.uint32(45).float(message.vt);
@@ -587,7 +1157,8 @@ export const Parameters = {
     writer.uint32(69).float(message.fio2);
     return writer;
   },
-  decode(reader: Reader, length?: number): Parameters {
+  decode(input: Uint8Array | Reader, length?: number): Parameters {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = Object.create(baseParameters) as Parameters;
     while (reader.pos < end) {
@@ -597,7 +1168,7 @@ export const Parameters = {
           message.time = reader.uint32();
           break;
         case 2:
-          message.mode = VentilationMode.decode(reader, reader.uint32());
+          message.mode = reader.int32() as any;
           break;
         case 3:
           message.pip = reader.float();
@@ -634,7 +1205,7 @@ export const Parameters = {
     if (object.mode !== undefined && object.mode !== null) {
       message.mode = VentilationMode.fromJSON(object.mode);
     } else {
-      message.mode = undefined;
+      message.mode = 0;
     }
     if (object.pip !== undefined && object.pip !== null) {
       message.pip = Number(object.pip);
@@ -676,9 +1247,9 @@ export const Parameters = {
       message.time = 0;
     }
     if (object.mode !== undefined && object.mode !== null) {
-      message.mode = VentilationMode.fromPartial(object.mode);
+      message.mode = object.mode;
     } else {
-      message.mode = undefined;
+      message.mode = 0;
     }
     if (object.pip !== undefined && object.pip !== null) {
       message.pip = object.pip;
@@ -715,7 +1286,7 @@ export const Parameters = {
   toJSON(message: Parameters): unknown {
     const obj: any = {};
     obj.time = message.time || 0;
-    obj.mode = message.mode ? VentilationMode.toJSON(message.mode) : undefined;
+    obj.mode = VentilationMode.toJSON(message.mode);
     obj.pip = message.pip || 0;
     obj.peep = message.peep || 0;
     obj.vt = message.vt || 0;
@@ -729,9 +1300,7 @@ export const Parameters = {
 export const ParametersRequest = {
   encode(message: ParametersRequest, writer: Writer = Writer.create()): Writer {
     writer.uint32(8).uint32(message.time);
-    if (message.mode !== undefined && message.mode !== undefined) {
-      VentilationMode.encode(message.mode, writer.uint32(18).fork()).ldelim();
-    }
+    writer.uint32(16).int32(message.mode);
     writer.uint32(29).float(message.pip);
     writer.uint32(37).float(message.peep);
     writer.uint32(45).float(message.vt);
@@ -740,7 +1309,8 @@ export const ParametersRequest = {
     writer.uint32(69).float(message.fio2);
     return writer;
   },
-  decode(reader: Reader, length?: number): ParametersRequest {
+  decode(input: Uint8Array | Reader, length?: number): ParametersRequest {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = Object.create(baseParametersRequest) as ParametersRequest;
     while (reader.pos < end) {
@@ -750,7 +1320,7 @@ export const ParametersRequest = {
           message.time = reader.uint32();
           break;
         case 2:
-          message.mode = VentilationMode.decode(reader, reader.uint32());
+          message.mode = reader.int32() as any;
           break;
         case 3:
           message.pip = reader.float();
@@ -787,7 +1357,7 @@ export const ParametersRequest = {
     if (object.mode !== undefined && object.mode !== null) {
       message.mode = VentilationMode.fromJSON(object.mode);
     } else {
-      message.mode = undefined;
+      message.mode = 0;
     }
     if (object.pip !== undefined && object.pip !== null) {
       message.pip = Number(object.pip);
@@ -829,9 +1399,9 @@ export const ParametersRequest = {
       message.time = 0;
     }
     if (object.mode !== undefined && object.mode !== null) {
-      message.mode = VentilationMode.fromPartial(object.mode);
+      message.mode = object.mode;
     } else {
-      message.mode = undefined;
+      message.mode = 0;
     }
     if (object.pip !== undefined && object.pip !== null) {
       message.pip = object.pip;
@@ -868,7 +1438,7 @@ export const ParametersRequest = {
   toJSON(message: ParametersRequest): unknown {
     const obj: any = {};
     obj.time = message.time || 0;
-    obj.mode = message.mode ? VentilationMode.toJSON(message.mode) : undefined;
+    obj.mode = VentilationMode.toJSON(message.mode);
     obj.pip = message.pip || 0;
     obj.peep = message.peep || 0;
     obj.vt = message.vt || 0;
@@ -885,7 +1455,8 @@ export const Ping = {
     writer.uint32(16).uint32(message.id);
     return writer;
   },
-  decode(reader: Reader, length?: number): Ping {
+  decode(input: Uint8Array | Reader, length?: number): Ping {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = Object.create(basePing) as Ping;
     while (reader.pos < end) {
@@ -946,7 +1517,8 @@ export const Announcement = {
     writer.uint32(18).bytes(message.announcement);
     return writer;
   },
-  decode(reader: Reader, length?: number): Announcement {
+  decode(input: Uint8Array | Reader, length?: number): Announcement {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = Object.create(baseAnnouncement) as Announcement;
     while (reader.pos < end) {

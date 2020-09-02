@@ -7,20 +7,24 @@ const useStyles = makeStyles((theme: Theme) => ({
     contentContainer: {
         height: '100%',
         minHeight: '300px',
-        border: '2px dashed ' + theme.palette.common.black,
+        border: '2px dashed ' + theme.palette.background.default,
         borderRadius: theme.panel.borderRadius,
         marginRight: theme.spacing(2),
-        padding: theme.spacing(2)
+        paddingTop: theme.spacing(2),
+        paddingLeft: theme.spacing(2),
+        paddingRight: theme.spacing(4),
     },
     borderBottom: {
-        borderBottom: '2px dashed' + theme.palette.common.black
+        borderBottom: '2px dashed ' + theme.palette.background.default
     },
     openButton: {
         width: '100%',
-        border: '1px solid ' + theme.palette.background.default
+        border: '1px solid ' + theme.palette.common.black
     },
     unitsLabel: {
-        paddingTop: theme.spacing(4)
+        paddingTop: theme.spacing(4),
+        paddingLeft: theme.spacing(2),
+        opacity: .8,
         // border: '1px solid red'
     },
 }))
@@ -54,6 +58,12 @@ export const ValueModal = (
     const handleConfirm = () => {
         requestCommitSetting(value)
     }
+
+    function pipClarify (label:string) {
+        if (label==='PIP') return '*not PEEP compensated'
+        return ''
+    }
+
     return (
         <Grid container direction='column' alignItems='center' justify='center'>
             <Grid container item xs>
@@ -67,10 +77,13 @@ export const ValueModal = (
                         <Grid item>
                             <Typography variant='h4'>
                                 {label}
+                                <Typography variant='h6' style={{opacity:.8}}>
+                                {pipClarify(label)}
+                                </Typography>
                             </Typography>
                         </Grid>
                         <Grid container item xs wrap='nowrap'>
-                            <Grid container item alignItems='center'>
+                            <Grid container item alignItems='baseline'>
                                 <Typography align='left' style={{ fontSize: '9.5rem' }}>
                                     {value.toFixed(0)}
                                 </Typography>

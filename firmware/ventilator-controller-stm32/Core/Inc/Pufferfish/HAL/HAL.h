@@ -19,3 +19,4 @@
 #include "Pufferfish/HAL/STM32/PWM.h"
 #include "Pufferfish/HAL/STM32/HALSPIDevice.h"
 #include "Pufferfish/HAL/Interfaces/SPIDevice.h"
+#include "Pufferfish/HAL/STM32/AnalogInput.h"

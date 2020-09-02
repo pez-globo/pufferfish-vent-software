@@ -11,21 +11,19 @@ import {
 import { AlarmModal, Knob } from '../controllers'
 import store from '../../store'
 import { StoreState } from '../../store/types'
-import { PARAMETER_COMMITTED } from '../../store/controller/types'
 import {
   getCycleMeasurementsRR,
   getParametersRR
 } from '../../store/controller/selectors'
 import { BMIN } from './units'
+import { updateCommittedParameter } from '../../store/controller/actions'
 
 const displaySelector = createStructuredSelector<StoreState, ValueProps>({
   value: getCycleMeasurementsRR
 })
 const RRDisplay = connect(displaySelector)(ValueDisplay)
 
-const doSetRR = (setting: number) => ({
-  type: PARAMETER_COMMITTED, update: { rr: setting }
-})
+const doSetRR = (setting: number) => updateCommittedParameter({ rr: setting })
 const boundDoSetRR = bindActionCreators(doSetRR, store.dispatch)
 
 const settingSelector = createStructuredSelector<StoreState, SettingAdjustProps>({
@@ -34,6 +32,7 @@ const settingSelector = createStructuredSelector<StoreState, SettingAdjustProps>
 const RRValueModal = connect(settingSelector)(ValueModal)
 
 const label = 'RR'
+const stateKey = "rr"
 const units = BMIN
 
 /**
@@ -47,7 +46,7 @@ const RRInfo = () => (
   <Knob
     valueDisplay={<RRDisplay label={label} units={units} isLive={true} />}
     valueModal={<RRValueModal label={label} units={units} requestCommitSetting={boundDoSetRR} />}
-    alarmModal={<AlarmModal label={label} units={units} requestCommitRange={() => null} />}
+    alarmModal={<AlarmModal label={label} units={units} stateKey={stateKey} requestCommitRange={() => null} />}
   />
 )
 

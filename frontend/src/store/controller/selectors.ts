@@ -7,7 +7,10 @@ import {
   Parameters,
   ParametersRequest,
   Ping,
-  Announcement
+  Announcement,
+  AlarmLimitsRequest,
+  FrontendDisplaySetting,
+  SystemSettingRequest
 } from './proto/mcu_pb'
 import {
   RotaryEncoder
@@ -15,7 +18,7 @@ import {
 import {
   ControllerStates,
   WaveformPoint,
-  WaveformHistory
+  WaveformHistory,
 } from './types'
 
 export const getController = (
@@ -104,6 +107,11 @@ export const getParametersRequest = createSelector(
   (states: ControllerStates): ParametersRequest => states.parametersRequest
 )
 
+export const getParametersRequestMode = createSelector(
+  getParametersRequest,
+  (parametersRequest: ParametersRequest): number | any => parametersRequest.mode
+)
+
 // Ping
 export const getPing = createSelector(
   getController,
@@ -146,4 +154,22 @@ export const getWaveformFlowOld = createSelector(
 export const getWaveformFlowNew = createSelector(
   getWaveformHistoryFlow,
   (waveformHistory: WaveformHistory): WaveformPoint[] => waveformHistory.waveformNew
+)
+
+// Alarm Limits
+export const getAlarmLimitsRequest = createSelector(
+  getController,
+  (states: ControllerStates): AlarmLimitsRequest => states.alarmLimitsRequest
+)
+
+// Display Settings
+export const getFrontendDisplaySetting = createSelector(
+  getController,
+  (states: ControllerStates): FrontendDisplaySetting => states.frontendDisplaySetting
+)
+
+// Display Settings
+export const getSystemSettingRequest = createSelector(
+  getController,
+  (states: ControllerStates): SystemSettingRequest => states.systemSettingRequest
 )

@@ -74,7 +74,7 @@ const Sidebar = () => {
                     <div>
                         <ShutdownIcon style={{ fontSize: '1.5rem' }} />
                         <br />
-                        <Typography variant='subtitle2' align='center'>
+                        <Typography variant='subtitle2'  style={{color:'white'}} align='center'>
                             Shutdown
                         </Typography>
                     </div>

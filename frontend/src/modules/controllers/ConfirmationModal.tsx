@@ -20,6 +20,12 @@ const useStyles = makeStyles((theme: Theme) => ({
     },
     dialogActions: {
         paddingBottom: theme.spacing(2)
+    },
+    buttons: {
+        minHeight: 54,
+        borderRadius: 6,
+        width: '90%', 
+        fontSize: 20
     }
 }))
 
@@ -57,12 +63,12 @@ export const ConfirmationModal = (props: PropsWithChildren<Props>) => {
             <DialogActions className={classes.dialogActions}>
                 <Grid container justify='center'>
                     <Grid container item xs justify='center'>
-                        <Button onClick={props.onClose} variant='contained' color='primary' style={{ width: '90%' }}>
+                        <Button onClick={props.onClose} variant='contained' color='primary' className={classes.buttons}>
                             Cancel
                         </Button>
                     </Grid>
                     <Grid container item xs justify='center'>
-                        <Button onClick={props.onConfirm} variant='contained' color='secondary' style={{ width: '90%' }}>
+                        <Button onClick={props.onConfirm} variant='contained' color='secondary' className={classes.buttons}>
                             Confirm
                         </Button>
                     </Grid>

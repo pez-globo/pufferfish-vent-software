@@ -12,11 +12,12 @@ const useStyles = makeStyles((theme: Theme) => ({
         // border: '1px dashed red',
     },
     iconButton: {
-        border: '1px solid black',
+        border: '1px solid ' + theme.palette.common.black,
         borderRadius: 8,
         height: '100%',
         minHeight: 55,
         minWidth: 78,
+        marginLeft: theme.spacing(1)
     },
     marginBottom: { marginBottom: theme.spacing(2) },
     marginRight: { marginRight: theme.spacing(1) }
@@ -30,7 +31,8 @@ interface Props {
     // An inclusive range defined by [min, max]
     min?: number,
     max?: number,
-    direction?: Direction
+    direction?: Direction,
+    step?: number
 }
 
 /**
@@ -38,7 +40,7 @@ interface Props {
  *
  * A re-usable component for simple increment and decrement value adjustments.
  */
-export const ValueClicker = ({ value, min = 0, max = 100, onClick, direction = 'column' }: Props) => {
+export const ValueClicker = ({ value, min = 0, max = 100, onClick, direction = 'column', step = 1 }: Props) => {
     const classes = useStyles()
 
     const update = (step: number) => () => {
@@ -54,12 +56,12 @@ export const ValueClicker = ({ value, min = 0, max = 100, onClick, direction = '
     return (
         <Grid container direction={direction} className={classes.root} wrap='nowrap'>
             <Grid item className={direction === 'row' ? classes.marginRight : classes.marginBottom}>
-                <Button onClick={update(1)} variant='contained' color='primary' className={classes.iconButton}>
+                <Button onClick={update(step)} variant='contained' color='primary' className={classes.iconButton}>
                     <KeyboardArrowUp fontSize='large' />
                 </Button>
             </Grid>
             <Grid item>
-                <Button onClick={update(-1)} variant='contained' color='primary' className={classes.iconButton}>
+                <Button onClick={update(-step)} variant='contained' color='primary' className={classes.iconButton}>
                     <KeyboardArrowDown fontSize='large' />
                 </Button>
             </Grid>

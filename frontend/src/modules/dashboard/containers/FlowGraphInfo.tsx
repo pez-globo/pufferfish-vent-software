@@ -32,12 +32,15 @@ interface AutoSizerProps {
 
 
 interface WaveformProps extends DataProps, AutoSizerProps {
-  strokeWidth: number
+  strokeWidth: number,
+  fill: boolean
 }
 
 
-const FlowWaveform = ({ data, width, height, strokeWidth }: WaveformProps) => (
+const FlowWaveform = ({ data, width, height, strokeWidth, fill }: WaveformProps) => (
   <Waveform
+    type={'flow'}
+    fill={fill}
     width={width} height={height} data={data} strokeWidth={strokeWidth}
     xRangeMax={10000} yRangeMin={-150} yRangeMax={150}
   />
@@ -52,8 +55,8 @@ const FlowGraphInfo = () => (
     {({ width, height }: AutoSizerProps) => (
       <Axes
         width={width} height={height}
-        waveformOld={<WaveformOld width={width} height={height} strokeWidth={1} />}
-        waveformNew={<WaveformNew width={width} height={height} strokeWidth={4} />}
+        waveformOld={<WaveformOld width={width} height={height} strokeWidth={1} fill={false}/>}
+        waveformNew={<WaveformNew width={width} height={height} strokeWidth={4} fill={true}/>}
         xRangeMax={10000} yRangeMin={-150} yRangeMax={150}
         title={"Flow"} units={"L/min"}
       />

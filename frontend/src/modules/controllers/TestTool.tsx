@@ -1,7 +1,7 @@
 import React from 'react'
 import { Button, Grid, Typography, makeStyles, Theme } from '@material-ui/core'
 import CheckCircleIcon from '@material-ui/icons/CheckCircle'
-import ErrorIcon from '@material-ui/icons/Error'
+import CancelIcon from '@material-ui/icons/Cancel'
 
 const useStyles = makeStyles((theme: Theme) => ({
     root: {
@@ -28,8 +28,18 @@ const useStyles = makeStyles((theme: Theme) => ({
     successIcon: {
         color: theme.palette.success.main
     },
-    errorIcon: {
+    cancelIcon: {
         color: theme.palette.error.main
+    },
+    dateTime: {
+        marginBottom:30,
+    },
+    time: {
+        marginRight: 75,
+        fontFamily:'sans-serif',
+    },
+    date:{
+        fontFamily:'sans-serif',
     }
 }))
 
@@ -56,16 +66,20 @@ export const TestTool = ({ label, isSuccess, timestamp }: Props) => {
                 <Grid item>
                     {isSuccess
                         ? <CheckCircleIcon className={classes.successIcon} />
-                        : <ErrorIcon className={classes.errorIcon} />
+                        : <CancelIcon className={classes.cancelIcon} />
                     }
                 </Grid>
             </Grid>
-            <Grid container item xs direction='row' justify='space-between'>
+            <Grid container item xs direction='row' justify='flex-start' className={classes.dateTime}>
                 <Grid item>
-                    <Typography>{timestamp.toLocaleTimeString()} </Typography>
+                    <Typography className={classes.time}>
+                    {timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </Typography>
                 </Grid>
                 <Grid item>
-                    <Typography>{timestamp.toLocaleDateString()}</Typography>
+                    <Typography className={classes.date}>
+                    {timestamp.toLocaleDateString([], { month: '2-digit', day: '2-digit', year:'numeric' })}
+                    </Typography>
                 </Grid>
             </Grid>
             <Grid container item direction='row' justify='space-evenly' alignItems='center'>

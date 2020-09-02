@@ -45,6 +45,7 @@ docs/_build/
 .env
 
 # Misc
+docs/
 
 # misc
 .DS_Store

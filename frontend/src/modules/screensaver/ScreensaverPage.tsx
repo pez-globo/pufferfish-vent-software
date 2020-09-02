@@ -43,7 +43,7 @@ export const ScreensaverPage = () => {
                 </Grid>
             </Grid>
             <Grid item>
-                <ModeBanner />
+                <ModeBanner bannerType='screenSaver'/>
             </Grid>
         </Grid>
     )

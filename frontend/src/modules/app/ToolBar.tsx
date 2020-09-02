@@ -6,6 +6,11 @@ import { LOGS_ROUTE, DASHBOARD_ROUTE, QUICKSTART_ROUTE, SCREENSAVER_ROUTE } from
 import ModesDropdown from '../modes/ModesDropdown'
 import ViewDropdown from '../dashboard/views/ViewDropdown'
 import { BackIcon, BellIcon } from '../icons'
+import ClockIcon from '../icons/ClockIcon'
+import PowerFullIcon from '../icons/PowerFullIcon'
+import { PERCENT } from '../info/units'
+import { useSelector } from 'react-redux'
+import { getClockTime } from '../../store/app/selectors'
 
 const useStyles = makeStyles((theme: Theme) => ({
     root: {
@@ -13,6 +18,9 @@ const useStyles = makeStyles((theme: Theme) => ({
     },
     marginRight: {
         marginRight: theme.spacing(2)
+    },
+    paddingRight: {
+        paddingRight: theme.spacing(1)
     },
     toolContainer: {
         height: '100%',
@@ -72,9 +80,13 @@ export const ToolBar = () => {
             </Button>
         )
     }
+    const clockTime = useSelector(getClockTime)
 
     return (
-        <AppBar color='transparent' position='static'>
+        <AppBar
+        color='transparent'
+        elevation={0}
+        position='static'>
             <Grid
                 container
                 direction='row'
@@ -86,7 +98,7 @@ export const ToolBar = () => {
                 <Grid
                     container
                     item
-                    xs={9}
+                    xs={8}
                     direction='row'
                     justify='flex-start'
                     alignItems='center'
@@ -110,6 +122,17 @@ export const ToolBar = () => {
                     zeroMinWidth
                     className={classes.toolContainer}
                 >
+                    <Grid
+                        container
+                        item
+                        xs
+                        justify='flex-end'
+                        alignItems='center'>
+                        <span className={classes.paddingRight}>{`100${PERCENT}`}</span>
+                        <PowerFullIcon style={{ fontSize: '2.5rem' }} />
+                        <span className={classes.paddingRight}>{clockTime}</span>
+                        <ClockIcon style={{ fontSize: '2.5rem' }} />
+                    </Grid>
                     <Grid item >
                         {StartPauseButton}
                     </Grid>

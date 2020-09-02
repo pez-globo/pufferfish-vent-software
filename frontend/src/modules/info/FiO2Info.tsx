@@ -12,21 +12,19 @@ import { AlarmModal, Knob } from '../controllers'
 
 import store from '../../store'
 import { StoreState } from '../../store/types'
-import { PARAMETER_COMMITTED } from '../../store/controller/types'
 import {
   getSensorMeasurementsFiO2,
   getParametersFiO2
 } from '../../store/controller/selectors'
 import { PERCENT } from './units'
+import { updateCommittedParameter } from '../../store/controller/actions'
 
 const displaySelector = createStructuredSelector<StoreState, ValueProps>({
   value: getSensorMeasurementsFiO2
 })
 const FiO2Display = connect(displaySelector)(ValueDisplay)
 
-const doSetFiO2 = (setting: number) => ({
-  type: PARAMETER_COMMITTED, update: { fio2: setting }
-})
+const doSetFiO2 = (setting: number) => updateCommittedParameter({ fio2: setting })
 const boundDoSetFiO2 = bindActionCreators(doSetFiO2, store.dispatch)
 
 const settingSelector = createStructuredSelector<StoreState, SettingAdjustProps>({
@@ -35,6 +33,7 @@ const settingSelector = createStructuredSelector<StoreState, SettingAdjustProps>
 const FiO2ValueModal = connect(settingSelector)(ValueModal)
 
 const label = 'FiO2'
+const stateKey = "fio2"
 const units = PERCENT
 
 /**
@@ -48,7 +47,7 @@ const FiO2Info = () => (
   <Knob
     valueDisplay={<FiO2Display label={label} units={units} isLive={true} />}
     valueModal={<FiO2ValueModal label={label} units={units} requestCommitSetting={boundDoSetFiO2} />}
-    alarmModal={<AlarmModal label={label} units={units} requestCommitRange={() => null} />}
+    alarmModal={<AlarmModal label={label} units={units} stateKey={stateKey} requestCommitRange={() => null} />}
   />
 )
 

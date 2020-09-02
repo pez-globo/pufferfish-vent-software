@@ -17,6 +17,7 @@ const displaySelector = createStructuredSelector<StoreState, ValueProps>({
 const PawDisplay = connect(displaySelector)(ValueDisplay)
 
 const label = 'Paw'
+const stateKey = "paw"
 const units = CMH20
 
 /**
@@ -30,7 +31,7 @@ const PawInfo = () => (
     <Knob
         valueDisplay={<PawDisplay label={label} units={units} isLive={true} />}
         valueModal={null}
-        alarmModal={<AlarmModal label={label} units={units} requestCommitRange={() => null} />}
+        alarmModal={<AlarmModal label={label} units={units} stateKey={stateKey} requestCommitRange={() => null} />}
     />
 )
 

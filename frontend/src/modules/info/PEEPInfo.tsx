@@ -12,12 +12,12 @@ import { AlarmModal, Knob } from '../controllers'
 
 import store from '../../store'
 import { StoreState } from '../../store/types'
-import { PARAMETER_COMMITTED } from '../../store/controller/types'
 import {
   getCycleMeasurementsPEEP,
   getParametersPEEP
 } from '../../store/controller/selectors'
 import { CMH20 } from './units'
+import { updateCommittedParameter } from '../../store/controller/actions'
 
 
 const displaySelector = createStructuredSelector<StoreState, ValueProps>({
@@ -25,9 +25,7 @@ const displaySelector = createStructuredSelector<StoreState, ValueProps>({
 })
 const PEEPDisplay = connect(displaySelector)(ValueDisplay)
 
-const doSetPEEP = (setting: number) => ({
-  type: PARAMETER_COMMITTED, update: { peep: setting }
-})
+const doSetPEEP = (setting: number) => updateCommittedParameter({ peep: setting })
 const boundDoSetPEEP = bindActionCreators(doSetPEEP, store.dispatch)
 
 const settingSelector = createStructuredSelector<StoreState, SettingAdjustProps>({
@@ -36,6 +34,7 @@ const settingSelector = createStructuredSelector<StoreState, SettingAdjustProps>
 const PEEPValueModal = connect(settingSelector)(ValueModal)
 
 const label = 'PEEP'
+const stateKey = "peep"
 const units = CMH20
 
 /**
@@ -49,7 +48,7 @@ const PEEPInfo = () => (
   <Knob
     valueDisplay={<PEEPDisplay label={label} units={units} isLive={true} />}
     valueModal={<PEEPValueModal label={label} units={units} requestCommitSetting={boundDoSetPEEP} />}
-    alarmModal={<AlarmModal label={label} units={units} requestCommitRange={() => null} />}
+    alarmModal={<AlarmModal label={label} units={units} stateKey={stateKey} requestCommitRange={() => null} />}
   />
 )
 
