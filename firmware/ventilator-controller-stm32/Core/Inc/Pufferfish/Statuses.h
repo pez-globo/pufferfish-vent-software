@@ -67,9 +67,21 @@ enum class SPIDeviceStatus {
  /**
   * An outcome of performing an operation on ADC
   */
+};
+
 enum class ADCStatus {
   ok = 0, ///success
   error   /// error in ADC input
+};
+
+/**
+ * An outcome of performing an operation on BMP388 bus
+ */
+enum class SPIBMP388Status {
+  ok = 0, // success
+  error,  // an error occurred in BMP388 bus
+  writeError, // an error occur when writing to an SPI device
+  readError // an error occur when reading from an SPI device
 };
 
 }  // namespace Pufferfish
