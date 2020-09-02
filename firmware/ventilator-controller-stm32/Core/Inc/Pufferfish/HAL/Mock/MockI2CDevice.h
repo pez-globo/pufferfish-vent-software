@@ -57,8 +57,8 @@ class MockI2CDevice : public I2CDevice {
   void getWrite(uint8_t *buf, size_t count);
 
  private:
-
-  uint8_t *mReadBuf, *mWriteBuf;
+  /* The 50 bytes of read and write operation are used */
+  uint8_t mReadBuf[50], mWriteBuf[50];
 
   size_t mCount;
 

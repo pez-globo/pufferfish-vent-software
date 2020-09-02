@@ -41,7 +41,7 @@ PWMStatus MockPWM::stop() {
 }
 
 uint32_t MockPWM::getMaxDutyCycle() {
-  return true;
+  return mLastMaxDuty;
 }
 
 void MockPWM::setMaxDutyCycle(uint32_t duty){

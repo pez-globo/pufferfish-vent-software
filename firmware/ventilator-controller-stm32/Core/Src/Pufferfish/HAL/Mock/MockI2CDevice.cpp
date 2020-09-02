@@ -22,17 +22,29 @@ I2CDeviceStatus MockI2CDevice::read(uint8_t *buf, size_t count) {
 }
 
 void MockI2CDevice::setRead(uint8_t *buf, size_t count) {
-  mReadBuf = buf;
+  size_t index;
+
+  for (index = 0; index < count; index++)
+  {
+    mReadBuf[index] = buf[index];
+  }
+
 }
 
 I2CDeviceStatus MockI2CDevice::write(uint8_t *buf, size_t count) {
-  mWriteBuf = buf;
+  size_t index;
+
+  for (index = 0; index < count; index++)
+  {
+    mWriteBuf[index] = buf[index];
+  }
   return I2CDeviceStatus::ok;
 }
 
 void MockI2CDevice::getWrite(uint8_t *buf, size_t count)
 {
   size_t index;
+
   for (index = 0; index < count; index++)
   {
     buf[index] = mWriteBuf[index];
