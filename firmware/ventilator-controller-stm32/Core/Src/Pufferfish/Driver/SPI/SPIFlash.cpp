@@ -16,7 +16,9 @@ uint16_t SPIFlash::getDeviceID(void){
   uint8_t count = 5;
   uint16_t deviceid = 0;
 
+  mCsPin.chipSelect(false);
   mSpi.writeRead(txbuf, rxbuf, count);
+  mCsPin.chipSelect(true);
 
   deviceid = rxbuf[3];
   deviceid = (deviceid << 8) & 0xFF00;
@@ -27,7 +29,10 @@ uint16_t SPIFlash::getDeviceID(void){
 
 SPIDeviceStatus SPIFlash::enableWrite(void){
   uint8_t temp=writeEnableInstruction;
+
+  mCsPin.chipSelect(false);
   SPIDeviceStatus stat = mSpi.write(&temp, 1);
+  mCsPin.chipSelect(true);
 
   if (stat == SPIDeviceStatus::ok) {
     return SPIDeviceStatus::ok;
@@ -39,7 +44,10 @@ SPIDeviceStatus SPIFlash::enableWrite(void){
 
 SPIDeviceStatus SPIFlash::disableWrite(void){
   uint8_t temp=writeDisableInstruction;
+
+  mCsPin.chipSelect(false);
   SPIDeviceStatus stat = mSpi.write(&temp, 1);
+  mCsPin.chipSelect(true);
 
   if (stat == SPIDeviceStatus::ok) {
     return SPIDeviceStatus::ok;
@@ -57,7 +65,9 @@ SPIDeviceStatus SPIFlash::readData(uint32_t addr, uint8_t *rxBuf, uint8_t size){
     txbuf[index] = (addr >> (8 * (3-index))) & 0xFF;
   }
 
+  mCsPin.chipSelect(false);
   SPIDeviceStatus stat = mSpi.writeRead(txbuf, rxBuf, size+4);
+  mCsPin.chipSelect(true);
   if (stat == SPIDeviceStatus::ok) {
     return SPIDeviceStatus::ok;
   } else {
@@ -70,8 +80,11 @@ bool SPIFlash::eraseChip(void){
   uint8_t temp=writeDisableInstruction;
 
   this->enableWrite();
+  mCsPin.chipSelect(false);
   SPIDeviceStatus stat = mSpi.write(&temp, 1);
   this->disableWrite();
+  mCsPin.chipSelect(true);
+  HAL::delay(2000);
   if (stat == SPIDeviceStatus::ok) {
     return true;
   } else {
@@ -80,22 +93,28 @@ bool SPIFlash::eraseChip(void){
 
 }
 
-bool SPIFlash::eraseSector4KB(uint32_t addr){
+SPIDeviceStatus SPIFlash::eraseSector4KB(uint32_t addr){
   uint8_t txbuf[4] = {0};
   txbuf[0]= sectorErase4KBInstruction;
 
-  this->enableWrite();
-  for (uint8_t index = 1; index<=3 ; index++){
-    txbuf[index] = (addr >> (8 * (3-index))) & 0xFF;
+  SPIDeviceStatus blockStatus = this->readBlockLockStatus(addr);
+  if(blockStatus == SPIDeviceStatus::blockLock ){
+    this->unLockBlock(addr);
   }
-
-  SPIDeviceStatus stat = mSpi.write(txbuf, 4);
-  this->disableWrite();
-  if (stat == SPIDeviceStatus::ok) {
-    return true;
-  } else {
-    return false;
-  }
+    this->enableWrite();
+    for (uint8_t index = 1; index<=3 ; index++){
+       txbuf[index] = (addr >> (8 * (3-index))) & 0xFF;
+    }
+    mCsPin.chipSelect(false);
+    SPIDeviceStatus stat = mSpi.write(txbuf, 4);
+    this->disableWrite();
+    mCsPin.chipSelect(true);
+    HAL::delay(45);
+    if (stat == SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::ok;
+    } else {
+      return SPIDeviceStatus::writeError;
+    }
 
 }
 
@@ -104,22 +123,24 @@ SPIDeviceStatus SPIFlash::eraseBlock32KB(uint32_t addr){
   txbuf[0]= blockErase32KBInstruction;
 
   SPIDeviceStatus blockStatus = this->readBlockLockStatus(addr);
-  if(blockStatus == SPIDeviceStatus::blockUnLock ){
-     this->enableWrite();
-      for (uint8_t index = 1; index<=3 ; index++){
-         txbuf[index] = (addr >> (8 * (3-index))) & 0xFF;
-       }
-
-      SPIDeviceStatus stat = mSpi.write(txbuf, 4);
-      this->disableWrite();
-      if (stat == SPIDeviceStatus::ok) {
-         return SPIDeviceStatus::ok;
-      } else {
-         return SPIDeviceStatus::writeError;
-      }
-   } else {
-    return SPIDeviceStatus::blockLock;
+  if(blockStatus == SPIDeviceStatus::blockLock ){
+    this->unLockBlock(addr);
   }
+    this->enableWrite();
+    for (uint8_t index = 1; index<=3 ; index++){
+       txbuf[index] = (addr >> (8 * (3-index))) & 0xFF;
+    }
+    mCsPin.chipSelect(false);
+    SPIDeviceStatus stat = mSpi.write(txbuf, 4);
+    this->disableWrite();
+    mCsPin.chipSelect(true);
+    HAL::delay(120);
+    if (stat == SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::ok;
+    } else {
+      return SPIDeviceStatus::writeError;
+    }
+
 }
 
 SPIDeviceStatus SPIFlash::eraseBlock64KB(uint32_t addr){
@@ -127,22 +148,23 @@ SPIDeviceStatus SPIFlash::eraseBlock64KB(uint32_t addr){
   txbuf[0]= blockErase64KBInstruction;
 
   SPIDeviceStatus blockStatus = this->readBlockLockStatus(addr);
-  if(blockStatus == SPIDeviceStatus::blockUnLock){
-     this->enableWrite();
-     for (uint8_t index = 1; index<=3 ; index++){
-         txbuf[index] = (addr >> (8 * (3-index))) & 0xFF;
-     }
-
-     SPIDeviceStatus stat = mSpi.write(txbuf, 4);
-     this->disableWrite();
-     if (stat == SPIDeviceStatus::ok) {
-       return SPIDeviceStatus::ok;
-     } else {
-       return SPIDeviceStatus::writeError;
-     }
-  } else {
-   return SPIDeviceStatus::blockLock;
+  if(blockStatus == SPIDeviceStatus::blockLock ){
+    this->unLockBlock(addr);
   }
+    this->enableWrite();
+    for (uint8_t index = 1; index<=3 ; index++){
+       txbuf[index] = (addr >> (8 * (3-index))) & 0xFF;
+    }
+    mCsPin.chipSelect(false);
+    SPIDeviceStatus stat = mSpi.write(txbuf, 4);
+    this->disableWrite();
+    mCsPin.chipSelect(true);
+    HAL::delay(150);
+    if (stat == SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::ok;
+    } else {
+      return SPIDeviceStatus::writeError;
+    }
 
 }
 
@@ -153,9 +175,12 @@ SPIDeviceStatus SPIFlash::writeByte(uint32_t addr, uint8_t input){
 
   SPIDeviceStatus status = this->readSpiStatus();
   if(status == SPIDeviceStatus::notbusy){
-    SPIDeviceStatus blockStatus = this->unLockBlock(addr);
-    if(blockStatus == SPIDeviceStatus::blockUnLock){
+    SPIDeviceStatus blockStatus = this->readBlockLockStatus(addr);
+    if(blockStatus == SPIDeviceStatus::blockLock ){
+      this->unLockBlock(addr);
+    }
       this->enableWrite();
+      mCsPin.chipSelect(false);
       mSpi.write(&temp, defaultsize);
 
       byteAddr = static_cast<uint8_t>(((addr&0xFF000000) >> 24) & 0xFF);
@@ -171,14 +196,14 @@ SPIDeviceStatus SPIFlash::writeByte(uint32_t addr, uint8_t input){
       mSpi.write(&byteAddr, defaultsize);
 
       mSpi.write(&input, defaultsize);
+      mCsPin.chipSelect(true);
 
       this->lockBlock(addr);
       return SPIDeviceStatus::ok;
-    } else {
-      return SPIDeviceStatus::blockLock;
-  } } else {
+  } else {
     return status;
-    }
+  }
+
 }
 
 SPIDeviceStatus SPIFlash::readSpiStatus(void){
@@ -187,7 +212,9 @@ SPIDeviceStatus SPIFlash::readSpiStatus(void){
   uint8_t  defaultsize = 1;
 
   txbuf[0]= readStatusReg1;
+  mCsPin.chipSelect(false);
   mSpi.writeRead(txbuf, rxbuf, defaultsize);
+  mCsPin.chipSelect(true);
   if(((*rxbuf) & 0x01) == 1){
     return SPIDeviceStatus::busy;
   } else {
@@ -203,8 +230,10 @@ SPIDeviceStatus SPIFlash::protectBlock(void){
   SPIDeviceStatus ret = this->readSpiStatus();
   if(ret == SPIDeviceStatus::notbusy){
     this->enableWrite();
+    mCsPin.chipSelect(false);
     mSpi.write(txbuf, defaultsize);
     this->disableWrite();
+    mCsPin.chipSelect(true);
 
     return SPIDeviceStatus::blockProtect;
   } else {
@@ -219,7 +248,9 @@ SPIDeviceStatus SPIFlash::readBlockProtectStatus(void){
   uint8_t  defaultsize = 1;
 
   txbuf[0]= readStatusReg3;
+  mCsPin.chipSelect(false);
   mSpi.writeRead(txbuf, rxbuf, defaultsize);
+  mCsPin.chipSelect(true);
   if(((*rxbuf) & 0x04) == 1){
     return SPIDeviceStatus::blockProtect;
   } else {
@@ -242,6 +273,7 @@ SPIDeviceStatus SPIFlash::lockBlock(uint32_t addr){
   SPIDeviceStatus status = this->readSpiStatus();
   if(status == SPIDeviceStatus::notbusy){
       this->enableWrite();
+      mCsPin.chipSelect(false);
       mSpi.write(&input, defaultsize);
 
       byteAddr = static_cast<uint8_t>(((addr&0xFF000000) >> 24) & 0xFF);
@@ -257,6 +289,7 @@ SPIDeviceStatus SPIFlash::lockBlock(uint32_t addr){
       mSpi.write(&byteAddr, defaultsize);
 
       this->disableWrite();
+      mCsPin.chipSelect(true);
       ret = SPIDeviceStatus::blockLock;
     } else {
       ret = SPIDeviceStatus::busy;
@@ -279,6 +312,7 @@ SPIDeviceStatus SPIFlash::unLockBlock(uint32_t addr){
   SPIDeviceStatus status = this->readSpiStatus();
   if(status == SPIDeviceStatus::notbusy){
     this->enableWrite();
+    mCsPin.chipSelect(false);
     mSpi.write(&input, defaultsize);
 
     byteAddr = static_cast<uint8_t>(((addr&0xFF000000) >> 24) & 0xFF);
@@ -294,6 +328,7 @@ SPIDeviceStatus SPIFlash::unLockBlock(uint32_t addr){
     mSpi.write(&byteAddr, defaultsize);
 
     this->disableWrite();
+    mCsPin.chipSelect(true);
     ret = SPIDeviceStatus::blockUnLock;
   }else {
     ret = SPIDeviceStatus::busy;
@@ -311,7 +346,9 @@ SPIDeviceStatus SPIFlash::readBlockLockStatus(uint32_t addr){
     txbuf[index] = (addr >> (8 * (3-index))) & 0xFF;
   }
 
+  mCsPin.chipSelect(false);
   mSpi.writeRead(txbuf, rxbuf, defaultsize);
+  mCsPin.chipSelect(true);
   if(((*rxbuf) & 0x01) == 1){
     return SPIDeviceStatus::blockLock;
   } else {
@@ -320,6 +357,59 @@ SPIDeviceStatus SPIFlash::readBlockLockStatus(uint32_t addr){
 
 }
 
+SPIDeviceStatus SPIFlash::pageProgram(uint32_t addr, uint8_t *data, uint16_t size){
+  uint8_t txbuf[4] = {0};
+  txbuf[0]= writeDataInstruction;
+
+   SPIDeviceStatus status = this->readSpiStatus();
+   if(status == SPIDeviceStatus::notbusy){
+     this->enableWrite();
+     mCsPin.chipSelect(false);
+     for (uint8_t index = 1; index<=3 ; index++){
+        txbuf[index] = (addr >> (8 * (3-index))) & 0xFF;
+     }
+     if(size > 256){
+         addr=addr+256;
+     }
+     mSpi.write(txbuf, 4);
+     mSpi.write(data, size);
+     this->disableWrite();
+     mCsPin.chipSelect(true);
+     return SPIDeviceStatus::ok;
+   } else {
+     return status;
+   }
+
+}
+
+SPIDeviceStatus SPIFlash::powerDown(void){
+  uint8_t temp=powerDownInstruction;
+  mCsPin.chipSelect(false);
+  SPIDeviceStatus stat = mSpi.write(&temp, 1);
+  mCsPin.chipSelect(true);
+  HAL::delayMicros(2);
+  if (stat == SPIDeviceStatus::ok) {
+    return stat;
+  } else {
+    return stat;
+  }
+
+}
+
+SPIDeviceStatus SPIFlash::releasePowerDown(void){
+  uint8_t temp=releasePowerDownInstruction;
+
+  mCsPin.chipSelect(false);
+  SPIDeviceStatus stat = mSpi.write(&temp, 1);
+  mCsPin.chipSelect(true);
+  HAL::delayMicros(2);
+  if (stat == SPIDeviceStatus::ok) {
+    return stat;
+  } else {
+    return stat;
+  }
+
+}
 
 }  // namespace SPI
 }  // namespace Driver

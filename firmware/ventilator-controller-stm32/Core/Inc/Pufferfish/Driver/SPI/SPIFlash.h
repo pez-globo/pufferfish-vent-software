@@ -19,31 +19,32 @@ namespace SPI {
 class SPIFlash {
 
 public:
-  SPIFlash (HAL::SPIDevice &spi):mSpi(spi){
+  SPIFlash (HAL::SPIDevice &spi, HAL::HALSPIDevice &cspin )
+            :mSpi(spi), mCsPin(cspin){
   }
 
-  /** Reads the spi device id
+  /** Read spi device id
    *
    * @param void
-   * @return deviceid get device id
+   * @return deviceid- ID based on device
    */
    uint16_t getDeviceID(void);
 
-   /** Enable write for the spi device
+   /** Enable write for spi device
      *
      * @param void
      * @return ok on success, error code otherwise
      */
    SPIDeviceStatus enableWrite(void);
 
-   /** Disable write for the spi device
+   /** Disable write for spi device
      *
      * @param void
      * @return ok on success, error code otherwise
      */
    SPIDeviceStatus disableWrite(void);
 
-   /** Read data from the spi device
+   /** Read data from spi device
      *
      * @param addr address to read data
      * @param rxBuf pointer to reception data buffer
@@ -62,33 +63,33 @@ public:
    /** Sector Erase - 4KB
      *
      * @param addr address to erase the sector
-     * @return true on success, false otherwise
+     * @return ok on success, writeError otherwise
      */
-   bool eraseSector4KB(uint32_t addr);
+   SPIDeviceStatus eraseSector4KB(uint32_t addr);
 
    /** Block Erase - 32KB
      *
      * @param addr address to erase the block
-     * @return ok on success, writeError or blockProtect otherwise
+     * @return ok on success, writeError otherwise
      */
    SPIDeviceStatus eraseBlock32KB(uint32_t addr);
 
    /** Block Erase - 64KB
      *
      * @param addr address to erase the block
-     * @return ok on success, writeError or blockProtect otherwise
+     * @return ok on success, writeError otherwise
      */
    SPIDeviceStatus eraseBlock64KB(uint32_t addr);
 
-   /** write byte into the spi device
+   /** write byte into spi device
      *
      * @param addr address to write data
      * @param input data to be written
-     * @return notBusy on success, busy otherwise
+     * @return ok on success, blockLock otherwise
      */
    SPIDeviceStatus writeByte(uint32_t addr, uint8_t input);
 
-   /** read status from the spi device
+   /** read status from spi device
      *
      * @param void
      * @param input data to be written
@@ -96,7 +97,7 @@ public:
      */
    SPIDeviceStatus readSpiStatus(void);
 
-   /** protect block for the spi device
+   /** protect block for spi device
      *
      * @param void
      * @param input data to be written
@@ -104,7 +105,7 @@ public:
      */
    SPIDeviceStatus protectBlock(void);
 
-   /** read block protect status from the spi device
+   /** read block protect status from spi device
      *
      * @param void
      * @param input data to be written
@@ -115,42 +116,68 @@ public:
    /** lock the block based on address
      *
      * @param addr address of the lock block
-     * @return lockBlock on success, lockUnBlock otherwise
+     * @return blockLock on success, blockUnLock otherwise
      */
    SPIDeviceStatus lockBlock(uint32_t addr);
 
    /** unlock the block based on address
      *
      * @param addr address of the unlock block
-     * @return lockUnBlock on success, lockBlock otherwise
+     * @return blockUnLock on success, blockLock otherwise
      */
    SPIDeviceStatus unLockBlock(uint32_t addr);
 
    /** read the block status
      *
      * @param addr address of the block
-     * @return lockBlock on success, lockUnBlock otherwise
+     * @return blockLock on success, blockUnLock otherwise
      */
    SPIDeviceStatus readBlockLockStatus(uint32_t addr);
 
+   /** write data into a page
+     *
+     * @param addr address of the page
+     * @param data to be written
+     * @param size size of the data
+     * @return ok on success, busy otherwise
+     */
+   SPIDeviceStatus pageProgram(uint32_t addr, uint8_t *data, uint16_t size);
+
+   /** device power down
+     *
+     * @param void
+     * @return ok on success, writeError otherwise
+     */
+   SPIDeviceStatus powerDown(void);
+
+   /** device release power down
+     *
+     * @param void
+     * @return ok on success, writeError otherwise
+     */
+   SPIDeviceStatus releasePowerDown(void);
+
 private:
    HAL::SPIDevice &mSpi;
-   static const uint8_t deviceIdInstruction =0x90;
-   static const uint8_t readDataInstruction =0x03;
-   static const uint8_t writeDataInstruction =0x02;
+   HAL::HALSPIDevice &mCsPin;
+   static const uint8_t deviceIdInstruction = 0x90;
+   static const uint8_t readDataInstruction = 0x03;
+   static const uint8_t writeDataInstruction = 0x02;
    static const uint8_t writeEnableInstruction = 0x06;
    static const uint8_t writeDisableInstruction = 0x04;
    static const uint8_t chipEraseInstruction = 0x60;
    static const uint8_t sectorErase4KBInstruction = 0x20;
    static const uint8_t blockErase32KBInstruction = 0x52;
    static const uint8_t blockErase64KBInstruction = 0xD8;
-   static const uint8_t readStatusReg1 =0x05;
-   static const uint8_t writeStatusReg3 =0x11;
-   static const uint8_t readStatusReg3 =0x15;
-   static const uint8_t writeProtectSelection =0x04;
-   static const uint8_t lockBlockInstruction =0x36;
-   static const uint8_t unlockBlockInstruction =0x39;
-   static const uint8_t readBlockStatusInstruction =0x3D;
+   static const uint8_t readStatusReg1 = 0x05;
+   static const uint8_t writeStatusReg3 = 0x11;
+   static const uint8_t readStatusReg3 = 0x15;
+   static const uint8_t writeProtectSelection = 0x04;
+   static const uint8_t lockBlockInstruction = 0x36;
+   static const uint8_t unlockBlockInstruction = 0x39;
+   static const uint8_t readBlockStatusInstruction = 0x3D;
+   static const uint8_t powerDownInstruction = 0xB9;
+   static const uint8_t releasePowerDownInstruction = 0xAB;
 };
 
 }  // namespace SPI
