@@ -33,6 +33,26 @@ message AlarmLimitsRequest {
   uint32 apnea_max = 24;
 }
 
+enum Unit {
+  imperial = 0;
+  metric = 1;
+}
+
+enum ThemeVariant {
+  dark = 0;
+  light = 1;
+}
+
+message FrontendDisplaySetting {
+  ThemeVariant theme = 1;
+  Unit unit = 2;
+}
+
+message SystemSettingRequest {
+  uint32 brightness = 1;
+  uint32 date = 2;
+}
+
 message SensorMeasurements {
   uint32 time = 1;
   float paw = 2;

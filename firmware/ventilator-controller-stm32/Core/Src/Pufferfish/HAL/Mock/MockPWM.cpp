@@ -5,7 +5,6 @@
  */
 
 #include <Pufferfish/HAL/Mock/MockPWM.h>
-#include "stm32h7xx_hal.h"
 
 namespace Pufferfish {
 namespace HAL {

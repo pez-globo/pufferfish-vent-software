@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "Pufferfish/Statuses.h"
 #include "stm32h7xx_hal.h"
+#include "Pufferfish/Statuses.h"
 
 namespace Pufferfish {
 namespace HAL {

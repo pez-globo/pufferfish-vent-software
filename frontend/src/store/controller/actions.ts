@@ -17,3 +17,9 @@ export function updateCommittedParameter(updates: Object) {
     type: PARAMETER_COMMITTED, update: updates
   }
 }
+
+export function updateCommittedState(prefix: string, updates: Object) {  
+  return {
+    type: `@controller/${prefix}_COMMITTED`, update: updates
+  }
+}

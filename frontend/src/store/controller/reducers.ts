@@ -8,7 +8,11 @@ import {
   Ping,
   Announcement,
   AlarmLimitsRequest,
-  VentilationMode
+  VentilationMode,
+  ThemeVariant,
+  Unit,
+  FrontendDisplaySetting,
+  SystemSettingRequest,
 } from './proto/mcu_pb'
 import {
   RotaryEncoder
@@ -22,9 +26,9 @@ import {
   StateUpdateAction,
   STATE_UPDATED,
   WaveformHistory,
-  THEME_SWITCHED,
-  ThemeVariant,
-  SwitchThemeAction
+  ALARM_LIMITS,
+  FRONTEND_DISPLAY_SETTINGS,
+  SYSTEM_SETTINGS
 } from './types'
 
 const messageReducer = <T extends PBMessage>(
@@ -38,6 +42,58 @@ const messageReducer = <T extends PBMessage>(
         return action.state as T
       }
       return state
+    default:
+      return state
+  }
+}
+
+const alarmLimitsReducer = (state: AlarmLimitsRequest = AlarmLimitsRequest.fromJSON({
+  rrMax: 100,
+  pipMax: 100,
+  peepMax: 100,
+  ipAbovePeepMax: 100,
+  inspTimeMax: 100,
+  fio2Max: 100,
+  pawMax: 100,
+  mveMax: 100,
+  tvMax: 100,
+  etco2Max: 100,
+  flowMax: 100,
+  apneaMax: 100
+}) as AlarmLimitsRequest,
+action: StateUpdateAction | ParameterCommitAction) => {
+  return withRequestUpdate(state, action, ALARM_LIMITS)
+}
+
+const frontendDisplaySettingReducer = (
+  state: FrontendDisplaySetting = FrontendDisplaySetting.fromJSON({
+    theme: ThemeVariant.dark,
+    unit: Unit.imperial
+  }) as FrontendDisplaySetting,
+  action: StateUpdateAction | ParameterCommitAction
+): FrontendDisplaySetting => {
+  return withRequestUpdate(state, action, FRONTEND_DISPLAY_SETTINGS)
+}
+
+const systemSettingRequestReducer = (
+  state: SystemSettingRequest = SystemSettingRequest.fromJSON({
+    brightness: 100,
+    date: parseInt((new Date().getTime() / 1000).toFixed(0))
+  }) as SystemSettingRequest,
+  action: StateUpdateAction | ParameterCommitAction
+): SystemSettingRequest => {
+  return withRequestUpdate(state, action, SYSTEM_SETTINGS)
+}
+
+const withRequestUpdate = (state: PBMessage,
+  action: any,
+  prefix: string
+) => {
+  switch (action.type) {
+    case STATE_UPDATED:  // ignore message from backend
+      return state
+    case `@controller/${prefix}_COMMITTED`:
+      return Object.assign({}, state, action.update)
     default:
       return state
   }
@@ -107,46 +163,12 @@ const waveformHistoryReducer = <T extends PBMessage>(
   }
 }
 
-const switchThemeReducer = (state = ThemeVariant.DARK, action: SwitchThemeAction): ThemeVariant => {
-  switch (action.type) {
-    case THEME_SWITCHED:
-      return action.theme
-      default:
-      return state
-  }
-}
-
-const alarmLimitsReducer = (
-  state: AlarmLimitsRequest = AlarmLimitsRequest.fromJSON({
-    rrMax: 100,
-    pipMax: 100,
-    peepMax: 100,
-    ipAbovePeepMax: 100,
-    inspTimeMax: 100,
-    fio2Max: 100,
-    pawMax: 100,
-    mveMax: 100,
-    tvMax: 100,
-    etco2Max: 100,
-    flowMax: 100,
-    apneaMax: 100
-  }) as AlarmLimitsRequest,
-  action: StateUpdateAction | ParameterCommitAction
-): AlarmLimitsRequest => {
-  switch (action.type) {
-    case STATE_UPDATED:  // ignore message from backend
-      return state
-    case PARAMETER_COMMITTED:
-      return Object.assign({}, state, action.update)
-    default:
-      return state
-  }
-}
-
 export const controllerReducer = combineReducers({
   // Message states from mcu_pb
   alarms: messageReducer<Alarms>(MessageType.Alarms, Alarms),
   alarmLimitsRequest: alarmLimitsReducer,
+  systemSettingRequest: systemSettingRequestReducer,
+  frontendDisplaySetting: frontendDisplaySettingReducer,
   sensorMeasurements: messageReducer<SensorMeasurements>(
     MessageType.SensorMeasurements, SensorMeasurements
   ),
@@ -177,6 +199,5 @@ export const controllerReducer = combineReducers({
     MessageType.SensorMeasurements,
     (sensorMeasurements: SensorMeasurements) => (sensorMeasurements.time),
     (sensorMeasurements: SensorMeasurements) => (sensorMeasurements.flow)
-  ),
-  theme: switchThemeReducer,
+  )
 })

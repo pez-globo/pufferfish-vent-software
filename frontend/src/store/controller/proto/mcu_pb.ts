@@ -35,6 +35,16 @@ export interface AlarmLimitsRequest {
   apneaMax: number;
 }
 
+export interface FrontendDisplaySetting {
+  theme: ThemeVariant;
+  unit: Unit;
+}
+
+export interface SystemSettingRequest {
+  brightness: number;
+  date: number;
+}
+
 export interface SensorMeasurements {
   time: number;
   paw: number;
@@ -118,6 +128,16 @@ const baseAlarmLimitsRequest: object = {
   apneaMax: 0,
 };
 
+const baseFrontendDisplaySetting: object = {
+  theme: 0,
+  unit: 0,
+};
+
+const baseSystemSettingRequest: object = {
+  brightness: 0,
+  date: 0,
+};
+
 const baseSensorMeasurements: object = {
   time: 0,
   paw: 0,
@@ -167,6 +187,70 @@ const baseAnnouncement: object = {
   time: 0,
   announcement: undefined,
 };
+
+export const Unit = {
+  imperial: 0 as const,
+  metric: 1 as const,
+  UNRECOGNIZED: -1 as const,
+  fromJSON(object: any): Unit {
+    switch (object) {
+      case 0:
+      case "imperial":
+        return Unit.imperial;
+      case 1:
+      case "metric":
+        return Unit.metric;
+      case -1:
+      case "UNRECOGNIZED":
+      default:
+        return Unit.UNRECOGNIZED;
+    }
+  },
+  toJSON(object: Unit): string {
+    switch (object) {
+      case Unit.imperial:
+        return "imperial";
+      case Unit.metric:
+        return "metric";
+      default:
+        return "UNKNOWN";
+    }
+  },
+}
+
+export type Unit = 0 | 1 | -1;
+
+export const ThemeVariant = {
+  dark: 0 as const,
+  light: 1 as const,
+  UNRECOGNIZED: -1 as const,
+  fromJSON(object: any): ThemeVariant {
+    switch (object) {
+      case 0:
+      case "dark":
+        return ThemeVariant.dark;
+      case 1:
+      case "light":
+        return ThemeVariant.light;
+      case -1:
+      case "UNRECOGNIZED":
+      default:
+        return ThemeVariant.UNRECOGNIZED;
+    }
+  },
+  toJSON(object: ThemeVariant): string {
+    switch (object) {
+      case ThemeVariant.dark:
+        return "dark";
+      case ThemeVariant.light:
+        return "light";
+      default:
+        return "UNKNOWN";
+    }
+  },
+}
+
+export type ThemeVariant = 0 | 1 | -1;
 
 export const VentilationMode = {
   pc_ac: 0 as const,
@@ -689,6 +773,130 @@ export const AlarmLimitsRequest = {
     obj.flowMax = message.flowMax || 0;
     obj.apneaMin = message.apneaMin || 0;
     obj.apneaMax = message.apneaMax || 0;
+    return obj;
+  },
+};
+
+export const FrontendDisplaySetting = {
+  encode(message: FrontendDisplaySetting, writer: Writer = Writer.create()): Writer {
+    writer.uint32(8).int32(message.theme);
+    writer.uint32(16).int32(message.unit);
+    return writer;
+  },
+  decode(input: Uint8Array | Reader, length?: number): FrontendDisplaySetting {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = Object.create(baseFrontendDisplaySetting) as FrontendDisplaySetting;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.theme = reader.int32() as any;
+          break;
+        case 2:
+          message.unit = reader.int32() as any;
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+  fromJSON(object: any): FrontendDisplaySetting {
+    const message = Object.create(baseFrontendDisplaySetting) as FrontendDisplaySetting;
+    if (object.theme !== undefined && object.theme !== null) {
+      message.theme = ThemeVariant.fromJSON(object.theme);
+    } else {
+      message.theme = 0;
+    }
+    if (object.unit !== undefined && object.unit !== null) {
+      message.unit = Unit.fromJSON(object.unit);
+    } else {
+      message.unit = 0;
+    }
+    return message;
+  },
+  fromPartial(object: DeepPartial<FrontendDisplaySetting>): FrontendDisplaySetting {
+    const message = Object.create(baseFrontendDisplaySetting) as FrontendDisplaySetting;
+    if (object.theme !== undefined && object.theme !== null) {
+      message.theme = object.theme;
+    } else {
+      message.theme = 0;
+    }
+    if (object.unit !== undefined && object.unit !== null) {
+      message.unit = object.unit;
+    } else {
+      message.unit = 0;
+    }
+    return message;
+  },
+  toJSON(message: FrontendDisplaySetting): unknown {
+    const obj: any = {};
+    obj.theme = ThemeVariant.toJSON(message.theme);
+    obj.unit = Unit.toJSON(message.unit);
+    return obj;
+  },
+};
+
+export const SystemSettingRequest = {
+  encode(message: SystemSettingRequest, writer: Writer = Writer.create()): Writer {
+    writer.uint32(8).uint32(message.brightness);
+    writer.uint32(16).uint32(message.date);
+    return writer;
+  },
+  decode(input: Uint8Array | Reader, length?: number): SystemSettingRequest {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = Object.create(baseSystemSettingRequest) as SystemSettingRequest;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.brightness = reader.uint32();
+          break;
+        case 2:
+          message.date = reader.uint32();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+  fromJSON(object: any): SystemSettingRequest {
+    const message = Object.create(baseSystemSettingRequest) as SystemSettingRequest;
+    if (object.brightness !== undefined && object.brightness !== null) {
+      message.brightness = Number(object.brightness);
+    } else {
+      message.brightness = 0;
+    }
+    if (object.date !== undefined && object.date !== null) {
+      message.date = Number(object.date);
+    } else {
+      message.date = 0;
+    }
+    return message;
+  },
+  fromPartial(object: DeepPartial<SystemSettingRequest>): SystemSettingRequest {
+    const message = Object.create(baseSystemSettingRequest) as SystemSettingRequest;
+    if (object.brightness !== undefined && object.brightness !== null) {
+      message.brightness = object.brightness;
+    } else {
+      message.brightness = 0;
+    }
+    if (object.date !== undefined && object.date !== null) {
+      message.date = object.date;
+    } else {
+      message.date = 0;
+    }
+    return message;
+  },
+  toJSON(message: SystemSettingRequest): unknown {
+    const obj: any = {};
+    obj.brightness = message.brightness || 0;
+    obj.date = message.date || 0;
     return obj;
   },
 };

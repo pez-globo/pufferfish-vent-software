@@ -5,7 +5,8 @@ import ValueClicker from './ValueClicker'
 import { makeStyles, Theme, Grid, Button, Typography } from '@material-ui/core'
 import { useDispatch, useSelector } from 'react-redux'
 import { getAlarmLimitsRequest } from '../../store/controller/selectors'
-import { updateCommittedParameter } from '../../store/controller/actions'
+import { ALARM_LIMITS } from '../../store/controller/types'
+import { updateCommittedState } from '../../store/controller/actions'
 
 const useStyles = makeStyles((theme: Theme) => ({
     contentContainer: {
@@ -69,7 +70,7 @@ export const AlarmModal = (
     }
 
     const handleConfirm = () => {
-        dispatch(updateCommittedParameter({ [`${stateKey}Min`]: rangeValue[0], [`${stateKey}Max`]: rangeValue[1] }))
+        dispatch(updateCommittedState(ALARM_LIMITS, { [`${stateKey}Min`]: rangeValue[0], [`${stateKey}Max`]: rangeValue[1] }))
         requestCommitRange(min, max)
         handleClose()
     }

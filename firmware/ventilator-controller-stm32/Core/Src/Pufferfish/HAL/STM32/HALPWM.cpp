@@ -8,7 +8,6 @@
  */
 
 #include "Pufferfish/HAL/STM32/HALPWM.h"
-#include "stm32h7xx_hal.h"
 
 namespace Pufferfish {
 namespace HAL {

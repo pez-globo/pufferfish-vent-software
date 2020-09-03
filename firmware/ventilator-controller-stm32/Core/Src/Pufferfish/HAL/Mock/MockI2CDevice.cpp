@@ -4,8 +4,6 @@
  *      Author: Hemanth Gowda S
  */
 
-#include "stm32h7xx_hal.h"
-
 #include "Pufferfish/HAL/Mock/MockI2CDevice.h"
 
 namespace Pufferfish {
@@ -34,6 +32,8 @@ void MockI2CDevice::setRead(uint8_t *buf, size_t count) {
 I2CDeviceStatus MockI2CDevice::write(uint8_t *buf, size_t count) {
   size_t index;
 
+  mCount = count;
+
   for (index = 0; index < count; index++)
   {
     mWriteBuf[index] = buf[index];
@@ -41,9 +41,11 @@ I2CDeviceStatus MockI2CDevice::write(uint8_t *buf, size_t count) {
   return I2CDeviceStatus::ok;
 }
 
-void MockI2CDevice::getWrite(uint8_t *buf, size_t count)
+void MockI2CDevice::getWrite(uint8_t *buf, size_t &count)
 {
   size_t index;
+
+  count = mCount;
 
   for (index = 0; index < count; index++)
   {

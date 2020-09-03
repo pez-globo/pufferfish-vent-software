@@ -9,8 +9,8 @@ import { initialize } from '../../store/app/actions'
 import { getLocale, getMessages } from '../../store/app/selectors'
 import Layout from './Layout'
 import { darkTheme, lightTheme } from '../../styles/customTheme'
-import { getTheme } from '../../store/controller/selectors'
-import { ThemeVariant } from '../../store/controller/types'
+import { ThemeVariant } from '../../store/controller/proto/mcu_pb'
+import { getFrontendDisplaySetting } from '../../store/controller/selectors'
 
 interface Props {
   initialize: typeof initialize,
@@ -26,8 +26,8 @@ class App extends Component<Props> {
 
   render() {
     const { locale, messages }: Props = this.props
-    const themeMode = useSelector(getTheme)
-    const theme = themeMode === ThemeVariant.DARK ? darkTheme : lightTheme
+    const displaySetting = useSelector(getFrontendDisplaySetting)
+    const theme = displaySetting.theme === ThemeVariant.dark ? darkTheme : lightTheme
     return (
       <IntlProvider key={locale} locale={locale} messages={messages}>
         <MuiThemeProvider theme={theme}>
