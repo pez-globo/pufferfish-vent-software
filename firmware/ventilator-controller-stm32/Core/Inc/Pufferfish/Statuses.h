@@ -81,7 +81,8 @@ enum class SPIBMP388Status {
   ok = 0, // success
   error,  // an error occurred in BMP388 bus
   writeError, // an error occur when writing to an SPI device
-  readError // an error occur when reading from an SPI device
+  readError, // an error occur when reading from an SPI device
+  chipIdError // an error occur in chip id validation
 };
 
 }  // namespace Pufferfish

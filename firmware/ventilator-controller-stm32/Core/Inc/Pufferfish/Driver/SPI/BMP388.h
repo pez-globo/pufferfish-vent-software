@@ -1,32 +1,33 @@
 /*
- * BMP388.h
+ * Copyright 2020, the Pez Globo team and the Pufferfish project contributors
  * 
- * Created on: Aug 29, 2020
  *      Author: pradip.jm
  */
 
 #pragma once
 
-#include "Pufferfish/HAL/STM32/HALSPIDevice.h"
+#include "Pufferfish/HAL/Interfaces/SPIDevice.h"
 
 namespace Pufferfish {
 namespace Driver {
-namespace BMP388 {
+namespace SPI {
 
-class SPIBMP388 {
+class BMP388 {
 public:
-  SPIBMP388 (HAL::HALSPIDevice &spi):mSpi(spi){
-   }
-
   /**
-   * An outcome of performing an operation on BMP388 mode
+   * @brief bmp388 sensor structure for temperature and pressure and mode settings.
    */
-  enum class BMP388Mode{
-    sleepMode = 0,
-    normalMode,
-    forcedMode
+  struct bmp388Settings{
+    bool pressureEnable;
+    bool temperatureEnable;
+    bool sleepMode;
+    bool ForcedMode;
+    bool NormalMode;
   };
 
+  /**
+   *
+   */
   enum class IIRFilterCoefficient  {
     iirFilterOff = 0, /// Infinite Impulse Response (IIR) filter bit field in the configuration register
     iirFilter1,
@@ -38,37 +39,142 @@ public:
     iirFilter127
   };
 
-  /**
-   * @brief bmp388 sensor structure for temperature and pressure and mode settings.
-   */
-  struct bmp388Settings{
-    bool preasureEnable;
-    bool temperatureEnable;
-    bool sleepMode;
-    bool ForcedMode;
-    bool NormalMode;
-  };
 
   /**
-   * @brief Register Trim Variables
-   */
-  struct bmp388RegCalibData {
-    uint16_t par_t1;
-    uint16_t par_t2;
-    int8_t par_t3;
-    int16_t par_p1;
-    int16_t par_p2;
-    int8_t par_p3;
-    int8_t par_p4;
-    uint16_t par_p5;
-    uint16_t par_p6;
-    int8_t par_p7;
-    int8_t par_p8;
-    int16_t par_p9;
-    int8_t par_p10;
-    int8_t par_p11;
-    int64_t t_lin;
+  * @ Time standby in the Output Data Rate (ODR) register
+  */
+  enum class TimeStandby {
+    TimeStandby5Ms,
+    TimeStandby10Ms,
+    TimeStandby20Ms,
+    TimeStandby40Ms,
+    TimeStandby80Ms,
+    TimeStandby160Ms,
+    TimeStandby320Ms,
+    TimeStandby640Ms,
+    TimeStandby1280Ms,
+    TimeStandby2560Ms,
+    TimeStandby5120Ms,
+    TimeStandby10240Ms,
+    TimeStandby20480Ms,
+    TimeStandby40960Ms,
+    TimeStandby81920Ms,
+    TimeStandby163840Ms,
+    TimeStandby327680Ms,
+    TimeStandby655360Ms
   };
+
+  BMP388 (HAL::SPIDevice &spi):mSpi(spi){
+   }
+  /**
+   * @brief  Settings
+   * @param
+   * @return SPIBMP388Status returns ok/writeError
+   */
+   SPIBMP388Status bmp388ConfigSettings(const bool enableIIRFilter,
+                                    const IIRFilterCoefficient IIRFilterCoeff,
+                                    const struct bmp388Settings setBMP388PwrControl);
+
+  /**
+   * @brief  Get the chip id
+   * @param  Update the Chip Id
+   * @return SPIBMP388Status returns ok/writeError
+   */
+  SPIBMP388Status getChipId(uint8_t &chipId);
+
+  /**
+   * @brief  Enables/disables the setIIRFilter based on IIRFilter Coefficient
+   * @param  iirFilterEnabel Enables/disables the IIRFilter
+   * @param  IIRFilterCoeff input coefficient for IIR filer for enabling
+   * @return SPIBMP388Status returns ok/writeError
+   */
+  SPIBMP388Status setIIRFilter(bool iirFilterEnable, const IIRFilterCoefficient IIRFilterCoeff);
+
+  /**
+   * @brief  Sets the power control settings using PWR_CTRL reg
+   * @param  bmp388Value structure contains the power control parameters
+   * @return SPIBMP388Status returns ok/writeError
+   */
+  SPIBMP388Status setPowerCtrlSettings(const struct bmp388Settings setBMP388PwrControl);
+
+  /**
+   * @brief  Resets the sensor device
+   * @param  None
+   * @return SPIBMP388Status returns ok/writeError
+   */
+  SPIBMP388Status spiReset();
+
+  /**
+   * @brief  reads the temperature data from sensor
+   * @param  None
+   * @return returns the temperature data
+   */
+  SPIBMP388Status ReadTemperatureData();
+
+  /**
+   * @brief  reads the pressure data from sensor
+   * @param  None
+   * @return returns the pressure data
+   */
+  SPIBMP388Status ReadPressureData();
+
+  /**
+   * @brief  Set the time standby measurement interval
+   * @param  5, 62, 125, 250, 500ms, 1s, 2s, 4s
+   * @return None
+   */
+  SPIBMP388Status setTimeStandby(enum TimeStandby timeStandby);
+
+  /**
+   * @brief  Set the pressure and temperature over sampling
+   * @param  over sampling for pressure : OFF | X1 | X2 | X4 | X8 | X16 | X32
+   * @param  over sampling for temperature : OFF | X1 | X2 | X4 | X8 | X16 | X32
+   * @return SPIBMP388Status returns OK/writeError
+   */
+  SPIBMP388Status setOversamplingRegister(uint8_t presOversampling, uint8_t tempOversampling);
+
+  /**
+   * @brief  Disable the FIFO
+   * @param  None
+   * @return SPIBMP388Status returns OK/writeError
+   */
+  SPIBMP388Status disableFIFO();
+
+  /**
+   * @brief  Enable the FIFO
+   * @param  tempEnable
+   * @param  pressEnable
+   * @param  timeEnable
+   * @param  stopOnFull
+   * @param  dataSelect
+   * @return SPIBMP388Status returns OK/writeError
+   */
+  SPIBMP388Status enableFIFO(bool tempEnable,
+                            bool pressEnable,
+                            bool timeEnable,
+                            bool stopOnFull);
+  /**
+   * @brief  Get the FIFO length
+   * @param  address of FIFO length variable
+   * @return SPIBMP388Status returns OK/writeError
+   */
+  SPIBMP388Status getFIFOLength();
+
+  /**
+   * @brief  To get the compensate temperature data
+   * @param  compensateTemperature updated with the compensate temperature
+   * @return SPIBMP388Status ok/readError
+   */
+  SPIBMP388Status readCompensateTemperature(float &compensateTemperature);
+
+  /**
+   * @brief  To get the compensate pressure data
+   * @param  compensatePressure updated with the compensate pressure
+   * @return SPIBMP388Status ok/readError
+   */
+  SPIBMP388Status readCompensatePressure(float &compensatePressure);
+
+ private:
 
   /**
   * @ Quantized Trim Variables
@@ -90,29 +196,6 @@ public:
     double par_p11;
     double t_lin;
   };
-
-  /**
-   * @brief  Gets the chip id
-   * @param  chip_id updates the chip id of BMP388
-   * @return SPIBMP388Status returus ok/readError
-   */
-  SPIBMP388Status getChipId(uint8_t &chip_id);
-
-  /**
-   * @brief  Enables/disables the setIIRFilter based on IIRFilter Coefficient
-   * @param  iirFilterEnabel Enables/disables the IIRFilter
-   * @param  IIRFilterCoeff input coefficient for IIR filer for enabling
-   * @return SPIBMP388Status returns ok/writeError
-   */
-  SPIBMP388Status setIIRFilter(bool iirFilterEnabel, IIRFilterCoefficient IIRFilterCoeff);
-
-  /**
-   * @brief  Sets the power control settings using PWR_CTRL reg
-   * @param  bmp388Value structure contains the power control parameters
-   * @return SPIBMP388Status returns ok/writeError
-   */
-  SPIBMP388Status setPowerCtrlSettings(struct bmp388Settings bmp388Value);
-
   /**
    * @brief  Writes the data into the register
    * @param  buff buffer data to write
@@ -130,80 +213,34 @@ public:
   SPIBMP388Status writeRead(uint8_t *txbuf, uint8_t *rxbuf, size_t count);
 
   /**
-   * @brief  Resets the sensor device
-   * @param  None
-   * @return SPIBMP388Status returns ok/writeError
-   */
-  SPIBMP388Status spiReset();
-
-  /**
    * @brief  reads the CalibrationData data from NVM
    * @param  QuantizedCalibData updates the structure bmp388QuantizedCalibData
    * @return None
    */
-  void ReadCalibrationData(struct bmp388QuantizedCalibData QuantizedCalibData);
+  void ReadCalibrationData();
 
-  /**
-   * @brief  reads the temperature data from sensor
-   * @param  None
-   * @return returns the temperature data
-   */
-  uint32_t ReadTemperatureData();
+  /* mSpi object is updated by constructor used to read/write data through SPI */
+  HAL::SPIDevice &mSpi;
 
-  /**
-   * @brief  reads the pressure data from sensor
-   * @param  None
-   * @return returns the pressure data
-   */
-  uint32_t ReadPressureData();
+  /* QuantizedCalibData structure is updated from register used for
+   * pressure and temperature compensation */
+  struct bmp388QuantizedCalibData QuantizedCalibData;
 
- private:
-       HAL::HALSPIDevice &mSpi;
-       /*
-        * TODO: Few variables still taken to update for other functionalities
-        */
-       static const uint8_t Bmp388ChipId                = 0x50;
-       static const uint8_t bmp388PreasureEnable        = 0x01;
-       static const uint8_t bmp388TempratureEnable      = 0x02;
-       static const uint8_t bmp388SleepMode             = 0x00;
-       static const uint8_t bmp388ForcedMode            = 0x20;
-       static const uint8_t bmp388NormalMode            = 0x30;
-       static const uint8_t BMP388_CHIP_ID_ADDR         = 0x00;
-       static const uint8_t BMP388_ERR_REG_ADDR         = 0x02;
-       static const uint8_t BMP388_SENS_STATUS_REG_ADDR = 0x03;
-       static const uint8_t BMP388_Pre_DATA0_ADDR       = 0x04;
-       static const uint8_t BMP388_Pre_DATA1_ADDR       = 0x05;
-       static const uint8_t BMP388_Pre_DATA2_ADDR       = 0x06;
-       static const uint8_t BMP388_Temp_DATA0_ADDR      = 0x07;
-       static const uint8_t BMP388_Temp_DATA1_ADDR      = 0x08;
-       static const uint8_t BMP388_Temp_DATA2_ADDR      = 0x09;
-       static const uint8_t BMP388_EVENT_ADDR           = 0x10;
-       static const uint8_t BMP388_INT_STATUS_REG_ADDR  = 0x11;
-       static const uint8_t BMP388_FIFO_0_LENGTH_ADDR   = 0x12;
-       static const uint8_t BMP388_FIFO_1_LENGTH_ADDR   = 0x13;
-       static const uint8_t BMP388_FIFO_DATA_ADDR       = 0x14;
-       static const uint8_t BMP388_FIFO_WM_ADDR         = 0x15;
-       static const uint8_t BMP388_FIFO_CONFIG_1_ADDR   = 0x17;
-       static const uint8_t BMP388_FIFO_CONFIG_2_ADDR   = 0x18;
-       static const uint8_t BMP388_INT_CTRL_ADDR        = 0x19;
-       static const uint8_t BMP388_IF_CONF_ADDR         = 0x1A;
-       static const uint8_t bmp388PrCtrlAddr            = 0x1B;
-       static const uint8_t BMP388_OSR_ADDR             = 0X1C;
-       static const uint8_t BMP388_CALIB_DATA_ADDR      = 0x31;
-       static const uint8_t BMP388_CMD_ADDR             = 0x7E;
-       static const uint8_t E_OK                        = 0;
+  /* Uncompensated temperature read from sensor */
+  uint32_t uncompensatedTemperature;
 
-       static const uint8_t Bmp388PressEnSel      = 0x02;
-       static const uint8_t Bmp388TempEnSel       = 0x04;
-       static const uint8_t Bmp388DrdyEnSel       = 0x08;
-       static const uint8_t Bmp388PressOsSel      = 0x10;
-       static const uint8_t Bmp388TempOS_SEL      = 0x20;
-       static const uint8_t Bmp388IIRFilterSel    = 0x40;
-       static const uint8_t Bmp388OdrSel          = 0x80;
-       static const uint16_t Bmp388OutputModeSel   = 0x100;
-       static const uint16_t Bmp388LevelSel        = 0x200;
-       static const uint32_t Bmp388LatchSel        = 0x10000;
-       static const uint32_t Bmp388AllSettings     = 0x7FF;
+  /* Uncompensated pressure read from sensor */
+  uint32_t uncompensatedPressure;
+
+  /* Fifo buffer length of the BMP388 */
+  uint16_t fifoLength;
+
+  static const uint8_t Bmp388ChipId = 0x50;
+  static const uint8_t bmp388PressureEnable = 0x01;
+  static const uint8_t bmp388TemperatureEnable = 0x02;
+  static const uint8_t bmp388SleepMode = 0x00;
+  static const uint8_t bmp388ForcedMode = 0x20;
+  static const uint8_t bmp388NormalMode = 0x30;
 
 };
 
