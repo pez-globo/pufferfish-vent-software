@@ -88,36 +88,36 @@ namespace PF = Pufferfish;
 /* Create an object for ADC3 of AnalogInput Class */
 PF::HAL::AnalogInput ADC3Input(hadc3, adcPollTimeout);
 
-PF::HAL::DigitalOutput boardLed1(*LD1_GPIO_Port, LD1_Pin);
+PF::HAL::HALDigitalOutput boardLed1(*LD1_GPIO_Port, LD1_Pin);
 
-PF::HAL::DigitalOutput alarmLedR(*LEDR_CNTRL_GPIO_Port, LEDR_CNTRL_Pin);
-PF::HAL::DigitalOutput alarmLedG(*LEDG_CNTRL_GPIO_Port, LEDG_CNTRL_Pin);
-PF::HAL::DigitalOutput alarmLedB(*LEDB_CNTRL_GPIO_Port, LEDB_CNTRL_Pin);
+PF::HAL::HALDigitalOutput alarmLedR(*LEDR_CNTRL_GPIO_Port, LEDR_CNTRL_Pin);
+PF::HAL::HALDigitalOutput alarmLedG(*LEDG_CNTRL_GPIO_Port, LEDG_CNTRL_Pin);
+PF::HAL::HALDigitalOutput alarmLedB(*LEDB_CNTRL_GPIO_Port, LEDB_CNTRL_Pin);
 
-PF::HAL::DigitalOutput alarmRegHigh(*ALARM1_HIGH_GPIO_Port, ALARM1_HIGH_Pin);
-PF::HAL::DigitalOutput alarmRegMed(*ALARM1_MED_GPIO_Port, ALARM1_MED_Pin);
-PF::HAL::DigitalOutput alarmRegLow(*ALARM1_LOW_GPIO_Port, ALARM1_LOW_Pin);
-PF::HAL::DigitalOutput alarmBuzzer(*ALARM2_CNTRL_GPIO_Port, ALARM2_CNTRL_Pin);
+PF::HAL::HALDigitalOutput alarmRegHigh(*ALARM1_HIGH_GPIO_Port, ALARM1_HIGH_Pin);
+PF::HAL::HALDigitalOutput alarmRegMed(*ALARM1_MED_GPIO_Port, ALARM1_MED_Pin);
+PF::HAL::HALDigitalOutput alarmRegLow(*ALARM1_LOW_GPIO_Port, ALARM1_LOW_Pin);
+PF::HAL::HALDigitalOutput alarmBuzzer(*ALARM2_CNTRL_GPIO_Port, ALARM2_CNTRL_Pin);
 
 PF::Driver::Indicators::LEDAlarm alarmDevLed(alarmLedR, alarmLedG, alarmLedB);
 PF::Driver::Indicators::AuditoryAlarm alarmDevSound(alarmRegHigh, alarmRegMed, alarmRegLow, alarmBuzzer);
 PF::AlarmsManager hAlarms(alarmDevLed, alarmDevSound);
 
 // Solenoid Valves
-PF::HAL::PWM drive1_ch1(htim2, TIM_CHANNEL_4);
-PF::HAL::PWM drive1_ch2(htim2, TIM_CHANNEL_2);
-PF::HAL::PWM drive1_ch3(htim3, TIM_CHANNEL_4);
-PF::HAL::PWM drive1_ch4(htim3, TIM_CHANNEL_1);
-PF::HAL::PWM drive1_ch5(htim3, TIM_CHANNEL_2);
-PF::HAL::PWM drive1_ch6(htim3, TIM_CHANNEL_3);
-PF::HAL::PWM drive1_ch7(htim4, TIM_CHANNEL_2);
-PF::HAL::PWM drive2_ch1(htim4, TIM_CHANNEL_3);
-PF::HAL::PWM drive2_ch2(htim4, TIM_CHANNEL_4);
-PF::HAL::PWM drive2_ch3(htim5, TIM_CHANNEL_1);
-PF::HAL::PWM drive2_ch4(htim8, TIM_CHANNEL_1);
-PF::HAL::PWM drive2_ch5(htim8, TIM_CHANNEL_2);
-PF::HAL::PWM drive2_ch6(htim8, TIM_CHANNEL_4);
-PF::HAL::PWM drive2_ch7(htim12, TIM_CHANNEL_2);
+PF::HAL::HALPWM drive1_ch1(htim2, TIM_CHANNEL_4);
+PF::HAL::HALPWM drive1_ch2(htim2, TIM_CHANNEL_2);
+PF::HAL::HALPWM drive1_ch3(htim3, TIM_CHANNEL_4);
+PF::HAL::HALPWM drive1_ch4(htim3, TIM_CHANNEL_1);
+PF::HAL::HALPWM drive1_ch5(htim3, TIM_CHANNEL_2);
+PF::HAL::HALPWM drive1_ch6(htim3, TIM_CHANNEL_3);
+PF::HAL::HALPWM drive1_ch7(htim4, TIM_CHANNEL_2);
+PF::HAL::HALPWM drive2_ch1(htim4, TIM_CHANNEL_3);
+PF::HAL::HALPWM drive2_ch2(htim4, TIM_CHANNEL_4);
+PF::HAL::HALPWM drive2_ch3(htim5, TIM_CHANNEL_1);
+PF::HAL::HALPWM drive2_ch4(htim8, TIM_CHANNEL_1);
+PF::HAL::HALPWM drive2_ch5(htim8, TIM_CHANNEL_2);
+PF::HAL::HALPWM drive2_ch6(htim8, TIM_CHANNEL_4);
+PF::HAL::HALPWM drive2_ch7(htim12, TIM_CHANNEL_2);
 
 // Base I2C Devices
 PF::HAL::HALI2CDevice i2c_hal_mux1(hi2c1, PF::Driver::I2C::TCA9548A::defaultI2CAddr);
