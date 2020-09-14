@@ -14,6 +14,7 @@ PWMStatus MockPWM::setDutyCycle(float duty) {
     return PWMStatus::invalidDutyCycle;
   }
   mLastDuty = duty;
+  setDutyCycleRaw(static_cast<uint32_t>(duty * getMaxDutyCycle()));
   return PWMStatus::ok;
 }
 
@@ -32,10 +33,15 @@ float MockPWM::getDutyCycleRaw()
 }
 
 PWMStatus MockPWM::start() {
+  mState = true;
   return PWMStatus::ok;
 }
 
+bool MockPWM::getPWMState() {
+  return mState;
+}
 PWMStatus MockPWM::stop() {
+  mState = false;
   return PWMStatus::ok;
 }
 

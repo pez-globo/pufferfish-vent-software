@@ -57,10 +57,13 @@ class MockI2CDevice : public I2CDevice {
   void getWrite(uint8_t *buf, size_t &count);
 
  private:
-  /* The 50 bytes of read and write operation are used */
-  uint8_t mReadBuf[50], mWriteBuf[50];
+  /* Read and Write buffer size */
+  static const uint8_t mReadBufSize = 50, mWriteBufSize = 50;
 
-  size_t mCount;
+  /* The 50 bytes of read and write operation are used */
+  uint8_t mReadBuf[mReadBufSize], mWriteBuf[mWriteBufSize];
+
+  size_t mWriteCount, mReadCount;
 
 };
 
