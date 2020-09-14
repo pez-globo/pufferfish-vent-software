@@ -79,7 +79,7 @@ class MockPWM : public PWM {
 
 
   /**
-   * @brief  sets the max duty cycle
+   * @brief  Provides the PWM state
    * @param  None
    * @return State of PWM START(true)/STOP(false)
    */
