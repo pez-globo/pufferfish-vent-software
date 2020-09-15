@@ -23,7 +23,7 @@ class PWM {
    * this function does NOT start the PWM output
    * @param duty    a number between 0.0 and 1.0 (inclusive) for the desired duty cycle
    */
-  virtual PWMStatus setDutyCycle(float duty) = 0;
+  PWMStatus setDutyCycle(float duty);
 
   /**
    * Set a duty cycle of PWM, can be done when PWM is active
@@ -51,6 +51,9 @@ class PWM {
    */
   virtual uint32_t getMaxDutyCycle() = 0;
 
+ private:
+  /* Stores the last duty cycle */
+  float mLastDuty;
 };
 
 } /* namespace HAL */

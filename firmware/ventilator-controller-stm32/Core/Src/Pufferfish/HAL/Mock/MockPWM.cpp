@@ -9,15 +9,6 @@
 namespace Pufferfish {
 namespace HAL {
 
-PWMStatus MockPWM::setDutyCycle(float duty) {
-  if (0.0 < duty || duty > 1.0) {
-    return PWMStatus::invalidDutyCycle;
-  }
-  mLastDuty = duty;
-  setDutyCycleRaw(static_cast<uint32_t>(duty * getMaxDutyCycle()));
-  return PWMStatus::ok;
-}
-
 float MockPWM::getDutyCycle()
 {
   return mLastDuty;

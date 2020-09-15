@@ -25,13 +25,6 @@ class MockPWM : public PWM {
   }
 
   /**
-   * Set a duty cycle of PWM, updates the private variable mLastDuty
-   * @param duty    a number between 0.0 and 1.0 (inclusive) for the desired duty cycle
-   */
-  PWMStatus setDutyCycle(float duty) override;
-
-
-  /**
    * @brief  Get a duty cycle of PWM updated in setDutyCycle
    * @param  None
    * @return returns the duty cycle
@@ -68,7 +61,6 @@ class MockPWM : public PWM {
    */
   uint32_t getMaxDutyCycle() override;
 
-
   /**
    * @brief  sets the max duty cycle
    * @param  duty    Provides the max duty cycle
@@ -76,10 +68,8 @@ class MockPWM : public PWM {
    */
   void setMaxDutyCycle(uint32_t duty);
 
-
-
   /**
-   * @brief  Provides the PWM state
+   * @brief  Provides the state of PWM
    * @param  None
    * @return State of PWM START(true)/STOP(false)
    */
