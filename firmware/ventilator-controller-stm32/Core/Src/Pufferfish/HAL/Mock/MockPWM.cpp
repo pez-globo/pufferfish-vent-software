@@ -9,11 +9,6 @@
 namespace Pufferfish {
 namespace HAL {
 
-float MockPWM::getDutyCycle()
-{
-  return mLastDuty;
-}
-
 void MockPWM::setDutyCycleRaw(uint32_t duty) {
   mLastRawDuty = duty;
 }

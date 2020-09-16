@@ -50,10 +50,6 @@ class PWM {
    * @return the maximum duty cycle
    */
   virtual uint32_t getMaxDutyCycle() = 0;
-
- private:
-  /* Stores the last duty cycle */
-  float mLastDuty;
 };
 
 } /* namespace HAL */
