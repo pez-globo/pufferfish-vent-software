@@ -86,7 +86,7 @@ static const uint32_t adcPollTimeout = 10;
 namespace PF = Pufferfish;
 
 /* Create an object for ADC3 of AnalogInput Class */
-PF::HAL::AnalogInput ADC3Input(hadc3, adcPollTimeout);
+PF::HAL::HALAnalogInput ADC3Input(hadc3, adcPollTimeout);
 
 PF::HAL::HALDigitalOutput boardLed1(*LD1_GPIO_Port, LD1_Pin);
 

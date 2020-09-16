@@ -4,7 +4,7 @@
  *      Author: Hemanth Gowda S
  */
 
-#include "Pufferfish/HAL/STM32/AnalogInput.h"
+#include <Pufferfish/HAL/STM32/HALAnalogInput.h>
 
 namespace Pufferfish {
 namespace HAL {
@@ -14,10 +14,10 @@ namespace HAL {
  * @param  None
  * @return ADCStatus returns error/ok
  */
-ADCStatus AnalogInput::start() {
+ADCStatus HALAnalogInput::start() {
 
   /* Invoke HAL_ADC_Start to start the ADC */
-  HAL_StatusTypeDef startRetVal = HAL_ADC_Start(&AdcInput);
+  HAL_StatusTypeDef startRetVal = HAL_ADC_Start(&adcInput);
 
   /* Validate the HAL_ADC_Start return value to return ADCStatus */
   if (startRetVal == HAL_OK)
@@ -39,14 +39,14 @@ ADCStatus AnalogInput::start() {
   * @param  AnalogDataRead, Out parameter returns the read data
   * @retval ADCStatus returns error/ok
   */
-ADCStatus AnalogInput::read(uint32_t &AnalogDataRead) {
+ADCStatus HALAnalogInput::read(uint32_t &analogDataRead) {
 
   HAL_StatusTypeDef tmpPollCvrRtn = HAL_OK;
 
   /**
     * @brief  Polling conversion of ADC3, based on EOCSelection
     */
-  tmpPollCvrRtn = HAL_ADC_PollForConversion(&AdcInput, Timeout);
+  tmpPollCvrRtn = HAL_ADC_PollForConversion(&adcInput, timeout);
 
   /* Validate the HAL_ADC_PollForConversion return value */
   if (tmpPollCvrRtn == HAL_OK)
@@ -55,7 +55,7 @@ ADCStatus AnalogInput::read(uint32_t &AnalogDataRead) {
       * @brief  invoking HAL_ADC_GetValue to read analog data
       *         returns analog read data of 4 bytes
       */
-    AnalogDataRead = HAL_ADC_GetValue(&AdcInput);
+    analogDataRead = HAL_ADC_GetValue(&adcInput);
 
     /* return ADCStatus as ok */
     return ADCStatus::ok;
@@ -73,10 +73,10 @@ ADCStatus AnalogInput::read(uint32_t &AnalogDataRead) {
   * @param  None
   * @retval ADCStatus returns error/ok
   */
-ADCStatus AnalogInput::stop() {
+ADCStatus HALAnalogInput::stop() {
 
   /* Invoke HAL_ADC_Stop to stop the ADC */
-  HAL_StatusTypeDef startRetVal = HAL_ADC_Stop(&AdcInput);
+  HAL_StatusTypeDef startRetVal = HAL_ADC_Stop(&adcInput);
 
   /* Validate the HAL_ADC_Stop return value to return ADCStatus */
   if (startRetVal == HAL_OK)

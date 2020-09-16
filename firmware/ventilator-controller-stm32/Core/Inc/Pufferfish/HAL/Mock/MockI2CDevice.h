@@ -63,7 +63,7 @@ class MockI2CDevice : public I2CDevice {
   /* The 50 bytes of read and write operation are used */
   uint8_t mReadBuf[mReadBufSize], mWriteBuf[mWriteBufSize];
 
-  size_t mWriteCount, mReadCount;
+  size_t mWriteCount;
 
 };
 

@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <Pufferfish/HAL/STM32/HALAnalogInput.h>
 #include "Pufferfish/HAL/Interfaces/I2CDevice.h"
 #include "Pufferfish/HAL/CRC.h"
 
@@ -18,4 +19,3 @@
 #include "Pufferfish/HAL/STM32/Time.h"
 #include "Pufferfish/HAL/STM32/HALPWM.h"
 #include "Pufferfish/HAL/STM32/HALSPIDevice.h"
-#include "Pufferfish/HAL/STM32/AnalogInput.h"
