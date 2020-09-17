@@ -57,7 +57,7 @@ class MockAnalogInput : public AnalogInput {
    * @param  setAnalogDataRead value to update the lastInput
    * @return None
    */
-  void setRead(uint32_t &setAnalogDataRead);
+  void setRead(uint32_t setAnalogDataRead);
  private:
   /* State for Analog input START */
   bool mLastState = false;

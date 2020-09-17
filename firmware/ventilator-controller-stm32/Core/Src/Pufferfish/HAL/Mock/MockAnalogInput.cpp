@@ -16,11 +16,12 @@ ADCStatus MockAnalogInput::start() {
 }
 
 ADCStatus MockAnalogInput::read(uint32_t &analogDataRead) {
+  analogDataRead = lastInput;
   /* return ADCStatus as ok */
   return ADCStatus::ok;
 }
 
-void MockAnalogInput::setRead(uint32_t &setAnalogDataRead) {
+void MockAnalogInput::setRead(uint32_t setAnalogDataRead) {
 
   /* Update the lastInput with input analog data read value */
   lastInput = setAnalogDataRead;
