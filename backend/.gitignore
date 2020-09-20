@@ -46,6 +46,7 @@ docs/_build/
 
 # Misc
 docs/
+extra_/
 
 # misc
 .DS_Store
