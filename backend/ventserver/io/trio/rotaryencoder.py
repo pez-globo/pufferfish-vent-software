@@ -86,7 +86,13 @@ class RotaryEncoderDriver(endpoints.IOEndpoint[bytes, bytes]):
         return self.angle
 
 
+def main():
+    driver = RotaryEncoderDriver()
+    await driver.open()
+    angle = await driver.read()
+    print(f"{angle} {driver.angle}")
+    await trio.sleep(12)
+
 if __name__ == "__main__":
 
-    driver = RotaryEncoderDriver()
-    driver.open()
+    trio.run(main)
