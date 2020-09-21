@@ -5,6 +5,7 @@ import os
 from typing import Optional
 import attr
 import functools
+from datetime import datetime
 
 import RPi.GPIO as GPIO
 import trio
@@ -12,22 +13,6 @@ import trio
 from ventserver.io import rotaryencoder
 from ventserver.io.trio import endpoints
 
-
-def rotation_direction(dt_pin: int, clk_pin: int, 
-                       clk_state: int, dt_state: int,
-                       clk_last_state: int, angle: int,
-                       rotation_counter: int
-) -> None:
-    """Rotary encoder callback function"""
-    clk_state = GPIO.input(clk_pin)
-    if clk_state != clk_last_state:
-        dt_state = GPIO.input(dt_pin)
-        if dt_state != clk_state:
-            rotation_counter += 1
-        else:
-            rotation_counter -= 1
-    angle = ((rotation_counter * 6) % 360)
-    print(angle)
 
 
 @attr.s
@@ -44,7 +29,26 @@ class RotaryEncoderDriver(endpoints.IOEndpoint[bytes, bytes]):
     clk_last_state: int = attr.ib(default=None, repr=False)
     dt_state: int = attr.ib(default=None, repr=False)
     rotation_counter: int = attr.ib(default=0, repr=False)
-    angle: int = attr.ib(default=None, repr=False)
+    angle: int = attr.ib(default=0, repr=False)
+    button_press_time: str = attr.ib(default=None, repr=False)
+    
+    def rotation_direction(self, dt_pin: int) -> None:
+        """Rotary encoder callback function"""
+        self.clk_state = GPIO.input(self._props.clk_pin)
+        if self.clk_state != self.clk_last_state:
+            self.dt_state = GPIO.input(self._props.dt_pin)
+            if self.dt_state != self.clk_state:
+                self.rotation_counter += 1
+            else:
+                self.rotation_counter -= 1
+        self.angle = ((self.rotation_counter * 6) % 360)
+    
+        
+    def switch_press_log(self, channel):
+        if GPIO.input(27):
+            dateTimeObj = datetime.now()
+            self.button_press_time = dateTimeObj.strftime("%d - %b - %Y - %H - %M - %S")
+            print("button_pressed_at : ", self.button_press_time)
 
     
     @property
@@ -59,6 +63,18 @@ class RotaryEncoderDriver(endpoints.IOEndpoint[bytes, bytes]):
             GPIO.setmode(GPIO.BCM)
             GPIO.setup(self._props.clk_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             GPIO.setup(self._props.dt_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            GPIO.setup(27, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            GPIO.add_event_detect(
+            self._props.dt_pin,
+            GPIO.RISING,
+            callback=self.rotation_direction
+            )
+            GPIO.add_event_detect(
+            27,
+            GPIO.RISING,
+            callback=self.switch_press_log,
+            bouncetime=10
+            )
             self._connected.set()
         except Exception as err:
             raise IOError(err)
@@ -73,20 +89,7 @@ class RotaryEncoderDriver(endpoints.IOEndpoint[bytes, bytes]):
 
     async def receive(self) -> bytes:
         """"""
-        call_back = functools.partial(
-                        rotation_direction,
-                        clk_pin=self._props.clk_pin, clk_state=self.clk_state,
-                        dt_state=self.dt_state,
-                        clk_last_state=self.clk_last_state,
-                        rotation_counter=self.rotation_counter,
-                        angle=self.angle
-        )
-        GPIO.add_event_detect(
-            self._props.dt_pin,
-            GPIO.RISING,
-            callback=call_back
-        )
-        return self.angle
+        return (self.angle, self.button_press_time)
     
     async def send(self) -> None:
         pass
@@ -95,9 +98,13 @@ class RotaryEncoderDriver(endpoints.IOEndpoint[bytes, bytes]):
 async def main():
     driver = RotaryEncoderDriver()
     await driver.open()
-    angle = await driver.receive()
-    print(f"{angle} {driver.angle}")
-    await trio.sleep(12)
+    try:
+        async for each in driver.receive_all():
+            print("received:",each)
+            await trio.sleep(0.10)
+    except Exception as err:
+        print(err)
+    await driver.close()
 
 if __name__ == "__main__":
 
