@@ -27,6 +27,7 @@ def rotation_direction(dt_pin: int, clk_pin: int,
         else:
             rotation_counter -= 1
     angle = ((rotation_counter * 6) % 360)
+    print(angle)
 
 
 @attr.s
@@ -55,6 +56,7 @@ class RotaryEncoderDriver(endpoints.IOEndpoint[bytes, bytes]):
         """"""
         self._connected = trio.Event()
         try:
+            GPIO.setmode(GPIO.BCM)
             GPIO.setup(self._props.clk_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             GPIO.setup(self._props.dt_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             self._connected.set()
@@ -69,12 +71,13 @@ class RotaryEncoderDriver(endpoints.IOEndpoint[bytes, bytes]):
         self._connected = trio.Event()
         GPIO.cleanup()
 
-    async def read(self) -> bytes:
+    async def receive(self) -> bytes:
         """"""
         call_back = functools.partial(
                         rotation_direction,
                         clk_pin=self._props.clk_pin, clk_state=self.clk_state,
-                        dt_pin=self._props.dt_pin, dt_state=self.dt_state,
+                        dt_state=self.dt_state,
+                        clk_last_state=self.clk_last_state,
                         rotation_counter=self.rotation_counter,
                         angle=self.angle
         )
@@ -84,12 +87,15 @@ class RotaryEncoderDriver(endpoints.IOEndpoint[bytes, bytes]):
             callback=call_back
         )
         return self.angle
+    
+    async def send(self) -> None:
+        pass
 
 
-def main():
+async def main():
     driver = RotaryEncoderDriver()
     await driver.open()
-    angle = await driver.read()
+    angle = await driver.receive()
     print(f"{angle} {driver.angle}")
     await trio.sleep(12)
 
