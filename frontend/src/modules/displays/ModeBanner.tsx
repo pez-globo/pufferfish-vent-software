@@ -29,8 +29,10 @@ export const getModeText = (mode: VentilationMode): string => {
       return 'Volume Control (AC)';
     case VentilationMode.vc_simv:
       return 'Volume Control (SIMV)';
-    case VentilationMode.hfnc:
+    case VentilationMode.niv:
       return 'Non Invasive (NIV)';
+    case VentilationMode.hfnc:
+      return 'High Flow Nasal Canula (HFNC)';
     default:
       return 'No Mode Selected';
   }

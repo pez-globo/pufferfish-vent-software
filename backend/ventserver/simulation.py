@@ -25,6 +25,7 @@ async def simulate_states(
     initial_time = current_time
     previous_time = current_time
     time_step = current_time - previous_time
+    time_step = time_step if time_step > 0 else 1.0
     cycle_start_time = 0.0
     sensor_update_interval = 2.0  # ms
     cycle_period = 2000.0  # ms
@@ -63,6 +64,7 @@ async def simulate_states(
         previous_time = current_time
         current_time = time.time() * 1000 - initial_time
         time_step = current_time - previous_time
+        time_step = time_step if time_step > 0 else 1.0
         sensor_measurements.time = int(current_time)
         cycle_period = 60000 / parameters.rr
         if current_time - cycle_start_time > cycle_period:

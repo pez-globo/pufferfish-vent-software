@@ -47,6 +47,10 @@ export const getSensorMeasurementsFiO2 = createSelector(
   getSensorMeasurements,
   (sensorMeasurements: SensorMeasurements): number => sensorMeasurements.fio2,
 );
+export const getSensorMeasurementsSpO2 = createSelector(
+  getSensorMeasurements,
+  (sensorMeasurements: SensorMeasurements): number => sensorMeasurements.spo2,
+);
 
 // CycleMeasurements
 export const getCycleMeasurements = createSelector(
@@ -70,6 +74,18 @@ export const getCycleMeasurementsVT = createSelector(
   (cycleMeasurements: CycleMeasurements): number => cycleMeasurements.vt,
 );
 
+// ROX Index
+export const getROXIndex = createSelector(
+  getSensorMeasurements,
+  getCycleMeasurements,
+  (sensorMeasurements: SensorMeasurements, cycleMeasurements: CycleMeasurements): number => {
+    if (sensorMeasurements.spo2 && sensorMeasurements.fio2 && cycleMeasurements.rr) {
+      return sensorMeasurements.spo2 / sensorMeasurements.fio2 / cycleMeasurements.rr;
+    }
+    return 0;
+  },
+);
+
 // Parameters
 export const getParameters = createSelector(
   getController,
@@ -90,6 +106,10 @@ export const getParametersRR = createSelector(
 export const getParametersFiO2 = createSelector(
   getParameters,
   (parameters: Parameters): number => parameters.fio2,
+);
+export const getParametersFlow = createSelector(
+  getParameters,
+  (parameters: Parameters): number => parameters.flow,
 );
 
 // ParametersRequest

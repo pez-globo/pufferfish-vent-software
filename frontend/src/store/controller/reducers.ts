@@ -63,6 +63,7 @@ const alarmLimitsReducer = (
     etco2Max: 100,
     flowMax: 100,
     apneaMax: 100,
+    spo2Max: 100,
   }) as AlarmLimitsRequest,
   action: commitAction,
 ): AlarmLimitsRequest => {
@@ -102,7 +103,7 @@ const withRequestUpdate = <T>(state: T, action: commitAction, prefix: string): T
 
 const parametersRequestReducer = (
   state: ParametersRequest = ParametersRequest.fromJSON({
-    mode: VentilationMode.pc_ac,
+    mode: VentilationMode.hfnc,
     pip: 30,
     peep: 0,
     rr: 30,

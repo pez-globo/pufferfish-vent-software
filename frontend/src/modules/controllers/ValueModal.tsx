@@ -37,6 +37,7 @@ interface Props {
   label: string;
   units: string;
   committedSetting: number;
+  disableSetNewButton?: boolean;
   requestCommitSetting(setting: number): void;
 }
 
@@ -44,6 +45,7 @@ export const ValueModal = ({
   label,
   units,
   committedSetting,
+  disableSetNewButton = false,
   requestCommitSetting,
 }: Props): JSX.Element => {
   const classes = useStyles();
@@ -70,14 +72,16 @@ export const ValueModal = ({
   return (
     <Grid container direction="column" alignItems="center" justify="center">
       <Grid container item xs>
-        <Button
-          onClick={handleOpen}
-          color="primary"
-          variant="contained"
-          className={classes.openButton}
-        >
-          Set New
-        </Button>
+        {!disableSetNewButton && (
+          <Button
+            onClick={handleOpen}
+            color="primary"
+            variant="contained"
+            className={classes.openButton}
+          >
+            Set New
+          </Button>
+        )}
       </Grid>
       <ModalPopup
         withAction={true}

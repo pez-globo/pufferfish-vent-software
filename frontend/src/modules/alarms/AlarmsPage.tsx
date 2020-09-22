@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import { Typography, Button, Grid } from '@material-ui/core';
 import Pagination from '@material-ui/lab/Pagination';
 import { useDispatch, useSelector } from 'react-redux';
 import ValueSlider from '../controllers/ValueSlider';
 import ModeBanner from '../displays/ModeBanner';
-import { getAlarmLimitsRequest } from '../../store/controller/selectors';
+import { getAlarmLimitsRequest, getParametersRequestMode } from '../../store/controller/selectors';
 import { ALARM_LIMITS } from '../../store/controller/types';
 import { updateCommittedState } from '../../store/controller/actions';
-import { AlarmLimitsRequest } from '../../store/controller/proto/mcu_pb';
+import { AlarmLimitsRequest, VentilationMode } from '../../store/controller/proto/mcu_pb';
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -53,12 +53,6 @@ interface AlarmProps {
   setAlarmLimits(alarmLimits: Partial<AlarmLimitsRequest>): void;
 }
 
-interface AlarmConfigurationProps {
-  page: number;
-  alarmLimits: Record<string, number>;
-  setAlarmLimits(alarmLimits: Partial<AlarmLimitsRequest>): void;
-}
-
 const Alarm = ({
   label,
   min,
@@ -90,108 +84,41 @@ const Alarm = ({
   );
 };
 
-const AlarmConfiguration = ({
-  page,
-  alarmLimits,
-  setAlarmLimits,
-}: AlarmConfigurationProps): JSX.Element => {
-  const classes = useStyles();
-  /**
-   * TODO: Fill in the `ValueSlider` placeholders with sliders that actually
-   *       change the alarm states in the redux store.
-   */
-  const page1 = (
-    <Grid container item xs direction="column" className={classes.rightContainer}>
-      <Alarm
-        label="RR"
-        min={0}
-        max={100}
-        stateKey="rr"
-        alarmLimits={alarmLimits}
-        setAlarmLimits={setAlarmLimits}
-      />
-      <Alarm
-        label="TV"
-        min={0}
-        max={100}
-        stateKey="tv"
-        alarmLimits={alarmLimits}
-        setAlarmLimits={setAlarmLimits}
-      />
-      <Alarm
-        label="Flow"
-        min={0}
-        max={100}
-        stateKey="flow"
-        alarmLimits={alarmLimits}
-        setAlarmLimits={setAlarmLimits}
-      />
-      <Alarm
-        label="MVe"
-        min={0}
-        max={100}
-        stateKey="mve"
-        alarmLimits={alarmLimits}
-        setAlarmLimits={setAlarmLimits}
-      />
-      <Alarm
-        label="Apnea"
-        min={0}
-        max={100}
-        stateKey="apnea"
-        alarmLimits={alarmLimits}
-        setAlarmLimits={setAlarmLimits}
-      />
-    </Grid>
-  );
+interface AlarmConfiguration {
+  label: string;
+  min?: number;
+  max?: number;
+  stateKey: string;
+  step?: number;
+}
 
-  const page2 = (
-    <Grid container item xs direction="column" className={classes.rightContainer}>
-      <Alarm
-        label="Pressure above PEEP"
-        min={0}
-        max={100}
-        stateKey="ipAbovePeep"
-        alarmLimits={alarmLimits}
-        setAlarmLimits={setAlarmLimits}
-      />
-      <Alarm
-        label="PAW"
-        min={0}
-        max={100}
-        stateKey="paw"
-        alarmLimits={alarmLimits}
-        setAlarmLimits={setAlarmLimits}
-      />
-      <Alarm
-        label="PiP"
-        min={0}
-        max={100}
-        stateKey="pip"
-        alarmLimits={alarmLimits}
-        setAlarmLimits={setAlarmLimits}
-      />
-      <Alarm
-        label="PEEP"
-        min={0}
-        max={100}
-        stateKey="peep"
-        alarmLimits={alarmLimits}
-        setAlarmLimits={setAlarmLimits}
-      />
-      <Alarm
-        label="Insp. Time"
-        min={0}
-        max={100}
-        stateKey="inspTime"
-        step={0.5}
-        alarmLimits={alarmLimits}
-        setAlarmLimits={setAlarmLimits}
-      />
-    </Grid>
-  );
-
-  return <React.Fragment>{page === 1 ? page1 : page2}</React.Fragment>;
+const alarmConfiguration = (ventilationMode: VentilationMode): Array<AlarmConfiguration> => {
+  switch (ventilationMode) {
+    case VentilationMode.pc_ac:
+    case VentilationMode.pc_simv:
+    case VentilationMode.vc_ac:
+    case VentilationMode.vc_simv:
+    case VentilationMode.niv:
+      return [
+        { label: 'RR', stateKey: 'rr' },
+        { label: 'TV', stateKey: 'tv' },
+        { label: 'Flow', stateKey: 'flow' },
+        { label: 'MVe', stateKey: 'mve' },
+        { label: 'Apnea', stateKey: 'apnea' },
+        { label: 'Pressure above PEEP', stateKey: 'ipAbovePeep' },
+        { label: 'PAW', stateKey: 'paw' },
+        { label: 'PiP', stateKey: 'pip' },
+        { label: 'PEEP', stateKey: 'peep' },
+        { label: 'Insp. Time', stateKey: 'inspTime', step: 0.5 },
+      ];
+    case VentilationMode.hfnc:
+    default:
+      return [
+        { label: 'FiO2', stateKey: 'fio2' },
+        { label: 'SpO2', stateKey: 'spo2' },
+        { label: 'RR', stateKey: 'rr' },
+      ];
+  }
 };
 
 /**
@@ -201,18 +128,26 @@ const AlarmConfiguration = ({
  */
 export const AlarmsPage = (): JSX.Element => {
   const classes = useStyles();
+  const itemsPerPage = 5;
   const [page, setPage] = React.useState(1);
-
+  const [pageCount, setPageCount] = React.useState(1);
   const handleChange = (event: React.ChangeEvent<unknown>, value: number) => {
     setPage(value);
   };
 
   const alarmLimitsRequest = useSelector(getAlarmLimitsRequest);
   const dispatch = useDispatch();
+  const currentMode = useSelector(getParametersRequestMode);
+
   const [alarmLimits, setAlarmLimits] = useState(alarmLimitsRequest as Record<string, number>);
   const updateAlarmLimits = (data: Partial<AlarmLimitsRequest>) =>
     setAlarmLimits({ ...alarmLimits, ...data } as Record<string, number>);
   const applyChanges = () => dispatch(updateCommittedState(ALARM_LIMITS, alarmLimits));
+  const alarmConfig = alarmConfiguration(currentMode);
+
+  useEffect(() => {
+    setPageCount(Math.ceil(alarmConfig.length / itemsPerPage));
+  }, [alarmConfig]);
 
   return (
     <Grid container direction="column" className={classes.root}>
@@ -224,9 +159,10 @@ export const AlarmsPage = (): JSX.Element => {
           <Grid container direction="column" className={classes.paginationContainer}>
             <Grid item xs style={{ marginBottom: 10 }}>
               <Pagination
-                count={2}
+                count={pageCount}
                 page={page}
                 onChange={handleChange}
+                defaultPage={1}
                 variant="outlined"
                 shape="rounded"
                 size="large"
@@ -245,11 +181,23 @@ export const AlarmsPage = (): JSX.Element => {
           </Grid>
         </Grid>
         {/* Right Container for Storing Alarm Slides */}
-        <AlarmConfiguration
-          setAlarmLimits={updateAlarmLimits}
-          alarmLimits={alarmLimits}
-          page={page}
-        />
+        <Grid container item xs direction="column" className={classes.rightContainer}>
+          {alarmConfig.slice((page - 1) * itemsPerPage, page * itemsPerPage).map((alarm) => {
+            const key = `alarm-config-${alarm.stateKey}`;
+            return (
+              <Alarm
+                key={key}
+                label={alarm.label}
+                min={alarm.min || 0}
+                max={alarm.max || 100}
+                stateKey={alarm.stateKey}
+                step={alarm.step || 1}
+                alarmLimits={alarmLimits}
+                setAlarmLimits={updateAlarmLimits}
+              />
+            );
+          })}
+        </Grid>
       </Grid>
       {/* Title */}
       <Grid item>

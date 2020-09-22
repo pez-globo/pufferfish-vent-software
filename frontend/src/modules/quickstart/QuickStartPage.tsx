@@ -8,10 +8,14 @@ import {
   FormControlLabel,
   Radio,
 } from '@material-ui/core';
+import { useSelector } from 'react-redux';
 import TestTool from '../controllers/TestTool';
 import ValueClicker from '../controllers/ValueController';
 import ModeBanner from '../displays/ModeBanner';
 import ToggleValue from '../displays/ToggleValue';
+import { VentilationMode } from '../../store/controller/proto/mcu_pb';
+import { getParametersRequestMode } from '../../store/controller/selectors';
+import { LMIN, PERCENT } from '../info/units';
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -71,6 +75,60 @@ enum PatientAge {
   PEDIATRIC,
 }
 
+const SettableParameters = (): JSX.Element => {
+  const classes = useStyles();
+  const [PEEP, setPEEP] = React.useState(5);
+  const [Flow, setFlow] = React.useState(10);
+  const [RR, setRR] = React.useState(18);
+  const [TV, setTV] = React.useState(500);
+  const [FiO2, setFiO2] = React.useState(100);
+
+  const ventilationMode = useSelector(getParametersRequestMode);
+  switch (ventilationMode) {
+    case VentilationMode.pc_ac:
+    case VentilationMode.pc_simv:
+    case VentilationMode.vc_ac:
+    case VentilationMode.vc_simv:
+    case VentilationMode.niv:
+      return (
+        <Grid container item xs={8} direction="column" className={classes.middleRightPanel}>
+          <Grid container item xs direction="row" className={classes.bottomBorder}>
+            <Grid item xs className={classes.rightBorder}>
+              <ValueClicker label="PEEP" units="cm H2O" value={PEEP} onClick={setPEEP} />
+            </Grid>
+            <Grid item xs>
+              <ValueClicker label="RR" units="cm H2O" value={RR} onClick={setRR} />
+            </Grid>
+          </Grid>
+          <Grid container item xs direction="row">
+            <Grid item xs className={classes.rightBorder}>
+              <ValueClicker label="FiO2" units="%" value={FiO2} onClick={setFiO2} />
+            </Grid>
+            <Grid item xs>
+              <ValueClicker label="TV" units="mL" value={TV} max={500} onClick={setTV} />
+            </Grid>
+          </Grid>
+        </Grid>
+      );
+    case VentilationMode.hfnc:
+    default:
+      return (
+        <Grid container item xs={8} direction="column" className={classes.middleRightPanel}>
+          <Grid container item xs direction="row" className={classes.bottomBorder}>
+            <Grid item xs className={classes.rightBorder}>
+              <ValueClicker label="FiO2" units={PERCENT} value={FiO2} onClick={setFiO2} />
+            </Grid>
+          </Grid>
+          <Grid container item xs direction="row">
+            <Grid item xs className={classes.rightBorder}>
+              <ValueClicker label="Flow" units={LMIN} value={Flow} onClick={setFlow} />
+            </Grid>
+          </Grid>
+        </Grid>
+      );
+  }
+};
+
 export const QuickStartPage = (): JSX.Element => {
   const classes = useStyles();
   const [patientSex, setPatientSex] = React.useState(PatientSex.MALE);
@@ -78,11 +136,7 @@ export const QuickStartPage = (): JSX.Element => {
   const [patientHeight, setPatientHeight] = React.useState(62);
   const [patientCircuitTestDate] = React.useState(new Date());
   const [preUseCheckDate] = React.useState(new Date());
-  const [PEEP, setPEEP] = React.useState(5);
-  const [RR, setRR] = React.useState(18);
-  const [TV, setTV] = React.useState(500);
 
-  const [FiO2, setFiO2] = React.useState(100);
   return (
     <Grid container direction="column" className={classes.root}>
       <Grid container item className={classes.topPanel}>
@@ -140,24 +194,7 @@ export const QuickStartPage = (): JSX.Element => {
             />
           </Grid>
         </Grid>
-        <Grid container item xs={8} direction="column" className={classes.middleRightPanel}>
-          <Grid container item xs direction="row" className={classes.bottomBorder}>
-            <Grid item xs className={classes.rightBorder}>
-              <ValueClicker label="PEEP" units="cm H2O" value={PEEP} onClick={setPEEP} />
-            </Grid>
-            <Grid item xs>
-              <ValueClicker label="RR" units="cm H2O" value={RR} onClick={setRR} />
-            </Grid>
-          </Grid>
-          <Grid container item xs direction="row">
-            <Grid item xs className={classes.rightBorder}>
-              <ValueClicker label="FiO2" units="%" value={FiO2} onClick={setFiO2} />
-            </Grid>
-            <Grid item xs>
-              <ValueClicker label="TV" units="mL" value={TV} max={500} onClick={setTV} />
-            </Grid>
-          </Grid>
-        </Grid>
+        <SettableParameters />
       </Grid>
       <Grid item>
         <ModeBanner bannerType="normal" />

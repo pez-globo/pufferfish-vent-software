@@ -140,15 +140,21 @@ export const ModesPage = (): JSX.Element => {
             <Grid container item xs>
               <Grid container item xs className={classes.leftModeButtonOutline}>
                 <Button
-                  onClick={() => updateMode(VentilationMode.hfnc)}
-                  className={buttonClass(VentilationMode.hfnc)}
+                  onClick={() => updateMode(VentilationMode.niv)}
+                  className={buttonClass(VentilationMode.niv)}
                   variant="outlined"
                 >
                   <Typography variant="h5">NIV</Typography>
                 </Button>
               </Grid>
-              <Grid container item xs>
-                {/* Blank Filler Space */}
+              <Grid container item xs className={classes.modeButtonOutline}>
+                <Button
+                  onClick={() => updateMode(VentilationMode.hfnc)}
+                  className={buttonClass(VentilationMode.hfnc)}
+                  variant="outlined"
+                >
+                  <Typography variant="h5">HFNC</Typography>
+                </Button>
               </Grid>
             </Grid>
           </Grid>

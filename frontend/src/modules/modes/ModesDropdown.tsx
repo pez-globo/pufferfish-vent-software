@@ -30,6 +30,7 @@ const modes = [
   VentilationMode.pc_simv,
   VentilationMode.vc_ac,
   VentilationMode.vc_simv,
+  VentilationMode.niv,
   VentilationMode.hfnc,
 ];
 

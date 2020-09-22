@@ -35,10 +35,17 @@ const units = BMIN;
  *
  * TODO: Hook this component into the redux store with correct selectors.
  */
-const RRInfo = (): JSX.Element => (
+const RRInfo = ({ disableSetValue = false }: { disableSetValue?: boolean }): JSX.Element => (
   <Knob
     valueDisplay={<RRDisplay label={label} units={units} isLive={true} />}
-    valueModal={<RRValueModal label={label} units={units} requestCommitSetting={boundDoSetRR} />}
+    valueModal={
+      <RRValueModal
+        disableSetNewButton={disableSetValue}
+        label={label}
+        units={units}
+        requestCommitSetting={boundDoSetRR}
+      />
+    }
     alarmModal={
       <AlarmModal label={label} units={units} stateKey={stateKey} requestCommitRange={() => null} />
     }
