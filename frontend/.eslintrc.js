@@ -35,11 +35,13 @@ module.exports = {
             }
         ],
         "import/no-unresolved": 0,
+        'react/jsx-props-no-spreading': 0,
+        "react/require-default-props": 0,
         "no-use-before-define": [
           "error",
-          { "functions": true, "classes": true, "variables": false }
+          { "functions": false, "classes": true, "variables": false }
         ],
-        
+        "import/no-extraneous-dependencies": ["error", {"devDependencies": true}],
         "prettier/prettier": "error",
         "@typescript-eslint/explicit-function-return-type": "off",
         "@typescript-eslint/no-unused-vars": "off",
@@ -49,6 +51,9 @@ module.exports = {
         ]
     },
     "settings": {
+        "react": {
+            "version": "detect"
+        },
         "import/resolver": {
             "node": {
                 "extensions": [".js", ".jsx", ".ts", ".tsx"],

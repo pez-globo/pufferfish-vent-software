@@ -1,5 +1,5 @@
-import React from 'react'
-import { Grid, makeStyles, Theme } from '@material-ui/core'
+import React from 'react';
+import { Grid, makeStyles, Theme } from '@material-ui/core';
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -17,42 +17,42 @@ const useStyles = makeStyles((theme: Theme) => ({
     // border: '1px solid orange'
   },
   marginRight: {
-    marginRight: theme.spacing(1)
-  }
-}))
+    marginRight: theme.spacing(1),
+  },
+}));
 
 interface Props {
-  valueDisplay: React.ReactNode,
-  valueModal: React.ReactNode,
-  alarmModal?: React.ReactNode
+  valueDisplay: React.ReactNode;
+  valueModal: React.ReactNode;
+  alarmModal?: React.ReactNode;
 }
 
 /**
  * Knob
- * 
+ *
  * A re-usable "knob" component for adjusting alarms and updating values all-
  * in-one.
  */
-export const Knob = ({ valueDisplay, valueModal, alarmModal }: Props) => {
-  const classes = useStyles()
+export const Knob = ({ valueDisplay, valueModal, alarmModal }: Props): JSX.Element => {
+  const classes = useStyles();
 
   return (
-    <Grid container direction='column' className={classes.root}>
+    <Grid container direction="column" className={classes.root}>
       <Grid item xs style={{ width: '100%' }}>
         {valueDisplay}
       </Grid>
-      <Grid container item direction='row' className={classes.controlPanel} wrap='nowrap'>
+      <Grid container item direction="row" className={classes.controlPanel} wrap="nowrap">
         <Grid item xs={6} className={classes.marginRight}>
           {valueModal}
         </Grid>
-        {alarmModal &&
+        {alarmModal && (
           <Grid item xs={6}>
             {alarmModal}
           </Grid>
-        }
+        )}
       </Grid>
     </Grid>
-  )
-}
+  );
+};
 
-export default Knob
+export default Knob;

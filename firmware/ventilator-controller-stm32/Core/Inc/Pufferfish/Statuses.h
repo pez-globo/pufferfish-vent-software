@@ -9,6 +9,16 @@
 namespace Pufferfish {
 
 /**
+ * An outcome of attempting to perform an operation on a buffer
+ */
+enum class BufferStatus {
+  ok = 0,  /// buffer operation succeeded
+  empty,  /// buffer is empty so no read is possible
+  full,  /// buffer is full so no write is possible
+  partial  /// only a partial buffer operation was possible
+};
+
+/**
  * Possible alarms that could be raised by the system, must by sorted by
  * priority in ascending order
  */

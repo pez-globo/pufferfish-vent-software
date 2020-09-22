@@ -8,9 +8,6 @@ from typing import Optional, Dict, List, Tuple, Any
 from crcmod import predefined as predefinedcrc #type: ignore
 
 
-from ventserver.util import crc
-
-
 def gen_data(low: int = 32, high: int = 64,
              increment: int = 2, multiplier: bool = True,
              additionals: Optional[List[int]] = None
@@ -90,8 +87,6 @@ def print_timings(timings: Dict[str, Dict[int, float]],
 def main() -> None:
     """Main function to run everything."""
     functions: Dict[str, Any] = {
-        'pf_crc': lambda data: crc.compute_reflected_crc(data, \
-            crc.CRC32C_REFLECTED_TABLE),
         'mod_crc': predefinedcrc.mkCrcFun('crc-32c'),
         'sha1': hashlib.sha1,
         'md5': hashlib.md5,

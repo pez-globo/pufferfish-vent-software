@@ -9,6 +9,9 @@
 # Setup Node
 ./scripts/node.sh
 
+# Install Roboto Fonts
+./scripts/install_fonts.sh
+
 # Setup yarn and install required libraries
 ./scripts/yarn.sh
 

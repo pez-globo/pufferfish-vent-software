@@ -1,17 +1,14 @@
 """Filters for handling data integrity over an unreliable messaging channel.
 
-Provides Filters which compute and check data integrity fields in headers
-prepended to arbitrary data payloads (limited by payload length) to detect and
-handle data loss and data corruption.
+Provides Filters which check data integrity fields in headers prepended to
+arbitrary data payloads (limited by payload length) to detect and handle
+data loss.
 
 A Datagram is defined as the data unit of the data integrity layer, consisting
-of a payload preceded by a header which contains a 32-bit CRC checksum field,
-a 1-byte sequence number field, and a 1-byte length field. The CRC checksum and
-length fields allow detection of byte corruption or byte loss in the header and
-payload. The sequence number field allows detection of loss or reordering of
-entire datagrams. Note that the CRC checksum is computed over all other fields
-of the header and the payload, so that the header's data integrity can also be
-verified.
+of a payload preceded by a header which contains a 1-byte sequence number field,
+and a 1-byte length field. The length fields allow detection of byte loss in the
+header and payload. The sequence number field allows detection of loss or
+reordering of entire datagrams.
 
 Typical usage example:
 
@@ -53,7 +50,6 @@ import attr
 from ventserver.protocols import exceptions
 from ventserver.sansio import channels
 from ventserver.sansio import protocols
-from ventserver.util import crc
 
 
 # Constants
@@ -63,21 +59,6 @@ SEQ_NUM_SPACE = 256  # the modulo base for sequence numbers
 
 
 # Classes
-
-
-def uint32_attr(
-        _: Any, __: 'attr.Attribute[int]', value: int
-) -> None:
-    """Validate the attr input as a 32-bit uint.
-
-    Raises:
-        ValueError: attr init value cannot be represented as a 32-bit uint.
-
-    """
-    if value < 0 or value > 0xffffffff:
-        raise ValueError(
-            'Attr must be a 32-bit uint: {!r}'.format(value)
-        )
 
 
 def single_byte_attr(
@@ -91,7 +72,6 @@ def single_byte_attr(
     """
     bytes([value])
 
-
 @attr.s
 class Datagram:
     """A data unit containing header fields for data integrity checking.
@@ -102,13 +82,6 @@ class Datagram:
     Attributes:
         HEADER_SIZE: the number of bytes used by the header. This is also the
             data overhead for encapsulating a payload in a datagram.
-        PROTECTED_OFFSET: the byte of the datagram body at which the
-            CRC-protected section of the datagram body begins.
-        PAYLOAD_OFFSET: the byte of the datagram body at which the payload
-            section of the datagram body begins.
-        crc: the value of the 32-bit CRC field of the datagram. This is computed
-            as the CRC-32C (Castagnoli) of the CRC-protected section of the
-            datagram body.
         seq: the value of the 8-bit sequence number field of the datagram. This
             is expected to increment by 1 with every datagram sent by a datagram
             sender, and it rolls over from 255 to 0. It is up to the receiver
@@ -120,17 +93,10 @@ class Datagram:
 
     """
 
-    _HEADER_FORMAT = '> L B B'
+    _HEADER_FORMAT = '> B B'
     _HEADER_PARSER = struct.Struct(_HEADER_FORMAT)
     HEADER_SIZE = struct.calcsize(_HEADER_FORMAT)
-    _HEADER_PROTECTED_FORMAT = '> B B'
-    _HEADER_PROTECTED_PARSER = struct.Struct(_HEADER_PROTECTED_FORMAT)
-    PROTECTED_OFFSET = 4
-    PAYLOAD_OFFSET = 6
 
-    crc: int = attr.ib(default=0, validator=[uint32_attr], repr=(
-        lambda value: '0x{:08x}'.format(value)  # pylint: disable=unnecessary-lambda
-    ))
     seq: int = attr.ib(
         default=0, validator=[single_byte_attr]
     )
@@ -168,7 +134,7 @@ class Datagram:
                 'Unparseable header: {!r}'.format(buffer[:self.HEADER_SIZE])
             ) from exc
 
-        (self.crc, self.seq, self.length) = results
+        (self.seq, self.length) = results
         self.payload = buffer[self.HEADER_SIZE:]
 
     def update_from_payload(self) -> None:
@@ -181,9 +147,8 @@ class Datagram:
 
         """
         self.length = len(self.payload)  # update length before computing crc
-        self.crc = self.compute_protected_crc()
 
-    def _pack_protected(self) -> bytes:
+    def pack_protected(self) -> bytes:
         """Return the protected section of the datagram body.
 
         Raises:
@@ -192,7 +157,7 @@ class Datagram:
 
         """
         try:
-            header_protected = self._HEADER_PROTECTED_PARSER.pack(
+            header_protected = self._HEADER_PARSER.pack(
                 self.seq, self.length
             )
         except struct.error as exc:
@@ -202,19 +167,6 @@ class Datagram:
             ) from exc
 
         return header_protected + self.payload
-
-    def compute_protected_crc(self) -> int:
-        """Return the CRC of the protected section of the datagram body.
-
-        Raises:
-            exceptions.ProtocolDataError: the protected header fields of the
-                datagram could not be packed together into the protected section
-                of the datagram body.
-
-        """
-        return crc.compute_reflected_crc(
-            self._pack_protected(), crc.CRC32C_REFLECTED_TABLE
-        )
 
     def compute_body(self) -> bytes:
         """Return the body of the datagram, including the header and payload.
@@ -226,15 +178,14 @@ class Datagram:
 
         """
         try:
-            header = self._HEADER_PARSER.pack(self.crc, self.seq, self.length)
+            header = self._HEADER_PARSER.pack(self.seq, self.length)
         except struct.error as exc:
             raise exceptions.ProtocolDataError(
-                'Could not pack header fields: crc=0x{:x}, seq={}, len={}'
-                .format(self.crc, self.seq, self.length)
+                'Could not pack header fields: seq={}, len={}'
+                .format(self.seq, self.length)
             ) from exc
 
         return header + self.payload
-
 
 # Filters
 
@@ -299,13 +250,6 @@ class DatagramReceiver(protocols.Filter[bytes, bytes]):
         datagram = Datagram()
         datagram.parse(body)  # may raise ProtocolDataError
         self._logger.debug(datagram)
-        if datagram.crc != datagram.compute_protected_crc():
-            raise exceptions.ProtocolDataError(
-                'The specified CRC of the datagram\'s protected section, '
-                '0x{:08x}, is inconsistent with the actual computed CRC '
-                'of the received protected section, 0x{:08x}'
-                .format(datagram.crc, datagram.compute_protected_crc())
-            )
 
         if datagram.length != len(datagram.payload):
             raise exceptions.ProtocolDataError(
@@ -313,7 +257,6 @@ class DatagramReceiver(protocols.Filter[bytes, bytes]):
                 'inconsistent with the actual received length, {}'
                 .format(datagram.length, len(datagram.payload))
             )
-
         if self.expected_seq is None:
             self._logger.info('Initialized expected seq num from: %s', datagram)
             self.expected_seq = datagram.seq

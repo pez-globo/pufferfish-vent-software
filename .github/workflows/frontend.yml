@@ -1,0 +1,27 @@
+name: Frontend Checks
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        node_version: [10]
+
+    steps:
+    - uses: actions/checkout@v1
+      name: Checkout repository
+      
+    - name: Use Node.js ${{ matrix.node_version }}
+      uses: actions/setup-node@v1
+      with:
+        version: ${{ matrix.node_version }}
+        
+    - name: Install dependencies
+      run: yarn install
+      working-directory: frontend
+
+    - name: Check linting
+      run: yarn lint
+      working-directory: frontend

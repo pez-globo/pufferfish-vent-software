@@ -3,23 +3,27 @@ import {
   StateUpdateAction,
   PBMessage,
   STATE_UPDATED,
-  PARAMETER_COMMITTED
-} from './types'
+  PARAMETER_COMMITTED,
+  commitAction,
+} from './types';
 
-export function updateState(
-  messageType: MessageType, state: PBMessage
-): StateUpdateAction {
-  return {type: STATE_UPDATED, messageType, state}
+export function updateState(messageType: MessageType, state: PBMessage): StateUpdateAction {
+  return { type: STATE_UPDATED, messageType, state };
 }
 
-export function updateCommittedParameter(updates: Object) {  
+export function updateCommittedParameter(updates: Record<string, unknown>): commitAction {
   return {
-    type: PARAMETER_COMMITTED, update: updates
-  }
+    type: PARAMETER_COMMITTED,
+    update: updates,
+  };
 }
 
-export function updateCommittedState(prefix: string, updates: Object) {  
+export function updateCommittedState(
+  prefix: string,
+  updates: Record<string, unknown>,
+): commitAction {
   return {
-    type: `@controller/${prefix}_COMMITTED`, update: updates
-  }
+    type: `@controller/${prefix}_COMMITTED`,
+    update: updates,
+  };
 }
