@@ -11,3 +11,4 @@ class RotaryEncoderProps:
     mode = GPIO.BCM 
     clk_pin: int = 17
     dt_pin: int = 18
+    button_pin: int = 27
