@@ -6,8 +6,8 @@
 
 #pragma once
 
+#include "Pufferfish/HAL/HAL.h"
 #include "stm32h7xx_hal.h"
-#include "Pufferfish/HAL/Interfaces/DigitalOutput.h"
 
 namespace Pufferfish {
 namespace HAL {
@@ -18,20 +18,30 @@ namespace HAL {
 class HALDigitalOutput : public DigitalOutput {
  public:
   /**
-   * Constructs a new HALDigitalOutput
-   * @param m_port  GPIO port of the MCU (A, B, ...)
-   * @param m_pin   GPIO pin of the MCU (1, 2, ...)
+   * Constructs a new DigitalOutput
+   * @param port  GPIO port of the MCU (A, B, ...)
+   * @param pin   GPIO pin of the MCU (1, 2, ...)
+   * @param inverted   true if the output is active-low, false for active-high
    */
-  HALDigitalOutput(GPIO_TypeDef &m_port, const uint16_t m_pin) : mPort(m_port), mPin(m_pin) {}
+  HALDigitalOutput(GPIO_TypeDef &port, const uint16_t pin, const bool inverted =
+  false)
+      :
+      mPort(port),
+      mPin(pin),
+      mInverted(inverted) {
+  }
 
   /**
    * Writes a digital output to the GPIO pin
-   * @param output  true if desired output is HIGH, false if LOW
+   * @param output  true if desired output is active
+   *  (HIGH when inverted=false, and LOW when inverted=true)
+   *  false otherwise
    */
-  void write(bool output);
+  void write(bool output) override;
  private:
   GPIO_TypeDef &mPort;
-  uint16_t const mPin;
+  const uint16_t mPin;
+  const bool mInverted;
 };
 
 } // namespace HAL
