@@ -55,11 +55,12 @@ class RotaryEncoderDriver(endpoints.IOEndpoint[bytes, frontend_pb.RotaryEncoder]
     def button_press_log(self, channel):
         """"""
         if GPIO.input(self._props.button_pin):
-            self._state.button_press_time = int(1000 * time.time())
-            self._state.button_pressed = True
-        else:
             self._state.button_release_time = int(1000 * time.time())
             self._state.button_pressed = False
+            time.sleep(0.01)
+        else:
+            self._state.button_press_time = int(1000 * time.time())
+            self._state.button_pressed = True
 
 
     @property
@@ -86,8 +87,7 @@ class RotaryEncoderDriver(endpoints.IOEndpoint[bytes, frontend_pb.RotaryEncoder]
             GPIO.add_event_detect(
                 self._props.button_pin,
                 GPIO.BOTH,
-                callback=self.button_press_log,
-                bouncetime=50
+                callback=self.button_press_log
             )
             self._connected.set()
         except Exception as err:
@@ -105,7 +105,7 @@ class RotaryEncoderDriver(endpoints.IOEndpoint[bytes, frontend_pb.RotaryEncoder]
 
     async def receive(self) -> bytes:
         """"""
-        pb_state = RotaryEncoder(
+        pb_state = frontend_pb.RotaryEncoder(
             angle=self._state.angle,
             last_angle_change=self._state.last_angle_change,
             last_button_down=self._state.button_press_time,
