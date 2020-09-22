@@ -60,6 +60,6 @@ class ReceiveFilter(protocols.Filter[LowerEvent, UpperEvent]):
             last_angle_change=self._last_angle_change,
             button_pressed=self._button_pressed,
             last_button_down=self._last_button_down,
-            _last_button_up=self._last_button_up)
+            last_button_up=self._last_button_up)
 
         return pb_state

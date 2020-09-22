@@ -24,7 +24,7 @@ class RotaryEncoderState:
     
 
 @attr.s
-class RotaryEncoderDriver(endpoints.IOEndpoint[bytes, frontend_pb.RotaryEncoder]):
+class RotaryEncoderDriver(endpoints.IOEndpoint[bytes, tuple]):
     """Implements driver for reading rotary encoder inputs."""
     _logger = logging.getLogger('.'.join((__name__, 'RotaryEncoderDriver')))
 
