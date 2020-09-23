@@ -1,0 +1,11 @@
+# Device to use
+watchdog-device = /dev/watchdog
+
+# Timeout before reboot
+watchdog-timeout = 15
+
+# Interval of heartbeat
+interval = 5
+
+# Max load average acceptable
+max-load-1 = 24

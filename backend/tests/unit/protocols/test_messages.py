@@ -2,6 +2,8 @@
 
 from typing import Any
 
+import betterproto
+
 import pytest as pt  # type: ignore
 
 from ventserver.protocols import application
@@ -29,12 +31,12 @@ example_message_bodies_bad = [
 
 example_message_payloads_bad = [
     b'hello!',
-    pb.VentilationMode(),
+    pb.VentilationMode.pc_ac,
 ]
 
 
 @pt.mark.parametrize('type_code,payload', example_messages_good)
-def test_msg_parse(type_code: int, payload: application.PBMessage) -> None:
+def test_msg_parse(type_code: int, payload: betterproto.Message) -> None:
     """Test Message parsing from body."""
     message = messages.Message()
     message.parse(
@@ -46,7 +48,7 @@ def test_msg_parse(type_code: int, payload: application.PBMessage) -> None:
 
 @pt.mark.parametrize('type_code,payload', example_messages_good)
 def test_msg_parse_invalid_types(
-        type_code: int, payload: application.PBMessage
+        type_code: int, payload: betterproto.Message
 ) -> None:
     """Test Message parsing from body with a nonexistent type code."""
     message = messages.Message()
@@ -73,7 +75,7 @@ def test_msg_parse_invalid_bodies(body: bytes) -> None:
 
 
 @pt.mark.parametrize('type_code,payload', example_messages_good)
-def test_msg_generate(type_code: int, payload: application.PBMessage) -> None:
+def test_msg_generate(type_code: int, payload: betterproto.Message) -> None:
     """Test Message body generation."""
     message = messages.Message()
     message.type = type_code
@@ -82,7 +84,7 @@ def test_msg_generate(type_code: int, payload: application.PBMessage) -> None:
 
 
 @pt.mark.parametrize('type_code,payload', example_messages_good)
-def test_msg_update(type_code: int, payload: application.PBMessage) -> None:
+def test_msg_update(type_code: int, payload: betterproto.Message) -> None:
     """Test Message body generation."""
     message = messages.Message()
     message.payload = payload
@@ -101,7 +103,7 @@ def test_msg_generate_invalid(payload: Any) -> None:
 
 
 @pt.mark.parametrize('type_code,payload', example_messages_good)
-def test_msg_roundtrip(type_code: int, payload: application.PBMessage) -> None:
+def test_msg_roundtrip(type_code: int, payload: betterproto.Message) -> None:
     """Test Message serialize/deserialize roundtrip."""
     generate_message = messages.Message()
     generate_message.type = type_code
@@ -118,7 +120,7 @@ def test_msg_roundtrip(type_code: int, payload: application.PBMessage) -> None:
 
 
 @pt.mark.parametrize('type_code,payload', example_messages_good)
-def test_msg_rx(type_code: int, payload: application.PBMessage) -> None:
+def test_msg_rx(type_code: int, payload: betterproto.Message) -> None:
     """Test MessageReceiver behavior with specific examples."""
     receiver = messages.MessageReceiver(
         message_classes=application.MCU_MESSAGE_CLASSES
@@ -129,7 +131,7 @@ def test_msg_rx(type_code: int, payload: application.PBMessage) -> None:
 
 
 @pt.mark.parametrize('_,payload', example_messages_good)
-def test_msg_rx_invalid_types(_: int, payload: application.PBMessage) -> None:
+def test_msg_rx_invalid_types(_: int, payload: betterproto.Message) -> None:
     """Test MessageReceiver behavior with invalid typecode."""
     receiver = messages.MessageReceiver(
         message_classes=application.MCU_MESSAGE_CLASSES
@@ -153,7 +155,7 @@ def test_msg_rx_invalid_bodies(body: Any) -> None:
 
 
 @pt.mark.parametrize('type_code,payload', example_messages_good)
-def test_msg_tx(type_code: int, payload: application.PBMessage) -> None:
+def test_msg_tx(type_code: int, payload: betterproto.Message) -> None:
     """Test MessageSender behavior with specific examples."""
     sender = messages.MessageSender(message_types=application.MCU_MESSAGE_TYPES)
     assert sender.output() is None

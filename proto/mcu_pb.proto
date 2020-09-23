@@ -37,11 +37,12 @@ message AlarmLimitsRequest {
 
 message SensorMeasurements {
   uint32 time = 1;
-  float paw = 2;
-  float flow = 3;
-  float volume = 4;
-  float fio2 = 5;
-  float spo2 = 6;
+  uint32 cycle = 2;
+  float paw = 3;
+  float flow = 4;
+  float volume = 5;
+  float fio2 = 6;
+  float spo2 = 7;
 }
 
 message CycleMeasurements {

@@ -12,7 +12,11 @@ file and then regenerate the C++ classes for the MCU firmware and the Python
 classes for the backend.
 
 To update the Python classes at `backend/ventserver/protocols/protobuf/mcu_pb.py`,
-first install the `betterproto` package using pip, then run, from this directory:
+first install the `betterproto` package using pip with the `[compiler]` feature flag:
+```bash
+$ pip install "betterproto[compiler]"
+```
+Then run, from this directory:
 
 ```bash
 $ export $PROTOC=/path/to/local/bin/protoc  # replace the path with the one for your computer

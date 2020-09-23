@@ -39,6 +39,7 @@ export interface AlarmLimitsRequest {
 
 export interface SensorMeasurements {
   time: number;
+  cycle: number;
   paw: number;
   flow: number;
   volume: number;
@@ -127,6 +128,7 @@ const baseAlarmLimitsRequest: object = {
 
 const baseSensorMeasurements: object = {
   time: 0,
+  cycle: 0,
   paw: 0,
   flow: 0,
   volume: 0,
@@ -742,11 +744,12 @@ export const AlarmLimitsRequest = {
 export const SensorMeasurements = {
   encode(message: SensorMeasurements, writer: Writer = Writer.create()): Writer {
     writer.uint32(8).uint32(message.time);
-    writer.uint32(21).float(message.paw);
-    writer.uint32(29).float(message.flow);
-    writer.uint32(37).float(message.volume);
-    writer.uint32(45).float(message.fio2);
-    writer.uint32(53).float(message.spo2);
+    writer.uint32(16).uint32(message.cycle);
+    writer.uint32(29).float(message.paw);
+    writer.uint32(37).float(message.flow);
+    writer.uint32(45).float(message.volume);
+    writer.uint32(53).float(message.fio2);
+    writer.uint32(61).float(message.spo2);
     return writer;
   },
   decode(input: Uint8Array | Reader, length?: number): SensorMeasurements {
@@ -760,18 +763,21 @@ export const SensorMeasurements = {
           message.time = reader.uint32();
           break;
         case 2:
-          message.paw = reader.float();
+          message.cycle = reader.uint32();
           break;
         case 3:
-          message.flow = reader.float();
+          message.paw = reader.float();
           break;
         case 4:
-          message.volume = reader.float();
+          message.flow = reader.float();
           break;
         case 5:
-          message.fio2 = reader.float();
+          message.volume = reader.float();
           break;
         case 6:
+          message.fio2 = reader.float();
+          break;
+        case 7:
           message.spo2 = reader.float();
           break;
         default:
@@ -787,6 +793,11 @@ export const SensorMeasurements = {
       message.time = Number(object.time);
     } else {
       message.time = 0;
+    }
+    if (object.cycle !== undefined && object.cycle !== null) {
+      message.cycle = Number(object.cycle);
+    } else {
+      message.cycle = 0;
     }
     if (object.paw !== undefined && object.paw !== null) {
       message.paw = Number(object.paw);
@@ -822,6 +833,11 @@ export const SensorMeasurements = {
     } else {
       message.time = 0;
     }
+    if (object.cycle !== undefined && object.cycle !== null) {
+      message.cycle = object.cycle;
+    } else {
+      message.cycle = 0;
+    }
     if (object.paw !== undefined && object.paw !== null) {
       message.paw = object.paw;
     } else {
@@ -852,6 +868,7 @@ export const SensorMeasurements = {
   toJSON(message: SensorMeasurements): unknown {
     const obj: any = {};
     obj.time = message.time || 0;
+    obj.cycle = message.cycle || 0;
     obj.paw = message.paw || 0;
     obj.flow = message.flow || 0;
     obj.volume = message.volume || 0;

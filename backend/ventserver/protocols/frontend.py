@@ -1,10 +1,11 @@
 """Sans-I/O frontend device communication protocol."""
 
 import logging
-import typing
 from typing import Optional
 
 import attr
+
+import betterproto
 
 from ventserver.protocols import application
 from ventserver.protocols import exceptions
@@ -17,7 +18,7 @@ from ventserver.sansio import protocols
 
 
 LowerEvent = bytes
-UpperEvent = application.PBMessage
+UpperEvent = betterproto.Message
 
 
 # Filters
@@ -52,11 +53,9 @@ class ReceiveFilter(protocols.Filter[bytes, UpperEvent]):
             return None
 
         self._message_receiver.input(event)
-        message: Optional[application.PBMessage] = None
+        message: Optional[betterproto.Message] = None
         try:
-            message = typing.cast(
-                application.PBMessage, self._message_receiver.output()
-            )
+            message = self._message_receiver.output()
         except exceptions.ProtocolDataError:
             self._logger.exception('MessageReceiver: %s', event)
 

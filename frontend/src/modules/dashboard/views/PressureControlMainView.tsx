@@ -1,7 +1,7 @@
 import React from 'react';
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import { Grid, Tabs, Tab, Typography } from '@material-ui/core';
-import { PawGraphInfo, FlowGraphInfo, VolumeGraphInfo } from '../containers';
+import { PawGraphInfo, FlowGraphInfo, VolumeGraphInfo, PVLoopGraphInfo } from '../containers';
 import { TabPanel, a11yProps } from '../../controllers/TabPanel';
 import { PIPInfo, RRInfo, PEEPInfo, FiO2Info, TVInfo, IERatioInfo } from '../../info';
 
@@ -112,14 +112,13 @@ const PressureControlMainView = (): JSX.Element => {
                 className={classes.tab}
                 classes={{ selected: classes.selectedTab }}
               />
-              {/* NOTE: The 2 tabs below are disabled until their functionality is implemented. */}
               <Tab
                 label="PV Loops"
                 {...a11yProps(1)}
                 className={classes.tab}
-                disabled
                 classes={{ selected: classes.selectedTab }}
               />
+              {/* NOTE: The tab below is disabled until their functionality is implemented. */}
               <Tab
                 label="Compliance"
                 {...a11yProps(2)}
@@ -146,9 +145,7 @@ const PressureControlMainView = (): JSX.Element => {
           </TabPanel>
           <TabPanel value={value} index={1}>
             <Grid container item xs style={{ height: '100%' }}>
-              <Grid item xs>
-                <Typography>PV Loops</Typography>
-              </Grid>
+              <PVLoopGraphInfo />
             </Grid>
           </TabPanel>
           <TabPanel value={value} index={2}>

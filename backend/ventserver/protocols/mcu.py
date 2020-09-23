@@ -1,10 +1,11 @@
 """Sans-I/O MCU device communication protocol."""
 
 import logging
-import typing
 from typing import Optional
 
 import attr
+
+import betterproto
 
 from ventserver.protocols import application
 from ventserver.protocols import datagrams
@@ -19,7 +20,7 @@ from ventserver.sansio import protocols
 
 
 LowerEvent = bytes
-UpperEvent = application.PBMessage
+UpperEvent = betterproto.Message
 
 
 # Filters
@@ -86,11 +87,9 @@ class ReceiveFilter(protocols.Filter[LowerEvent, UpperEvent]):
             self._logger.exception('DatagramReceiver: %s', frame_payload)
 
         self._message_receiver.input(datagram_payload)
-        message: Optional[application.PBMessage] = None
+        message: Optional[betterproto.Message] = None
         try:
-            message = typing.cast(
-                application.PBMessage, self._message_receiver.output()
-            )
+            message = self._message_receiver.output()
         except exceptions.ProtocolDataError:
             self._logger.exception('MessageReceiver: %s', datagram_payload)
 

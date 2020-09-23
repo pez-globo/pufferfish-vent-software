@@ -6,6 +6,8 @@ from typing import Dict, Optional, Type, Union
 
 import attr
 
+import betterproto
+
 from ventserver.protocols import application
 from ventserver.protocols import events
 from ventserver.protocols import exceptions
@@ -104,14 +106,14 @@ class ReceiveFilter(protocols.Filter[ReceiveEvent, OutputEvent]):
     )
     current_time: float = attr.ib(default=0)
     all_states: Dict[
-        Type[application.PBMessage], Optional[application.PBMessage]
+        Type[betterproto.Message], Optional[betterproto.Message]
     ] = attr.ib()
     _mcu_state_synchronizer: application.StateSynchronizer = attr.ib()
     _frontend_state_synchronizer: application.StateSynchronizer = attr.ib()
 
     @all_states.default
     def init_all_states(self) -> Dict[
-            Type[application.PBMessage], Optional[application.PBMessage]
+            Type[betterproto.Message], Optional[betterproto.Message]
     ]:  # pylint: disable=no-self-use
         """Initialize the synchronizable states.
 
