@@ -29,7 +29,7 @@ namespace SPI {
 SPIBMP388Status BMP388::read(RegisterAddress registerType, uint8_t *rxBuf,
                              size_t count) {
 
-  uint8_t txRegister[3];
+  uint8_t txRegister[2];
   txRegister[0] = static_cast<uint8_t>(registerType);
   txRegister[0] |= 0x80; /// To make 7th bit as '1' for reading
 
@@ -52,7 +52,7 @@ SPIBMP388Status BMP388::write(RegisterAddress registerType, uint8_t *txBuff,
   txRegister[1] = txBuff[0];
 
   mSpi.chipSelect(false);
-  if (mSpi.write(txRegister, 2) != SPIDeviceStatus::ok) {
+  if (mSpi.write(txRegister, count) != SPIDeviceStatus::ok) {
     mSpi.chipSelect(true);
     return SPIBMP388Status::writeError;
   }
@@ -60,18 +60,14 @@ SPIBMP388Status BMP388::write(RegisterAddress registerType, uint8_t *txBuff,
   return SPIBMP388Status::ok;
 }
 
-SPIBMP388Status BMP388::getChipId(uint8_t &chipId) {
-
-  const uint8_t regDataSize = 3;
-  uint8_t rxbuf[regDataSize];
-
-  /* Read the chip-id of bmp388 */
-  if (this->read(RegisterAddress::chipID, rxbuf, regDataSize)
+SPIBMP388Status BMP388::getChipId(uint8_t &memId) {
+  chipId fixedId;
+  /* Read chip id */
+  if (this->read(RegisterAddress::chipID, fixedId.reg,sizeof(fixedId.reg))
       != SPIBMP388Status::ok) {
     return SPIBMP388Status::readError;
   }
-  /* Update the chip ID from the rx buffer data */
-  chipId = rxbuf[2];
+  memId = fixedId.Bits.id;
   return SPIBMP388Status::ok;
 }
 
@@ -98,12 +94,23 @@ SPIBMP388Status BMP388::getSensorstatus(SensorStatus status) {
 /// Triggers a reset, all user configuration setting are overwritten with their default state
 SPIBMP388Status BMP388::reset() {
 
-  const uint8_t resetCmdSize = 3;
-  uint8_t resetCmd[resetCmdSize] = { 0xB6 };
+  const uint8_t size = 1;
+  uint8_t resetCmd = 0xB6;
   /* Write the sensor CMD for reset */
-  if (this->write(RegisterAddress::command, resetCmd, resetCmdSize)
+  if (this->write(RegisterAddress::command, &resetCmd, size)
       != SPIBMP388Status::ok) {
     return SPIBMP388Status::readError;
+  }
+  /// TBD: delay time needs to be updated
+  return SPIBMP388Status::ok;
+}
+
+SPIBMP388Status BMP388::setSerialCommunication(SerialInterface type) {
+
+  /* Write the sensor CMD for reset */
+  if (this->write(RegisterAddress::ifConfig, &type.reg, sizeof(type.reg))
+      != SPIBMP388Status::ok) {
+    return SPIBMP388Status::writeError;
   }
   /// TBD: delay time needs to be updated
   return SPIBMP388Status::ok;
@@ -186,13 +193,13 @@ SPIBMP388Status BMP388::InterruptPinOutputType(ConfigureOutput type) {
 
   InterruptControl data;
   /* Read interrupt status register data before setting bits */
-  if (this->readRegister(RegisterAddress::interruptstatus, data.reg)
+  if (this->readRegister(RegisterAddress::interruptControl, data.reg)
       != SPIBMP388Status::ok) {
     return SPIBMP388Status::readError;
   }
   data.Bits.output = static_cast<uint8_t>(type);
   /* Set bit to the register */
-  if (this->setRegister(RegisterAddress::interruptstatus, data.reg)
+  if (this->setRegister(RegisterAddress::interruptControl, data.reg)
       != SPIBMP388Status::ok) {
     return SPIBMP388Status::writeError;
   }
@@ -203,13 +210,13 @@ SPIBMP388Status BMP388::levelOfInterruptPin(RegisterSet level) {
 
   InterruptControl interrupt;
   /* Read interrupt status register data before setting bits */
-  if (this->readRegister(RegisterAddress::interruptstatus, interrupt.reg)
+  if (this->readRegister(RegisterAddress::interruptControl, interrupt.reg)
       != SPIBMP388Status::ok) {
     return SPIBMP388Status::readError;
   }
   interrupt.Bits.level = static_cast<uint8_t>(level);
   /* Set bit to the register */
-  if (this->setRegister(RegisterAddress::interruptstatus, interrupt.reg)
+  if (this->setRegister(RegisterAddress::interruptControl, interrupt.reg)
       != SPIBMP388Status::ok) {
     return SPIBMP388Status::writeError;
   }
@@ -220,30 +227,30 @@ SPIBMP388Status BMP388::latchInterrupt(RegisterSet status) {
 
   InterruptControl data;
   /* Read interrupt status register data before setting bits */
-  if (this->readRegister(RegisterAddress::interruptstatus, data.reg)
+  if (this->readRegister(RegisterAddress::interruptControl, data.reg)
       != SPIBMP388Status::ok) {
     return SPIBMP388Status::readError;
   }
   data.Bits.latch = static_cast<uint8_t>(status);
   /* Set bit to the register */
-  if (this->setRegister(RegisterAddress::interruptstatus, data.reg)
+  if (this->setRegister(RegisterAddress::interruptControl, data.reg)
       != SPIBMP388Status::ok) {
     return SPIBMP388Status::writeError;
   }
   return SPIBMP388Status::ok;
 }
 
-SPIBMP388Status BMP388::fifoWaterMark(RegisterSet status) {
+SPIBMP388Status BMP388::fifoWaterMarkInterrupt(RegisterSet status) {
 
   InterruptControl data;
   /* Read interrupt status register data before setting bits */
-  if (this->readRegister(RegisterAddress::interruptstatus, data.reg)
+  if (this->readRegister(RegisterAddress::interruptControl, data.reg)
       != SPIBMP388Status::ok) {
     return SPIBMP388Status::readError;
   }
   data.Bits.fwtmEnable = static_cast<uint8_t>(status);
   /* Set bit to the register */
-  if (this->setRegister(RegisterAddress::interruptstatus, data.reg)
+  if (this->setRegister(RegisterAddress::interruptControl, data.reg)
       != SPIBMP388Status::ok) {
     return SPIBMP388Status::writeError;
   }
@@ -254,13 +261,13 @@ SPIBMP388Status BMP388::fifoFullInterrupt(RegisterSet status) {
 
   InterruptControl data;
   /* Read interrupt status register data before setting bits */
-  if (this->readRegister(RegisterAddress::interruptstatus, data.reg)
+  if (this->readRegister(RegisterAddress::interruptControl, data.reg)
       != SPIBMP388Status::ok) {
     return SPIBMP388Status::readError;
   }
   data.Bits.ffullEnable = static_cast<uint8_t>(status);
   /* Set bit to the register */
-  if (this->setRegister(RegisterAddress::interruptstatus, data.reg)
+  if (this->setRegister(RegisterAddress::interruptControl, data.reg)
       != SPIBMP388Status::ok) {
     return SPIBMP388Status::writeError;
   }
@@ -271,13 +278,13 @@ SPIBMP388Status BMP388::dataReadyInterrupt(RegisterSet status) {
 
   InterruptControl data;
   /* Read interrupt status register data before setting bits */
-  if (this->readRegister(RegisterAddress::interruptstatus, data.reg)
+  if (this->readRegister(RegisterAddress::interruptControl, data.reg)
       != SPIBMP388Status::ok) {
     return SPIBMP388Status::readError;
   }
   data.Bits.drdyEnable = static_cast<uint8_t>(status);
   /* Set bit to the register */
-  if (this->setRegister(RegisterAddress::interruptstatus, data.reg)
+  if (this->setRegister(RegisterAddress::interruptControl, data.reg)
       != SPIBMP388Status::ok) {
     return SPIBMP388Status::writeError;
   }
@@ -387,7 +394,7 @@ SPIBMP388Status BMP388::rawPressure(uint32_t &pressure) {
   return SPIBMP388Status::ok;
 }
 
-SPIBMP388Status BMP388::rawTemperature(int32_t &temperature) {
+SPIBMP388Status BMP388::rawTemperature(uint32_t &temperature) {
 
   RawSensorData sensorData;
   uint32_t dataXlsb = 0, dataLsb = 0, dataMsb = 0;
@@ -395,9 +402,9 @@ SPIBMP388Status BMP388::rawTemperature(int32_t &temperature) {
   if (this->readRawData(sensorData) != SPIBMP388Status::ok) {
     return SPIBMP388Status::readError;
   }
-  dataXlsb = static_cast<int32_t>(sensorData.reg.data3 << 0);
-  dataLsb = static_cast<int32_t>(sensorData.reg.data4 << 8);
-  dataMsb = static_cast<int32_t>(sensorData.reg.data5 << 16);
+  dataXlsb = static_cast<uint32_t>(sensorData.reg.data3 << 0);
+  dataLsb = static_cast<uint32_t>(sensorData.reg.data4 << 8);
+  dataMsb = static_cast<uint32_t>(sensorData.reg.data5 << 16);
   temperature = dataXlsb | dataLsb | dataMsb;
   return SPIBMP388Status::ok;
 }
@@ -406,8 +413,9 @@ SPIBMP388Status BMP388::calcCalibrationCoefficient(
     CalibrationCoefficient &data) {
 
   TrimmingCoefficients trimValues;
-  /* Calibration structure is updated from register used for
-     pressure and temperature Trim coefficient */
+  /** Calibration structure is updated from register used for
+   * pressure and temperature Trim coefficient
+   */
   if (this->readCalibrationData(trimValues) != SPIBMP388Status::ok) {
     return SPIBMP388Status::readError;
   }
@@ -432,7 +440,7 @@ SPIBMP388Status BMP388::calcCalibrationCoefficient(
 
 SPIBMP388Status BMP388::readCompensateTemperature(double &compensatedData) {
 
-  int32_t uncompTemperature;
+  uint32_t uncompTemperature;
   CalibrationCoefficient calibData;
   /* Read raw temperature */
   if (this->rawTemperature(uncompTemperature) != SPIBMP388Status::ok) {
@@ -479,9 +487,9 @@ SPIBMP388Status BMP388::readCompensatePressure(double &compensatedPressure) {
   partialData2 = calibData.parP9 + calibData.parP10 * calibData.compTemperature;
   partialData3 = partialData1 * partialData2;
   double const partialOut3 = partialData3
-      + powf(uncompPressure, 2) * calibData.parP11;
+      + pow(uncompPressure, 3) * calibData.parP11;
 
-  compensatedPressure = (partialOut1 + partialOut2 + partialOut3);
+  compensatedPressure = (partialOut1 + partialOut2 + partialOut3) / 100.0;
   return SPIBMP388Status::ok;
 }
 
@@ -503,7 +511,7 @@ SPIBMP388Status BMP388::getSensorTime(uint32_t time){
   SensorTime data;
   uint32_t byte1 = 0, byte2 = 0, byte3 = 0;
   /* Read 3 bytes sensor timings */
-  if (this->read(RegisterAddress::sensorStatus, data.buf, sizeof(data.buf))
+  if (this->read(RegisterAddress::sensorTime, data.buf, sizeof(data.buf))
         != SPIBMP388Status::ok) {
       return SPIBMP388Status::readError;
     }
@@ -511,6 +519,16 @@ SPIBMP388Status BMP388::getSensorTime(uint32_t time){
   byte2 = static_cast<uint32_t> (data.reg.time1) << 8;
   byte3 = static_cast<uint32_t> (data.reg.time2) << 16;
   time = byte1 | byte2 | byte3;
+  return SPIBMP388Status::ok;
+}
+
+SPIBMP388Status BMP388::powerOnReset(Event flag){
+
+  /*Read Event flag register */
+  if (this->readRegister(RegisterAddress::sensorTime, flag.reg)
+        != SPIBMP388Status::ok) {
+      return SPIBMP388Status::readError;
+    }
   return SPIBMP388Status::ok;
 }
 

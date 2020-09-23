@@ -31,6 +31,17 @@ namespace Driver {
 namespace SPI {
 
 /**
+ * BMP388 chip id 0x50
+ */
+union chipId {
+  struct{
+    uint16_t resrved;
+    uint8_t id;
+  }Bits;
+  uint8_t reg[3];
+};
+
+/**
  * Sensor Error conditions are reported in the ERR_REG register
  * Bit0: fatal error
  * Bit1: cmd error command execution failed
@@ -106,9 +117,9 @@ union SensorTime {
  * The Event register contains the sensor status flag
  * Bit0: Power on reset detected
  */
-union SensorStatusFlag {
+union Event {
   struct {
-    uint8_t powerOnReset :1;
+    uint8_t porDetected :1;
     uint8_t unused :7;
   } Bits;
   uint8_t reg;
@@ -127,69 +138,6 @@ union InterruptStatus {
     uint8_t unused :1;
     uint8_t dataReady :1;
     uint8_t reserved :4;
-  } Bits;
-  uint8_t reg;
-};
-
-/**
- * The FIFO byte counter indicates the current fill level of the FIFO buffer.
- * Its size is 9 bit for 512 bytes and therefore split in two register
- * length0
- * length1
- */
-union FIFOLength {
-  struct {
-    uint8_t length0;
-    uint8_t length1 :1;
-    uint8_t unused :7;
-  } Bits;
-  uint8_t reg;
-};
-
-/**
- * Its size is 9 bit for 512 bytes and therefore split in two register
- * fifoWaterMark0
- * fifoWaterMark1
- */
-union FIFOWaterMark {
-  struct {
-    uint8_t fifoWaterMark0;
-    uint8_t fifoWaterMark1 :1;
-    uint8_t unused :7;
-  } Bits;
-  uint8_t reg[2];
-};
-
-/**
- * Fifo configuration1
- * Bit0: fifo mode 0->disable 1->enable
- * Bit1: fifo stop on full
- * Bit2: fifo time enable
- * Bit3: fifo pressure enable
- * Bit4: fifo temperature enable
- */
-union FIFOConfig1 {
-  struct {
-    uint8_t mode :1;
-    uint8_t full :1;
-    uint8_t timeEnable :1;
-    uint8_t pressureEnable :1;
-    uint8_t temperatureEnable :1;
-    uint8_t unused :3;
-  } Bits;
-  uint8_t reg;
-};
-
-/**
- * Fifo configuration2
- * Bit[2:0]: fifo subsampling
- * Bit[4:3]: data select
- */
-union FIFOConfig2 {
-  struct {
-    uint8_t subSampling :3;
-    uint8_t dataSelect :2;
-    uint8_t unused :3;
   } Bits;
   uint8_t reg;
 };
@@ -297,12 +245,11 @@ enum class RegisterAddress : uint8_t {
   sensorErrors = 0x02,  /// ERR_REG: 0x02
   sensorStatus = 0x03,
   pressureData = 0x04,
-  temperatureData = 0x07,
+  sensorTime = 0x0C,
   event = 0x10,
   interruptstatus = 0x11,
-  fifoLength = 0x12,
-  fifoData = 0x14,
-  fifoConfig_1 = 0x17,
+  interruptControl = 0x19,
+  ifConfig = 0x1A,
   powerCtrl = 0x1B,
   overSamplingControl = 0x1C,  /// OSR register
   outputDataRates = 0x1D,
@@ -338,7 +285,7 @@ enum class RegisterSet : bool {
  *  Bit 1: temp_en
  *  Bit [5:4]: 00 -> sleep Mode
  *             01/10 -> forced mode
- *             110 -> normal mode
+ *             11 -> normal mode
  */
 
 enum class Modes : uint8_t {
@@ -461,29 +408,28 @@ class BMP388 {
    * @param spi spiDevice
    */
 
-  BMP388(HAL::SPIDevice &spi)
-      :
+  BMP388(HAL::SPIDevice &spi):
       mSpi(spi) {
   }
 
   /**
    * @brief  Get the chip id register address: 0x00
    * @param  chipId Update the default Chip Id as : 0x50
-   * @return SPIBMP388Status returns ok/writeError
+   * @return SPIBMP388Status returns ok/readError
    */
-  SPIBMP388Status getChipId(uint8_t &chipId);
+  SPIBMP388Status getChipId(uint8_t &memId);
 
   /**
    * @brief  read sensor fault conditions register address is 0x02
    * @param  fault fatal error or cmd error or config error
-   * @return SPIBMP388Status returns ok/writeError
+   * @return SPIBMP388Status returns ok/readError
    */
   SPIBMP388Status getErrors(SensorFaults fault);
 
   /**
    * @brief  read sensor status register address is 0x03
    * @param  status command ready or pressure ready, temperature ready
-   * @return SPIBMP388Status returns ok/writeError
+   * @return SPIBMP388Status returns ok/readError
    */
   SPIBMP388Status getSensorstatus(SensorStatus status);
 
@@ -567,7 +513,7 @@ class BMP388 {
    * @param  RegisterSet disable or enable
    * @return SPIBMP388Status returns ok/writeError
    */
-  SPIBMP388Status fifoWaterMark(RegisterSet status);
+  SPIBMP388Status fifoWaterMarkInterrupt(RegisterSet status);
 
   /**
    * @brief  Enable FIFO full for INT pin and INT_STATUS
@@ -623,7 +569,7 @@ class BMP388 {
    * @param  int32_t temperature
    * @return SPIBMP388Status returns ok/readError
    */
-  SPIBMP388Status rawTemperature(int32_t &temperature);
+  SPIBMP388Status rawTemperature(uint32_t &temperature);
 
   /**
    * @brief  Convert 3 bytes raw data to pressure
@@ -666,6 +612,20 @@ class BMP388 {
    * @return SPIBMP388Status returns ok/readError
    */
   SPIBMP388Status calcCalibrationCoefficient(CalibrationCoefficient &data);
+
+  /**
+   * @brief  Check power on reset detected or not
+   * @param  flag Event structure
+   * @return SPIBMP388Status returns ok/readError
+   */
+  SPIBMP388Status powerOnReset(Event flag);
+
+  /**
+     * @brief  Set type of serial communication
+     * @param  type SPI or I2C
+     * @return SPIBMP388Status returns ok/writeError
+     */
+  SPIBMP388Status setSerialCommunication(SerialInterface type);
 
  private:
 

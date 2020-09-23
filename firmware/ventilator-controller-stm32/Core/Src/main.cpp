@@ -37,6 +37,11 @@
 #include "Pufferfish/Driver/I2C/SFM3000.h"
 #include "Pufferfish/Driver/I2C/TCA9548A.h"
 #include "Pufferfish/Statuses.h"
+#include "Pufferfish/HAL/STM32/Time.h"
+#include "Pufferfish/Driver/Button/Button.h"
+#include "Pufferfish/Driver/SPI/SPIFlash.h"
+#include "Pufferfish/HAL/STM32/HALSPIDevice.h"
+#include "Pufferfish/Driver/SPI/BMP388.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -63,6 +68,7 @@ I2C_HandleTypeDef hi2c2;
 I2C_HandleTypeDef hi2c4;
 
 SPI_HandleTypeDef hspi1;
+SPI_HandleTypeDef hspi2;
 
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
@@ -78,6 +84,7 @@ UART_HandleTypeDef huart8;
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart3;
 
+
 /* USER CODE BEGIN PV */
 
 /* Timeout for the Adc poll conversion */
@@ -90,15 +97,33 @@ PF::HAL::AnalogInput ADC3Input(hadc3, adcPollTimeout);
 
 PF::HAL::DigitalOutput boardLed1(*LD1_GPIO_Port, LD1_Pin);
 
+PF::HAL::DigitalOutput wpEnable(*LED1_EN_GPIO_Port, LED1_EN_Pin);
+PF::HAL::DigitalOutput holdEnable(*LED2_EN_GPIO_Port, LED2_EN_Pin);
+
 PF::HAL::DigitalOutput alarmLedR(*LEDR_CNTRL_GPIO_Port, LEDR_CNTRL_Pin);
 PF::HAL::DigitalOutput alarmLedG(*LEDG_CNTRL_GPIO_Port, LEDG_CNTRL_Pin);
 PF::HAL::DigitalOutput alarmLedB(*LEDB_CNTRL_GPIO_Port, LEDB_CNTRL_Pin);
+PF::HAL::DigitalOutput memoryChipSelect(*MEM_CS_GPIO_Port, MEM_CS_Pin);
+
+/* W25Q16 */
+PF::HAL::HALSPIDevice spi2Falsh(hspi2, memoryChipSelect);
+PF::Driver::SPI::SPIFlash extenalMemory(spi2Falsh);
+
+/*BMP388 */
+PF::HAL::HALSPIDevice spi2Bmp388(hspi1, memoryChipSelect);
+PF::Driver::SPI::BMP388 bmpPressure(spi2Bmp388);
 
 PF::HAL::DigitalOutput alarmRegHigh(*ALARM1_HIGH_GPIO_Port, ALARM1_HIGH_Pin);
 PF::HAL::DigitalOutput alarmRegMed(*ALARM1_MED_GPIO_Port, ALARM1_MED_Pin);
 PF::HAL::DigitalOutput alarmRegLow(*ALARM1_LOW_GPIO_Port, ALARM1_LOW_Pin);
 PF::HAL::DigitalOutput alarmBuzzer(*ALARM2_CNTRL_GPIO_Port, ALARM2_CNTRL_Pin);
+PF::HAL::DigitalInput pushButton(*B1_GPIO_Port, B1_Pin);
+PF::HAL::DigitalInput powerInput(*SET_PWR_ON_OFF_GPIO_Port, SET_PWR_ON_OFF_Pin);
+PF::HAL::DigitalInput inputButton(*Mem_Button_GPIO_Port, Mem_Button_Pin);
 
+PF::Driver::Button::Debouncer switchDebounce;
+PF::Driver::Button::EdgeDetector switchTransition;
+PF::Driver::Button::Button buttonMembrane(inputButton,switchDebounce);
 PF::Driver::Indicators::LEDAlarm alarmDevLed(alarmLedR, alarmLedG, alarmLedB);
 PF::Driver::Indicators::AuditoryAlarm alarmDevSound(alarmRegHigh, alarmRegMed, alarmRegLow, alarmBuzzer);
 PF::AlarmsManager hAlarms(alarmDevLed, alarmDevSound);
@@ -164,6 +189,7 @@ PF::Driver::I2C::HoneywellABP i2c_abp4(i2c_ext_abp4,
 PF::Driver::I2C::HoneywellABP i2c_abp5(i2c_ext_abp5,
                                        PF::Driver::I2C::HoneywellABP::ABPxxxx005PG2A3);
 
+
 // Test list
 PF::Driver::Testable *i2c_test_list[] =
     {&i2c_mux1, &i2c_sfm1, &i2c_sdp1, &i2c_sdp2, &i2c_sdp3, &i2c_abp1,
@@ -193,6 +219,8 @@ static void MX_TIM4_Init(void);
 static void MX_TIM5_Init(void);
 static void MX_TIM8_Init(void);
 static void MX_TIM12_Init(void);
+static void MX_SPI2_Init(void);
+static void Bmp388_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -210,17 +238,18 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
   
-  /* 
-   * FIXME: Added for testing 
-   * Local variable to read ADC3 input
-   */
-  uint32_t ADC3Data;
-  
-  /* USER CODE END 1 */
+    //PF::Driver::SPI::TrimmingCoefficients cofficient;
+    //PF::Driver::SPI::RawSensorData rawData;
+    //PF::Driver::SPI::SensorFaults faults;
+    //PF::Driver::SPI::SensorStatus status;
+    uint32_t pressure;
+    uint32_t temperature;
+    double temp;
+    double pres;
+    PF::Driver::Button::EdgeState state;
+    bool memButtonstate = false;
 
-  /* MCU Configuration--------------------------------------------------------*/
-
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */  
   HAL_Init();
 
   /* USER CODE BEGIN Init */
@@ -254,50 +283,59 @@ int main(void)
   MX_TIM5_Init();
   MX_TIM8_Init();
   MX_TIM12_Init();
+  MX_SPI2_Init();
+  Bmp388_Init();
+
   /* USER CODE BEGIN 2 */
   PF::HAL::microsDelayInit();
 
   /* Start the ADC3 by invoking AnalogInput::Start() */
   ADC3Input.start();
 
+  holdEnable.write(true);
+
+  wpEnable.write(true);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1) {
-    PF::AlarmManagerStatus stat = hAlarms.update(PF::HAL::millis());
-    if (stat != PF::AlarmManagerStatus::ok) {
-      Error_Handler();
-    }
-    boardLed1.write(false);
-    PF::HAL::delay(5);
-    boardLed1.write(true);
-    for (PF::Driver::Testable *t : i2c_test_list) {
-      PF::I2CDeviceStatus stat = t->test();
-      if (stat != PF::I2CDeviceStatus::ok) {
-        boardLed1.write(false);
-      }
-    }
-    PF::HAL::delay(500);
 
-    /* USER CODE END WHILE */
 
-    /* 
-     * FIXME: Added for testing 
-     * Read the Analog data of ADC3 and validate the return value
-     */
-    if (ADC3Input.read(ADC3Data) != PF::ADCStatus::ok)
-    {
-      /* Error Handle */
-    }
-    else
-    {
-      /* Else statements*/
-    }
-
-    /* USER CODE BEGIN 3 */
+//   bmpPressure.readRawData(rawData);
+//   bmpPressure.rawPressure(pressure);
+//   bmpPressure.rawTemperature(temperature);
+//   bmpPressure.readCalibrationData(cofficient);
+   bmpPressure.readCompensateTemperature(temp);
+   if((temp < -45) && (temp > 85)){
+     boardLed1.write(true);
+   }
+   bmpPressure.readCompensatePressure(pres);
+   if(pres < 300 && pres > 1100){
+     boardLed1.write(true);
+   }
   }
   /* USER CODE END 3 */
+
+}
+
+
+static void Bmp388_Init(void){
+  uint8_t flashChipId;
+  /* SPI Flash memory ID */
+  bmpPressure.getChipId(flashChipId);
+  if (flashChipId != 0x50) {
+    boardLed1.write(true);
+  }
+
+  bmpPressure.pressureOverSampling(PF::Driver::SPI::Oversampling::standardResolution);
+  bmpPressure.temperatureOverSampling(PF::Driver::SPI::Oversampling::standardResolution);
+  bmpPressure.outputDataRate(PF::Driver::SPI::TimeStandby::timestandBy80ms);
+  bmpPressure.setIIRFilter(PF::Driver::SPI::FilterCoefficient::coef0);
+  bmpPressure.enablePressure(PF::Driver::SPI::RegisterSet::enable);
+  bmpPressure.enableTemperature(PF::Driver::SPI::RegisterSet::enable);
+  bmpPressure.selectPowerMode(PF::Driver::SPI::Modes::normal);
 }
 
 /**
@@ -361,9 +399,9 @@ void SystemClock_Config(void)
   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART3|RCC_PERIPHCLK_UART4
                               |RCC_PERIPHCLK_UART7|RCC_PERIPHCLK_USART1
                               |RCC_PERIPHCLK_UART8|RCC_PERIPHCLK_UART5
-                              |RCC_PERIPHCLK_SPI1|RCC_PERIPHCLK_I2C2
-                              |RCC_PERIPHCLK_ADC|RCC_PERIPHCLK_I2C1
-                              |RCC_PERIPHCLK_I2C4;
+                              |RCC_PERIPHCLK_SPI1|RCC_PERIPHCLK_SPI2
+                              |RCC_PERIPHCLK_I2C2|RCC_PERIPHCLK_ADC
+                              |RCC_PERIPHCLK_I2C1|RCC_PERIPHCLK_I2C4;
   PeriphClkInitStruct.PLL2.PLL2M = 1;
   PeriphClkInitStruct.PLL2.PLL2N = 19;
   PeriphClkInitStruct.PLL2.PLL2P = 3;
@@ -630,15 +668,15 @@ static void MX_SPI1_Init(void)
   hspi1.Instance = SPI1;
   hspi1.Init.Mode = SPI_MODE_MASTER;
   hspi1.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi1.Init.DataSize = SPI_DATASIZE_4BIT;
+  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-  hspi1.Init.CRCPolynomial = 0x0;
+  hspi1.Init.CRCPolynomial = 0x7;
   hspi1.Init.NSSPMode = SPI_NSS_PULSE_ENABLE;
   hspi1.Init.NSSPolarity = SPI_NSS_POLARITY_LOW;
   hspi1.Init.FifoThreshold = SPI_FIFO_THRESHOLD_01DATA;
@@ -656,6 +694,54 @@ static void MX_SPI1_Init(void)
   /* USER CODE BEGIN SPI1_Init 2 */
 
   /* USER CODE END SPI1_Init 2 */
+
+}
+
+/**
+  * @brief SPI2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_SPI2_Init(void)
+{
+
+  /* USER CODE BEGIN SPI2_Init 0 */
+
+  /* USER CODE END SPI2_Init 0 */
+
+  /* USER CODE BEGIN SPI2_Init 1 */
+
+  /* USER CODE END SPI2_Init 1 */
+  /* SPI2 parameter configuration*/
+  hspi2.Instance = SPI2;
+  hspi2.Init.Mode = SPI_MODE_MASTER;
+  hspi2.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi2.Init.CLKPolarity = SPI_POLARITY_HIGH;
+  hspi2.Init.CLKPhase = SPI_PHASE_2EDGE;
+  hspi2.Init.NSS = SPI_NSS_SOFT;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;
+  hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_ENABLE;
+  hspi2.Init.CRCPolynomial = 0x0;
+  hspi2.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
+  hspi2.Init.NSSPolarity = SPI_NSS_POLARITY_HIGH;
+  hspi2.Init.FifoThreshold = SPI_FIFO_THRESHOLD_01DATA;
+  hspi2.Init.TxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+  hspi2.Init.RxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+  hspi2.Init.MasterSSIdleness = SPI_MASTER_SS_IDLENESS_00CYCLE;
+  hspi2.Init.MasterInterDataIdleness = SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
+  hspi2.Init.MasterReceiverAutoSusp = SPI_MASTER_RX_AUTOSUSP_DISABLE;
+  hspi2.Init.MasterKeepIOState = SPI_MASTER_KEEP_IO_STATE_DISABLE;
+  hspi2.Init.IOSwap = SPI_IO_SWAP_DISABLE;
+  if (HAL_SPI_Init(&hspi2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN SPI2_Init 2 */
+
+  /* USER CODE END SPI2_Init 2 */
 
 }
 
@@ -1339,9 +1425,9 @@ static void MX_GPIO_Init(void)
                           |LTC4421_PWR_nDISABLE1_Pin|LTC4421_PWR_nDISABLE2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOG, PRESS_VDD_EN_Pin|I2C1_RESET_Pin|I2C2_RESET_Pin|MOTOR1_EN_Pin 
-                          |PRESS6_EN_Pin|LED3_EN_Pin|ALARM1_HIGH_Pin|PRESSX_EN_Pin 
-                          |MOTOR4_DIR_Pin|LED2_EN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOG, MEM_CS_Pin|PRESS_VDD_EN_Pin|I2C1_RESET_Pin|I2C2_RESET_Pin
+                          |MOTOR1_EN_Pin|PRESS6_EN_Pin|LED3_EN_Pin|ALARM1_HIGH_Pin
+                          |PRESSX_EN_Pin|MOTOR4_DIR_Pin|LED2_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : SET_PWR_ON_OFF_Pin VSYS_3V3_PGOOD_Pin VSYS_5V0_PGOOD_Pin */
   GPIO_InitStruct.Pin = SET_PWR_ON_OFF_Pin|VSYS_3V3_PGOOD_Pin|VSYS_5V0_PGOOD_Pin;
@@ -1408,8 +1494,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(SET_PWR_SRC_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LTC4421_PWR_nCH1_Pin LTC4421_PWR_nCH2_Pin SET_ALARM_EN_Pin SET_LOCK_Pin */
-  GPIO_InitStruct.Pin = LTC4421_PWR_nCH1_Pin|LTC4421_PWR_nCH2_Pin|SET_ALARM_EN_Pin|SET_LOCK_Pin;
+  /*Configure GPIO pins : LTC4421_PWR_nCH1_Pin LTC4421_PWR_nCH2_Pin SET_LOCK_Pin Mem_Button_Pin */
+  GPIO_InitStruct.Pin = LTC4421_PWR_nCH1_Pin|LTC4421_PWR_nCH2_Pin|SET_LOCK_Pin|Mem_Button_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
@@ -1423,12 +1509,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PRESS_VDD_EN_Pin I2C1_RESET_Pin I2C2_RESET_Pin MOTOR1_EN_Pin 
-                           PRESS6_EN_Pin LED3_EN_Pin ALARM1_HIGH_Pin PRESSX_EN_Pin 
-                           MOTOR4_DIR_Pin LED2_EN_Pin */
-  GPIO_InitStruct.Pin = PRESS_VDD_EN_Pin|I2C1_RESET_Pin|I2C2_RESET_Pin|MOTOR1_EN_Pin 
-                          |PRESS6_EN_Pin|LED3_EN_Pin|ALARM1_HIGH_Pin|PRESSX_EN_Pin 
-                          |MOTOR4_DIR_Pin|LED2_EN_Pin;
+  /*Configure GPIO pins : MEM_CS_Pin PRESS_VDD_EN_Pin I2C1_RESET_Pin I2C2_RESET_Pin
+                           MOTOR1_EN_Pin PRESS6_EN_Pin LED3_EN_Pin ALARM1_HIGH_Pin
+                           PRESSX_EN_Pin MOTOR4_DIR_Pin LED2_EN_Pin */
+  GPIO_InitStruct.Pin = MEM_CS_Pin|PRESS_VDD_EN_Pin|I2C1_RESET_Pin|I2C2_RESET_Pin
+                          |MOTOR1_EN_Pin|PRESS6_EN_Pin|LED3_EN_Pin|ALARM1_HIGH_Pin
+                          |PRESSX_EN_Pin|MOTOR4_DIR_Pin|LED2_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
