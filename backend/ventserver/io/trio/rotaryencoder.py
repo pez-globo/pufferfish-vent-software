@@ -19,8 +19,8 @@ class RotaryEncoderState:
     clk_last_state: int = attr.ib(default=None, repr=False)
     dt_state: int = attr.ib(default=None, repr=False)
     rotation_counter: int = attr.ib(default=0, repr=False)
-    angle: int = attr.ib(default=0, repr=False)
     button_pressed: bool = attr.ib(default=False, repr=False)
+    last_pressed: int = attr.ib(default=None, repr=False)
     
 
 @attr.s
@@ -35,26 +35,26 @@ class RotaryEncoderDriver(endpoints.IOEndpoint[bytes, tuple]):
     _state = attr.ib(factory=RotaryEncoderState)
 
 
-    def rotation_direction(self, dt_pin: int) -> None:
+    def rotation_direction(self, clk_pin: int) -> None:
         """Rotary encoder callback function for dail turn event."""
-        self._state.clk_state = GPIO.input(self._props.clk_pin)
-        if self._state.clk_state != self._state.clk_last_state:
-            self._state.dt_state = GPIO.input(dt_pin)
+        self._state.dt_state = GPIO.input(self._props.dt_pin)
+        if self._state.clk_state != self._state.dt_last_state:
+            self._state.clk_state = GPIO.input(clk_pin)
             if self._state.dt_state != self._state.clk_state:
-                self._state.rotation_counter += 1
+                self._state.rotation_counts -= 1
             else:
-                self._state.rotation_counter -= 1
-        self._state.last_angle_change = int(1000 * time.time())
-        self._state.angle = ((self._state.rotation_counter * 6) % 360)
+                self._state.rotation_counts += 1
 
 
     def button_press_log(self, button_pin):
         """Rotary encoder callback function for button press event."""
         if GPIO.input(button_pin):
+            # pressed_time = int(1000 * time.time())
+            # if self._state.last_pressed
             self._state.button_pressed = False
-            time.sleep(0.01)
         else:
             self._state.button_pressed = True
+            self._state.rotation_counts = 0
 
 
     @property
@@ -77,14 +77,15 @@ class RotaryEncoderDriver(endpoints.IOEndpoint[bytes, tuple]):
                        GPIO.IN, pull_up_down=GPIO.PUD_UP
                        )
             GPIO.add_event_detect(
-                self._props.dt_pin,
+                self._props.clk_pin,
                 GPIO.RISING,
                 callback=self.rotation_direction
             )
             GPIO.add_event_detect(
                 self._props.button_pin,
                 GPIO.BOTH,
-                callback=self.button_press_log
+                callback=self.button_press_log,
+                bouncetime=15
             )
             self._connected.set()
         except Exception as err:
@@ -98,7 +99,7 @@ class RotaryEncoderDriver(endpoints.IOEndpoint[bytes, tuple]):
         """"""
         self._connected = trio.Event()
         try:
-            GPIO.cleanup()
+            GPIO.cleanup([self._state.clk_pin, self._state.dt_pin])
         except Exception:
             raise()
 
@@ -108,7 +109,7 @@ class RotaryEncoderDriver(endpoints.IOEndpoint[bytes, tuple]):
         if not self.is_open:
             raise()
 
-        return (self._state.button_pressed, self._state.angle)
+        return (self._state.button_pressed, self._state.rotation_counts)
 
 
     async def send(self) -> None:

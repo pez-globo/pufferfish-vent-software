@@ -1,8 +1,8 @@
 syntax = "proto3";
 
 message RotaryEncoder {
-  uint32 angle = 1;
-  float last_angle_change = 2;
+  int32 step = 1;
+  float last_step_change = 2;
   bool button_pressed = 3;
   float last_button_down = 4;
   float last_button_up = 5;

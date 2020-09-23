@@ -6,10 +6,32 @@ from dataclasses import dataclass
 import betterproto
 
 
+class Unit(betterproto.Enum):
+    imperial = 0
+    metric = 1
+
+
+class ThemeVariant(betterproto.Enum):
+    dark = 0
+    light = 1
+
+
 @dataclass
 class RotaryEncoder(betterproto.Message):
-    angle: int = betterproto.uint32_field(1)
-    last_angle_change: float = betterproto.float_field(2)
+    step: int = betterproto.int32_field(1)
+    last_step_change: float = betterproto.float_field(2)
     button_pressed: bool = betterproto.bool_field(3)
     last_button_down: float = betterproto.float_field(4)
     last_button_up: float = betterproto.float_field(5)
+
+
+@dataclass
+class FrontendDisplaySetting(betterproto.Message):
+    theme: "ThemeVariant" = betterproto.enum_field(1)
+    unit: "Unit" = betterproto.enum_field(2)
+
+
+@dataclass
+class SystemSettingRequest(betterproto.Message):
+    brightness: int = betterproto.uint32_field(1)
+    date: int = betterproto.uint32_field(2)

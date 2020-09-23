@@ -1,6 +1,6 @@
 import logging
 import typing
-from typing import Optional, Type
+from typing import Optional, Type, Tuple
 import time
 
 import attr
@@ -11,7 +11,7 @@ from ventserver.sansio import channels
 from ventserver.protocols.protobuf import frontend_pb
 
 
-LowerEvent = Type[tuple]
+LowerEvent = Tuple[bool, int]
 UpperEvent = frontend_pb.RotaryEncoder
 
 
@@ -20,14 +20,14 @@ class ReceiveFilter(protocols.Filter[LowerEvent, UpperEvent]):
     """Filter which passes input data in an event class."""
 
     _logger = logging.getLogger('.'.join((__name__, 'ReceiveFilter')))
-    _buffer: channels.DequeChannel[Type[tuple]] = attr.ib(
+    _buffer: channels.DequeChannel[LowerEvent] = attr.ib(
         factory=channels.DequeChannel
     )
     _current_time: int = attr.ib(default=None, repr=False)
     _last_button_down: int = attr.ib(default=0, repr=False)
     _last_button_up: int = attr.ib(default=0, repr=False)
-    _last_angle_change: int = attr.ib(default=0, repr=False)
-    _last_angle: int = attr.ib(default=0, repr=False)
+    _last_step_change: int = attr.ib(default=0, repr=False)
+    _last_steps: int = attr.ib(default=0, repr=False)
     _button_pressed: bool = attr.ib(default=False, repr=False)
 
     def input(self, event: Optional[LowerEvent]) -> None:
@@ -43,9 +43,9 @@ class ReceiveFilter(protocols.Filter[LowerEvent, UpperEvent]):
         if event is None:
             return None
 
-        if event[1] != self._last_angle:
-            self._last_angle = event[1]
-            self._last_angle_change = self._current_time
+        if event[1] != self._last_steps:
+            self._last_steps = event[1]
+            self._last_step_change = self._current_time
 
         if event[0] != self._button_pressed:
             if event[0]:
@@ -56,8 +56,8 @@ class ReceiveFilter(protocols.Filter[LowerEvent, UpperEvent]):
             self._button_pressed = event[0]
 
         pb_state = frontend_pb.RotaryEncoder(
-            angle=self._last_angle,
-            last_angle_change=self._last_angle_change,
+            steps=self._last_steps,
+            last_step_change=self._last_step_change,
             button_pressed=self._button_pressed,
             last_button_down=self._last_button_down,
             last_button_up=self._last_button_up)
