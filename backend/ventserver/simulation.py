@@ -320,7 +320,7 @@ async def main() -> None:
     websocket_endpoint = websocket.Driver()
     rotary_encoder = rotaryencoder.Driver()
 
-    rotary_encoder.open()
+    await rotary_encoder.open()
 
     # Server Receive Outputs
     channel: channels.TrioChannel[

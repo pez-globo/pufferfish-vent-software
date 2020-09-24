@@ -11,19 +11,17 @@ from ventserver.sansio import protocols
 from ventserver.sansio import channels
 from ventserver.protocols.protobuf import frontend_pb
 
-
+@attr.s
 class ReceiveEvent(events.Event):
     """Rotary encoder input receive event"""
 
     time: Optional[float] = attr.ib(default=None)
-    step: int = attr.ib(default=None)
-    button_pressed: bool = attr.ib(default=None)
-
+    re_data: Tuple[int, bool] = attr.ib(default=None)
+    
     def has_data(self) -> bool:
         """Return whether the event has data."""
         return (
-            self.time is not None
-            or self.step is not None or self.button_pressed is not None
+            self.time is not None and self.re_data is not None
         )
 
 
@@ -48,28 +46,31 @@ class ReceiveFilter(protocols.Filter[LowerEvent, UpperEvent]):
 
     def input(self, event: Optional[LowerEvent]) -> None:
         """"""
-        if event is not None:
-            self._buffer.input(event)
+        if event is None or not event.has_data():
+            return
+        
+        self._buffer.input(event)
 
     def output(self) -> Optional[UpperEvent]:
         """"""
         event = self._buffer.output()
 
-        if not event.has_data:
+        if not event:
             return None
 
+        
         self._current_time = event.time
-        if event.step != self._last_step:
-            self._last_step = event.step
+        if event.re_data[0] != self._last_step:
+            self._last_step = event.re_data[0]
             self._last_step_change = self._current_time
 
-        if event.button_pressed != self._button_pressed:
-            if event.button_pressed:
+        if event.re_data[1] != self._button_pressed:
+            if event.re_data[1]:
                 self._last_button_down = self._current_time
             else:
                 self._last_button_up = self._current_time
 
-            self._button_pressed = event.button_pressed
+            self._button_pressed = event.re_data[1]
 
         pb_state = frontend_pb.RotaryEncoder(
             step=self._last_step,

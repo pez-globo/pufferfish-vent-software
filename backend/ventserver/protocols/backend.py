@@ -50,7 +50,8 @@ class ReceiveEvent(events.Event):
         """Return whether the event has data."""
         return (
             self.time is not None
-            or self.mcu_receive is not None or self.frontend_receive is not None
+            or self.mcu_receive is not None
+            or self.frontend_receive is not None
         )
 
 
@@ -97,6 +98,7 @@ class ReceiveFilter(protocols.Filter[ReceiveEvent, OutputEvent]):
         mcu_pb.ParametersRequest,
         mcu_pb.Ping,
         mcu_pb.Announcement,
+        frontend_pb.RotaryEncoder
     }
 
     _logger = logging.getLogger('.'.join((__name__, 'ReceiveFilter')))
@@ -186,6 +188,9 @@ class ReceiveFilter(protocols.Filter[ReceiveEvent, OutputEvent]):
                 and type(event.frontend_receive) in self.FRONTEND_INPUT_TYPES
         ):
             try:
+                
+                if type(event.frontend_receive) is frontend_pb.RotaryEncoder:
+                    print("Encoder State:", event)
                 self._frontend_state_synchronizer.input(
                     application.StateUpdateEvent(
                         pb_message=event.frontend_receive
@@ -231,10 +236,6 @@ class SendFilter(protocols.Filter[SendEvent, OutputEvent]):
         event = self._buffer.output()
         if event is None:
             return None
-
-        # TODO: remove following print condition
-        if isinstance(event, frontend_pb.RotaryEncoder):
-            print("Encoder State:", event)
 
         if isinstance(event, OutputEvent):
             return event

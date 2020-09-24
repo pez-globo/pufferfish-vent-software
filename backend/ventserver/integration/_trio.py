@@ -163,8 +163,8 @@ async def process_protocol_receive_output(
 
 # Protocol receive
 
-ReceiveInputType = TypeVar(bytes)
-ReceiveOutputType = TypeVar(bytes, Tuple)
+ReceiveInputType = bytes
+ReceiveOutputType = TypeVar('ReceiveOutputType', bytes, Tuple)
 
 async def process_io_receive(
         io_endpoint: endpoints.IOEndpoint[ReceiveInputType, ReceiveOutputType],
@@ -290,7 +290,7 @@ async def process_all(
                     # mypy only supports <= 5 args with trio-typing
                     functools.partial(
                         process_io_receive, rotary_encoder, protocol,
-                        server.make_rotary_encoder_receive, nursery, channel,
+                        server.make_rotary_encoder_receive, channel,
                         push_endpoint.clone()
                     )
                 )

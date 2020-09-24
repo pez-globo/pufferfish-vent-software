@@ -8,7 +8,7 @@ from ventserver.protocols import backend
 from ventserver.protocols import events
 from ventserver.protocols import frontend
 from ventserver.protocols import mcu
-from ventserver.protocols import rotaryencoder
+from ventserver.protocols import rotary_encoder
 from ventserver.sansio import channels
 from ventserver.sansio import protocols
 
@@ -69,7 +69,7 @@ def make_websocket_receive(ws_receive: bytes, time: float) -> ReceiveEvent:
     """Make a ReceiveEvent from websocket receive data."""
     return ReceiveEvent(websocket_receive=ws_receive, time=time)
 
-def make_rotary_encoder_recive(re_receive: Tuple, time: float) -> ReceiveEvent:
+def make_rotary_encoder_receive(re_receive: Tuple, time: float) -> ReceiveEvent:
     """Make a ReceiveEvent from rotary encoder receive data."""
     return ReceiveEvent(rotary_encoder_receive=re_receive, time=time)
 
@@ -87,7 +87,7 @@ class ReceiveFilter(protocols.Filter[ReceiveEvent, ReceiveOutputEvent]):
     current_time: float = attr.ib(default=0)
     _mcu: mcu.ReceiveFilter = attr.ib(factory=mcu.ReceiveFilter)
     _frontend: frontend.ReceiveFilter = attr.ib(factory=frontend.ReceiveFilter)
-    _rotary_encoder: rotaryencoder.ReceiveFilter = attr.ib(factory=rotaryencoder.ReceiveFilter)
+    _rotary_encoder: rotary_encoder.ReceiveFilter = attr.ib(factory=rotary_encoder.ReceiveFilter)
     _backend: backend.ReceiveFilter = attr.ib(factory=backend.ReceiveFilter)
 
 
@@ -139,10 +139,9 @@ class ReceiveFilter(protocols.Filter[ReceiveEvent, ReceiveOutputEvent]):
         self._mcu.input(event.serial_receive)
         self._frontend.input(event.websocket_receive)
         self._rotary_encoder.input(
-            rotaryencoder.ReceiveEvent(
+            rotary_encoder.ReceiveEvent(
                 time=self.current_time,
-                step=event.rotary_encoder_receive[0],
-                button_pressed=event.rotary_encoder_receive[1]
+                re_data=event.rotary_encoder_receive
             )
         )
 
