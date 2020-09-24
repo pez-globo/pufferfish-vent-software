@@ -72,8 +72,14 @@ export const ValueModal = ({
     if (open) {
       if (rotaryEncoder.stepDiff) {
         const newValue = value + rotaryEncoder.stepDiff;
-        // TODO: Replace 0 with respective min value
-        setValue(newValue > 0 ? newValue : 0);
+        // TODO: Replace 0/100 with respective min/max value
+        if (newValue < 0) {
+          setValue(0);
+        } else if (newValue > 100) {
+          setValue(100);
+        } else {
+          setValue(newValue);
+        }
       }
       if (rotaryEncoder.buttonPressed) {
         handleConfirm();
