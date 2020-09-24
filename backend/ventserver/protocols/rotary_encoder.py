@@ -6,12 +6,28 @@ import time
 import attr
 
 from ventserver.protocols import exceptions
+from ventserver.protocols import events
 from ventserver.sansio import protocols
 from ventserver.sansio import channels
 from ventserver.protocols.protobuf import frontend_pb
 
 
-LowerEvent = Tuple[bool, int]
+class ReceiveEvent(events.Event):
+    """Rotary encoder input receive event"""
+
+    time: Optional[float] = attr.ib(default=None)
+    step: int = attr.ib(default=None)
+    button_pressed: bool = attr.ib(default=None)
+
+    def has_data(self) -> bool:
+        """Return whether the event has data."""
+        return (
+            self.time is not None
+            or self.step is not None or self.button_pressed is not None
+        )
+
+
+LowerEvent = ReceiveEvent
 UpperEvent = frontend_pb.RotaryEncoder
 
 
@@ -23,11 +39,11 @@ class ReceiveFilter(protocols.Filter[LowerEvent, UpperEvent]):
     _buffer: channels.DequeChannel[LowerEvent] = attr.ib(
         factory=channels.DequeChannel
     )
-    _current_time: int = attr.ib(default=None, repr=False)
+    _current_time: float = attr.ib(default=time.time(), repr=False)
     _last_button_down: int = attr.ib(default=0, repr=False)
     _last_button_up: int = attr.ib(default=0, repr=False)
     _last_step_change: int = attr.ib(default=0, repr=False)
-    _last_steps: int = attr.ib(default=0, repr=False)
+    _last_step: int = attr.ib(default=0, repr=False)
     _button_pressed: bool = attr.ib(default=False, repr=False)
 
     def input(self, event: Optional[LowerEvent]) -> None:
@@ -39,24 +55,24 @@ class ReceiveFilter(protocols.Filter[LowerEvent, UpperEvent]):
         """"""
         event = self._buffer.output()
 
-        self._current_time = int(1000 * time.time()) 
-        if event is None:
+        if not event.has_data:
             return None
 
-        if event[1] != self._last_steps:
-            self._last_steps = event[1]
+        self._current_time = event.time
+        if event.step != self._last_step:
+            self._last_step = event.step
             self._last_step_change = self._current_time
 
-        if event[0] != self._button_pressed:
-            if event[0]:
+        if event.button_pressed != self._button_pressed:
+            if event.button_pressed:
                 self._last_button_down = self._current_time
             else:
                 self._last_button_up = self._current_time
 
-            self._button_pressed = event[0]
+            self._button_pressed = event.button_pressed
 
         pb_state = frontend_pb.RotaryEncoder(
-            steps=self._last_steps,
+            step=self._last_step,
             last_step_change=self._last_step_change,
             button_pressed=self._button_pressed,
             last_button_down=self._last_button_down,

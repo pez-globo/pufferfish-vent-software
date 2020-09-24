@@ -30,6 +30,9 @@ async def main() -> None:
     # I/O Endpoints
     serial_endpoint = _serial.Driver()
     websocket_endpoint = websocket.Driver()
+    rotary_encoder = rotaryencoder.Driver()
+
+    rotary_encoder.open()
 
     # Server Receive Outputs
     channel: channels.TrioChannel[
@@ -48,8 +51,9 @@ async def main() -> None:
             async with trio.open_nursery() as nursery:
                 nursery.start_soon(
                     # mypy only supports <= 4 args with trio-typing
-                    _trio.process_all, serial_endpoint,
-                    protocol, websocket_endpoint, channel, channel.push_endpoint
+                    _trio.process_all, protocol, serial_endpoint,
+                    websocket_endpoint, rotary_encoder, channel,
+                    channel.push_endpoint
                 )
 
                 while True:

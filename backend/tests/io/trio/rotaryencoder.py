@@ -9,7 +9,7 @@ GPIO.setmode(GPIO.BCM)
 
 async def main():
     """"""
-    driver = rotaryencoder.RotaryEncoderDriver()
+    driver = rotaryencoder.Driver()
     protocol = rotary_encoder.ReceiveFilter()
     await driver.open()
     samples = list()

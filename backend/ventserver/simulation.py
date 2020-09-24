@@ -14,6 +14,7 @@ import trio
 from ventserver.integration import _trio
 from ventserver.io.trio import channels
 from ventserver.io.trio import websocket
+from ventserver.io.trio import rotaryencoder
 from ventserver.protocols import server
 from ventserver.protocols.protobuf import mcu_pb
 
@@ -317,6 +318,9 @@ async def main() -> None:
 
     # I/O Endpoints
     websocket_endpoint = websocket.Driver()
+    rotary_encoder = rotaryencoder.Driver()
+
+    rotary_encoder.open()
 
     # Server Receive Outputs
     channel: channels.TrioChannel[
@@ -337,8 +341,9 @@ async def main() -> None:
         async with channel.push_endpoint:
             async with trio.open_nursery() as nursery:
                 nursery.start_soon(
-                    _trio.process_all, None, protocol,
-                    websocket_endpoint, channel, channel.push_endpoint
+                    _trio.process_all, protocol, None,
+                    websocket_endpoint, rotary_encoder, channel,
+                    channel.push_endpoint
                 )
                 nursery.start_soon(simulate_states, all_states)
 

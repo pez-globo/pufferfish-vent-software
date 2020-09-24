@@ -232,6 +232,10 @@ class SendFilter(protocols.Filter[SendEvent, OutputEvent]):
         if event is None:
             return None
 
+        # TODO: remove following print condition
+        if isinstance(event, frontend_pb.RotaryEncoder):
+            print("Encoder State:", event)
+
         if isinstance(event, OutputEvent):
             return event
 
