@@ -43,12 +43,26 @@ const messageReducer = <T extends PBMessage>(
   switch (action.type) {
     case STATE_UPDATED:
       if (action.messageType === messageType) {
+        if (action.messageType === MessageType.RotaryEncoder) {
+          const updatedState = calculateStepDiff(
+            state as RotaryEncoder,
+            action.state as RotaryEncoder,
+          );
+          return updatedState as T;
+        }
         return action.state as T;
       }
       return state;
     default:
       return state;
   }
+};
+
+const calculateStepDiff = (oldState: RotaryEncoder, newState: RotaryEncoder): RotaryEncoder => {
+  const stepDiff = newState.step - oldState.step;
+  const stateCopy = { ...newState };
+  stateCopy.stepDiff = stepDiff;
+  return stateCopy;
 };
 
 const alarmLimitsReducer = (

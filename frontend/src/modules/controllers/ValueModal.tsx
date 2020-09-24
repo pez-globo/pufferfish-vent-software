@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { makeStyles, Theme, Grid, Button, Typography } from '@material-ui/core';
+import { useSelector } from 'react-redux';
 import ValueClicker from './ValueClicker';
 import ModalPopup from './ModalPopup';
+import { getRotaryEncoder } from '../../store/controller/selectors';
 
 const useStyles = makeStyles((theme: Theme) => ({
   contentContainer: {
@@ -49,6 +51,7 @@ export const ValueModal = ({
   requestCommitSetting,
 }: Props): JSX.Element => {
   const classes = useStyles();
+  const rotaryEncoder = useSelector(getRotaryEncoder);
   const [open, setOpen] = React.useState(false);
   const [value, setValue] = React.useState(committedSetting);
 
@@ -62,7 +65,26 @@ export const ValueModal = ({
 
   const handleConfirm = () => {
     requestCommitSetting(value);
+    setOpen(false);
   };
+
+  const updateRotaryData = () => {
+    if (open) {
+      if (rotaryEncoder.stepDiff) {
+        const newValue = value + rotaryEncoder.stepDiff;
+        // TODO: Replace 0 with respective min value
+        setValue(newValue > 0 ? newValue : 0);
+      }
+      if (rotaryEncoder.buttonPressed) {
+        handleConfirm();
+      }
+    }
+  };
+
+  useEffect(() => {
+    updateRotaryData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rotaryEncoder]);
 
   function pipClarify(label: string) {
     if (label === 'PIP') return '*not PEEP compensated';
