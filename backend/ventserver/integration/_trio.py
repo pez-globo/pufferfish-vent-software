@@ -164,12 +164,12 @@ async def process_protocol_receive_output(
 # Protocol receive
 
 ReceiveInputType = bytes
-ReceiveOutputType = TypeVar('ReceiveOutputType', bytes, Tuple)
+ReceiveOutputType = TypeVar('ReceiveOutputType', bytes, Tuple[int, bool])
 
 async def process_io_receive(
         io_endpoint: endpoints.IOEndpoint[ReceiveInputType, ReceiveOutputType],
         protocol: server.Protocol,
-        receive_event_maker: Callable[[ReceiveOutputType], server.ReceiveEvent],
+        receive_event_maker: Callable[[ReceiveOutputType, Optional[float]], server.ReceiveEvent],
         channel: triochannels.TrioChannel[server.ReceiveOutputEvent],
         push_endpoint: 'trio.MemorySendChannel[server.ReceiveOutputEvent]'
 ) -> None:
@@ -188,7 +188,7 @@ async def process_io_receive(
     """
     async with push_endpoint:
         async for receive in io_endpoint.receive_all():
-            protocol.receive.input(receive_event_maker(receive, time.time()))
+            protocol.receive.input(receive_event_maker(receive, time=time.time()))
             await process_protocol_receive_output(protocol, channel)
 
 
@@ -249,7 +249,7 @@ async def process_all(
         protocol: server.Protocol,
         serial: Optional[endpoints.IOEndpoint[bytes, bytes]],
         websocket: Optional[endpoints.IOEndpoint[bytes, bytes]],
-        rotary_encoder: Optional[endpoints.IOEndpoint[bytes, Tuple]],
+        rotary_encoder: Optional[endpoints.IOEndpoint[bytes, Tuple[int, bool]]],
         channel: triochannels.TrioChannel[server.ReceiveOutputEvent],
         push_endpoint: 'trio.MemorySendChannel[server.ReceiveOutputEvent]'
 ) -> None:

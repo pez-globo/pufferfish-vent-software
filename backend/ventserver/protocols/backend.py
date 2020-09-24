@@ -188,9 +188,6 @@ class ReceiveFilter(protocols.Filter[ReceiveEvent, OutputEvent]):
                 and type(event.frontend_receive) in self.FRONTEND_INPUT_TYPES
         ):
             try:
-                
-                if type(event.frontend_receive) is frontend_pb.RotaryEncoder:
-                    print("Encoder State:", event)
                 self._frontend_state_synchronizer.input(
                     application.StateUpdateEvent(
                         pb_message=event.frontend_receive

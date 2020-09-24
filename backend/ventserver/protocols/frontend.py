@@ -89,5 +89,5 @@ class SendFilter(protocols.Filter[UpperEvent, bytes]):
             message_body = self._message_sender.output()
         except exceptions.ProtocolDataError:
             self._logger.exception('MessageSender:')
-        
+
         return message_body
