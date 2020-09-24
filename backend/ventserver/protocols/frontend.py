@@ -79,10 +79,7 @@ class SendFilter(protocols.Filter[UpperEvent, bytes]):
 
     def input(self, event: Optional[UpperEvent]) -> None:
         """Handle input events."""
-        # TODO: remove following print condition
-#         from ventserver.protocols.protobuf import frontend_pb
-#         if type(event) is frontend_pb.RotaryEncoder:
-#             print("Encoder State:", event)
+
         self._message_sender.input(event)
 
     def output(self) -> Optional[bytes]:

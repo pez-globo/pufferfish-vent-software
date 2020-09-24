@@ -2,7 +2,6 @@
 
 import logging
 from typing import Optional, Tuple
-import time
 import attr
 
 import trio
@@ -14,30 +13,34 @@ from ventserver.io.trio import endpoints
 
 @attr.s
 class RotaryEncoderState:
-    """"""
+    """Holds state values for communication and computation."""
+
     a_quad_state: int = attr.ib(default=None, repr=False)
     a_quad_last_state: int = attr.ib(default=None, repr=False)
     b_quad_state: int = attr.ib(default=None, repr=False)
     rotation_counts: int = attr.ib(default=0, repr=False)
     button_pressed: bool = attr.ib(default=False, repr=False)
     last_pressed: int = attr.ib(default=None, repr=False)
-    
+    debounce_time: int = attr.ib(default=0) # debounce time in ms 
+
+
 
 @attr.s
 class Driver(endpoints.IOEndpoint[bytes, Tuple[bool, int]]):
     """Implements driver for reading rotary encoder inputs."""
-    _logger = logging.getLogger('.'.join((__name__, 'RotaryEncoderDriver')))
+
+    _logger = logging.getLogger('.'.join((__name__, 'Driver')))
 
     _props: rotaryencoder.RotaryEncoderProps = attr.ib(
         factory=rotaryencoder.RotaryEncoderProps
     )
     _data_available: trio.Event = attr.ib(factory=trio.Event)
     _state: int = attr.ib(factory=RotaryEncoderState)
-    _debounce_time: int = attr.ib(default=15) # debounce time in ms 
-    trio_token = None
+    trio_token: trio.lowlevel.TrioToken = attr.ib(default=None, repr=None)
 
     def rotation_direction(self, b_quad_pin: int) -> None:
         """Rotary encoder callback function for dail turn event."""
+
         self._state.a_quad_state = GPIO.input(self._props.a_quad_pin)
         if self._state.a_quad_state != self._state.a_quad_last_state:
             self._state.b_quad_state = GPIO.input(b_quad_pin)
@@ -46,40 +49,57 @@ class Driver(endpoints.IOEndpoint[bytes, Tuple[bool, int]]):
             else:
                 self._state.rotation_counts += 1
             
-            #self._state.a_quad_last_state = self._state.a_quad_state
-            trio.from_thread.run_sync(self._data_available.set, trio_token=self.trio_token)
+            self._state.a_quad_last_state = self._state.a_quad_state
+            trio.from_thread.run_sync(
+                self._data_available.set,
+                trio_token=self.trio_token
+            )
 
 
     def button_press_log(self, button_pin):
         """Rotary encoder callback function for button press event."""
+
         if GPIO.input(button_pin):
             self._state.button_pressed = False
-            trio.from_thread.run_sync(self._data_available.set, trio_token=self.trio_token)
+            self._state.rotation_counts = 0
+            trio.from_thread.run_sync(
+                self._data_available.set,
+                trio_token=self.trio_token
+            )
         else:
             self._state.button_pressed = True
-            self._state.rotation_counts = 0
-            trio.from_thread.run_sync(self._data_available.set, trio_token=self.trio_token)
+            trio.from_thread.run_sync(
+                self._data_available.set,
+                trio_token=self.trio_token
+            )
 
     @property
     def is_data_available(self) -> bool:
-        """Return whether or not the rotary encoder is connected."""
+        """Return whether or not new state is available or not."""
         return self.is_open()
     
     @property
     def is_open(self) -> bool:
-        """Return whether or not the rotary encoder is connected."""
+        """Return whether or not the rotary encoder has changed the state."""
         return self._data_available.is_set()
 
 
-    async def open(self, nursery:Optional[trio.Nursery] = None) -> None:
-        """"""
+    async def open(self, nursery: Optional[trio.Nursery] = None) -> None:
+        """Opens the connection with the rotary encoder."""
+
 #         if self.is_open:
 #             raise(exceptions.Protocol)
 
         try:
             GPIO.setmode(GPIO.getmode())
-            GPIO.setup(self._props.a_quad_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-            GPIO.setup(self._props.b_quad_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            GPIO.setup(
+                self._props.a_quad_pin,
+                GPIO.IN, pull_up_down=GPIO.PUD_UP
+            )
+            GPIO.setup(
+                self._props.b_quad_pin,
+                GPIO.IN, pull_up_down=GPIO.PUD_UP
+            )
             GPIO.setup(self._props.button_pin,
                        GPIO.IN, pull_up_down=GPIO.PUD_UP
                        )
@@ -92,7 +112,7 @@ class Driver(endpoints.IOEndpoint[bytes, Tuple[bool, int]]):
                 self._props.button_pin,
                 GPIO.BOTH,
                 callback=self.button_press_log,
-                bouncetime=self._debounce_time
+                bouncetime=self._state.debounce_time
             )
         except Exception as err:
             raise IOError(err)
@@ -101,15 +121,28 @@ class Driver(endpoints.IOEndpoint[bytes, Tuple[bool, int]]):
 
 
     async def close(self) -> None:
-        """"""
+        """Closes the connection with the rotary encoder.
+
+         Closes the connection by cleaning up the GPIO pins on
+         the Raspberry Pi board.
+
+         Raises:
+            """
         try:
             GPIO.cleanup([self._state.a_quad_pin, self._state.b_quad_pin])
         except Exception:
             pass #raise()
 
 
-    async def receive(self) -> Tuple:
-        """"""
+    async def receive(self) -> Tuple[bool, int]:
+        """Shares current rotation counts and button
+        pressed states with the caller.
+
+        Waits for the the rotary encoder to change state and the callback
+        function to set the trio.Event.
+
+        Raises:"""
+
 #         if not self.is_open:
 #             raise()
 
@@ -119,5 +152,5 @@ class Driver(endpoints.IOEndpoint[bytes, Tuple[bool, int]]):
 
 
     async def send(self) -> None:
-        """"""
+        """Defined just to fulfill requirements of the IOEndpoints abstract class."""
         pass
