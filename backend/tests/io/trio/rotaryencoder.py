@@ -4,6 +4,7 @@ from ventserver.io.trio import rotaryencoder
 import trio
 import RPi.GPIO as GPIO
 import pickle
+import time
 
 GPIO.setmode(GPIO.BCM)
 
@@ -15,7 +16,10 @@ async def main():
     samples = list()
     try:
         async for each in driver.receive_all():
-            protocol.input(each)
+            protocol.input(rotary_encoder.ReceiveEvent(
+                                time=time.time(),
+                                re_data=each
+                        ))
             out = protocol.output()
             samples.append(out)
             print("received:",out)

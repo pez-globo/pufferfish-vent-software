@@ -15,9 +15,9 @@ from ventserver.io.trio import endpoints
 @attr.s
 class RotaryEncoderState:
     """"""
-    clk_state: int = attr.ib(default=None, repr=False)
-    clk_last_state: int = attr.ib(default=None, repr=False)
-    dt_state: int = attr.ib(default=None, repr=False)
+    a_quad_state: int = attr.ib(default=None, repr=False)
+    a_quad_last_state: int = attr.ib(default=None, repr=False)
+    b_quad_state: int = attr.ib(default=None, repr=False)
     rotation_counts: int = attr.ib(default=0, repr=False)
     button_pressed: bool = attr.ib(default=False, repr=False)
     last_pressed: int = attr.ib(default=None, repr=False)
@@ -36,17 +36,17 @@ class Driver(endpoints.IOEndpoint[bytes, Tuple[bool, int]]):
     _debounce_time: int = attr.ib(default=15) # debounce time in ms 
     trio_token = None
 
-    def rotation_direction(self, dt_pin: int) -> None:
+    def rotation_direction(self, b_quad_pin: int) -> None:
         """Rotary encoder callback function for dail turn event."""
-        self._state.clk_state = GPIO.input(self._props.clk_pin)
-        if self._state.clk_state != self._state.clk_last_state:
-            self._state.dt_state = GPIO.input(dt_pin)
-            if self._state.dt_state != self._state.clk_state:
+        self._state.a_quad_state = GPIO.input(self._props.a_quad_pin)
+        if self._state.a_quad_state != self._state.a_quad_last_state:
+            self._state.b_quad_state = GPIO.input(b_quad_pin)
+            if self._state.b_quad_state != self._state.a_quad_state:
                 self._state.rotation_counts -= 1
             else:
                 self._state.rotation_counts += 1
             
-            self._state.clk_last_state = self._state.clk_state
+            #self._state.a_quad_last_state = self._state.a_quad_state
             trio.from_thread.run_sync(self._data_available.set, trio_token=self.trio_token)
 
 
@@ -77,14 +77,14 @@ class Driver(endpoints.IOEndpoint[bytes, Tuple[bool, int]]):
 #             raise(exceptions.Protocol)
 
         try:
-            GPIO.setmode(GPIO.BCM)
-            GPIO.setup(self._props.clk_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-            GPIO.setup(self._props.dt_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            GPIO.setmode(GPIO.getmode())
+            GPIO.setup(self._props.a_quad_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            GPIO.setup(self._props.b_quad_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             GPIO.setup(self._props.button_pin,
                        GPIO.IN, pull_up_down=GPIO.PUD_UP
                        )
             GPIO.add_event_detect(
-                self._props.clk_pin,
+                self._props.b_quad_pin,
                 GPIO.RISING,
                 callback=self.rotation_direction
             )
@@ -96,14 +96,14 @@ class Driver(endpoints.IOEndpoint[bytes, Tuple[bool, int]]):
             )
         except Exception as err:
             raise IOError(err)
-        self._state.clk_last_state = GPIO.input(self._props.clk_pin)
+        self._state.a_quad_last_state = GPIO.input(self._props.a_quad_pin)
         self.trio_token = trio.lowlevel.current_trio_token()
 
 
     async def close(self) -> None:
         """"""
         try:
-            GPIO.cleanup([self._state.clk_pin, self._state.dt_pin])
+            GPIO.cleanup([self._state.a_quad_pin, self._state.b_quad_pin])
         except Exception:
             pass #raise()
 
