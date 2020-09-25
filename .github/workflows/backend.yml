@@ -1,6 +1,18 @@
 name: Backend Checks
 
-on: [push]
+on:
+  push:
+    paths:
+      - 'backend/**'
+  workflow_dispatch:
+    inputs:
+      git-ref:
+        description: 'Git ref (optional)'
+        required: false
+
+defaults:
+  run:
+    working-directory: backend
 
 jobs:
   build:
@@ -12,6 +24,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
+      name: Checkout repository
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v1
       with:
@@ -22,16 +36,12 @@ jobs:
         pip install poetry
         poetry run pip install --upgrade pip
         poetry install -v
-      working-directory: backend
 
     - name: Check Type Hints
       run: poetry run tox -e types
-      working-directory: backend
 
     - name: Check Code Quality
       run: poetry run tox -e lint
-      working-directory: backend
 
     - name: Run Unit Tests
       run: poetry run tox -e py37,coverage
-      working-directory: backend

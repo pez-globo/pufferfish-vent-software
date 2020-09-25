@@ -2,10 +2,11 @@
 
 from typing import List
 
+import betterproto
+
 import hypothesis as hp
 import hypothesis.strategies as st
 
-from ventserver.protocols import application
 from ventserver.protocols import mcu
 from ventserver.protocols.protobuf import mcu_pb as pb
 
@@ -34,7 +35,7 @@ def test_mcu_receive_random(input_bytes: bytes) -> None:
 @hp.given(message_sequence=st.lists(
     st.sampled_from(example_messages), max_size=300
 ))
-def test_mcu_roundtrip(message_sequence: List[application.PBMessage]) -> None:
+def test_mcu_roundtrip(message_sequence: List[betterproto.Message]) -> None:
     """Test ReceiveFilter+SendFilter round-tripping."""
     sender = mcu.SendFilter()
     receiver = mcu.ReceiveFilter()

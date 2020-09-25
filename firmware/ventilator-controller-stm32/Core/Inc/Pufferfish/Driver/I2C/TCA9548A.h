@@ -19,31 +19,28 @@ namespace I2C {
  */
 class TCA9548A : public I2CMux, public Testable {
  public:
-  static const uint16_t defaultI2CAddr = 0x70;
+  static constexpr uint16_t default_i2c_addr = 0x70;
 
-  TCA9548A(HAL::I2CDevice &dev)
-      :
-      mDev(dev) {
-  }
+  explicit TCA9548A(HAL::I2CDevice &dev) : dev_(dev) {}
 
-  I2CDeviceStatus selectSlot(uint8_t slot) override;
+  I2CDeviceStatus select_slot(uint8_t slot) override;
 
   /**
    * Read the current control register from the mux; see TCA datasheet
    * @param controlReg[out] the control register
    * @return ok on success, error code otherwise
    */
-  I2CDeviceStatus readControlReg(uint8_t &controlReg);
+  I2CDeviceStatus read_control_reg(uint8_t &control_reg);
 
-  uint8_t getCurrentSlot() override {
-    return mCurrentSlot;
-  }
+  [[nodiscard]] uint8_t get_current_slot() const override { return current_slot_; }
 
   I2CDeviceStatus test() override;
   I2CDeviceStatus reset() override;
+
  private:
-  uint8_t mCurrentSlot = 0xFF;
-  HAL::I2CDevice &mDev;
+  static const uint8_t default_slot = 0xff;
+  uint8_t current_slot_ = default_slot;
+  HAL::I2CDevice &dev_;
 };
 
 }  // namespace I2C

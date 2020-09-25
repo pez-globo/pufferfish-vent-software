@@ -9,94 +9,80 @@
 
 #include "Pufferfish/Driver/Indicators/LEDAlarm.h"
 
-namespace Pufferfish {
-namespace Driver {
-namespace Indicators {
+namespace Pufferfish::Driver::Indicators {
 
-AlarmManagerStatus LEDAlarm::update(uint32_t currentTime) {
+AlarmManagerStatus LEDAlarm::update(uint32_t current_time) {
   // [0, mPeriod / 2) -> on, [mPeriod / 2, mPeriod) -> off
-  uint32_t blinkDuration = currentTime - mLastCycle;
+  uint32_t blink_duration = current_time - last_cycle_;
 
   // trimming the duration to be within [0, mPeriod)
-  if (blinkDuration > mPeriod || mReset) {
+  if (blink_duration > parameters_.period || reset_) {
     // NOTE: this is only accurate in the case that update() is being called
     //  fast enough (> 1 kHz). However, it guarantees that the "on" time will
     //  always be >= mPeriod / 2
-    blinkDuration = 0;
-    mLastCycle = currentTime;
-    mReset = false;
+    blink_duration = 0;
+    last_cycle_ = current_time;
+    reset_ = false;
   }
 
-  if (blinkDuration < (mPeriod >> 1) || mPeriod == 0) {
+  if (blink_duration < (parameters_.period / 2) || parameters_.period == 0) {
     // on
-    mRed.write(mOutRed);
-    mGreen.write(mOutGreen);
-    mBlue.write(mOutBlue);
+    red_.write(parameters_.out_red);
+    green_.write(parameters_.out_green);
+    blue_.write(parameters_.out_blue);
   } else {
     // off
-    mRed.write(false);
-    mGreen.write(false);
-    mBlue.write(false);
+    red_.write(false);
+    green_.write(false);
+    blue_.write(false);
   }
 
   return AlarmManagerStatus::ok;
 }
 
-AlarmManagerStatus LEDAlarm::setAlarm(AlarmStatus a) {
-  mReset = true;
+AlarmManagerStatus LEDAlarm::set_alarm(AlarmStatus a) {
+  static constexpr Parameters high_priority{true, false, false, 476};
+  static constexpr Parameters medium_priority{true, true, false, 16667};
+  static constexpr Parameters low_priority{false, true, true, 0};
+  static constexpr Parameters technical1{true, false, true, 2000};
+  static constexpr Parameters technical2{false, true, false, 4000};
+  static constexpr Parameters no_alarm{false, false, false, 0};
+
+  reset_ = true;
 
   switch (a) {
-    case AlarmStatus::highPriority:
+    case AlarmStatus::high_priority:
       // red
-      mOutRed = true;
-      mOutGreen = false;
-      mOutBlue = false;
       // 476 ms == 2.1 Hz
-      mPeriod = 476;
+      parameters_ = high_priority;
       break;
-    case AlarmStatus::mediumPriority:
+    case AlarmStatus::medium_priority:
       // red + green = yellow
-      mOutRed = true;
-      mOutGreen = true;
-      mOutBlue = false;
       // 1667 ms == 0.6 Hz
-      mPeriod = 1667;
+      parameters_ = medium_priority;
       break;
-    case AlarmStatus::lowPriority:
+    case AlarmStatus::low_priority:
       // green + blue = cyan
-      mOutRed = false;
-      mOutGreen = true;
-      mOutBlue = true;
-      mPeriod = 0;
+      parameters_ = low_priority;
       break;
     case AlarmStatus::technical1:
       // blue + red = purple
-      mOutRed = true;
-      mOutGreen = false;
-      mOutBlue = true;
       // 2000 ms == 0.5 Hz
-      mPeriod = 2000;
+      parameters_ = technical1;
       break;
     case AlarmStatus::technical2:
       // green
-      mOutRed = false;
-      mOutGreen = true;
-      mOutBlue = false;
       // 4000 ms == 0.25 Hz
-      mPeriod = 4000;
+      parameters_ = technical2;
       break;
-    case AlarmStatus::noAlarm:
-      mOutRed = false;
-      mOutGreen = false;
-      mOutBlue = false;
-      mPeriod = 0;
+    case AlarmStatus::no_alarm:
+      parameters_ = no_alarm;
       break;
-    default:return AlarmManagerStatus::invalidAlarm;
+    default:
+      return AlarmManagerStatus::invalid_alarm;
   }
 
   return AlarmManagerStatus::ok;
 }
 
-}  // namespace Indicators
-}  // namespace HAL
-}  // namespace Pufferfish
+}  // namespace Pufferfish::Driver::Indicators

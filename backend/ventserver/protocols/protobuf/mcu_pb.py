@@ -6,15 +6,14 @@ from dataclasses import dataclass
 import betterproto
 
 
-class SpontaneousSupport(betterproto.Enum):
-    ac = 0
-    simv = 1
-
-
-class VentilationCycling(betterproto.Enum):
-    pc = 0
-    vc = 1
-    psv = 2
+class VentilationMode(betterproto.Enum):
+    pc_ac = 0
+    pc_simv = 1
+    vc_ac = 2
+    vc_simv = 3
+    psv = 4
+    niv = 5
+    hfnc = 6
 
 
 @dataclass
@@ -25,12 +24,44 @@ class Alarms(betterproto.Message):
 
 
 @dataclass
+class AlarmLimitsRequest(betterproto.Message):
+    rr_min: int = betterproto.uint32_field(1)
+    rr_max: int = betterproto.uint32_field(2)
+    pip_min: int = betterproto.uint32_field(3)
+    pip_max: int = betterproto.uint32_field(4)
+    peep_min: int = betterproto.uint32_field(5)
+    peep_max: int = betterproto.uint32_field(6)
+    ip_above_peep_min: int = betterproto.uint32_field(7)
+    ip_above_peep_max: int = betterproto.uint32_field(8)
+    insp_time_min: int = betterproto.uint32_field(9)
+    insp_time_max: int = betterproto.uint32_field(10)
+    fio2_min: int = betterproto.uint32_field(11)
+    fio2_max: int = betterproto.uint32_field(12)
+    paw_min: int = betterproto.uint32_field(13)
+    paw_max: int = betterproto.uint32_field(14)
+    mve_min: int = betterproto.uint32_field(15)
+    mve_max: int = betterproto.uint32_field(16)
+    tv_min: int = betterproto.uint32_field(17)
+    tv_max: int = betterproto.uint32_field(18)
+    etco2_min: int = betterproto.uint32_field(19)
+    etco2_max: int = betterproto.uint32_field(20)
+    flow_min: int = betterproto.uint32_field(21)
+    flow_max: int = betterproto.uint32_field(22)
+    apnea_min: int = betterproto.uint32_field(23)
+    apnea_max: int = betterproto.uint32_field(24)
+    spo2_min: int = betterproto.uint32_field(25)
+    spo2_max: int = betterproto.uint32_field(26)
+
+
+@dataclass
 class SensorMeasurements(betterproto.Message):
     time: int = betterproto.uint32_field(1)
-    paw: float = betterproto.float_field(2)
-    flow: float = betterproto.float_field(3)
-    volume: float = betterproto.float_field(4)
-    fio2: float = betterproto.float_field(5)
+    cycle: int = betterproto.uint32_field(2)
+    paw: float = betterproto.float_field(3)
+    flow: float = betterproto.float_field(4)
+    volume: float = betterproto.float_field(5)
+    fio2: float = betterproto.float_field(6)
+    spo2: float = betterproto.float_field(7)
 
 
 @dataclass
@@ -45,33 +76,29 @@ class CycleMeasurements(betterproto.Message):
 
 
 @dataclass
-class VentilationMode(betterproto.Message):
-    support: "SpontaneousSupport" = betterproto.enum_field(1)
-    cycling: "VentilationCycling" = betterproto.enum_field(2)
-
-
-@dataclass
 class Parameters(betterproto.Message):
     time: int = betterproto.uint32_field(1)
-    mode: "VentilationMode" = betterproto.message_field(2)
+    mode: "VentilationMode" = betterproto.enum_field(2)
     pip: float = betterproto.float_field(3)
     peep: float = betterproto.float_field(4)
     vt: float = betterproto.float_field(5)
     rr: float = betterproto.float_field(6)
     ie: float = betterproto.float_field(7)
     fio2: float = betterproto.float_field(8)
+    flow: float = betterproto.float_field(9)
 
 
 @dataclass
 class ParametersRequest(betterproto.Message):
     time: int = betterproto.uint32_field(1)
-    mode: "VentilationMode" = betterproto.message_field(2)
+    mode: "VentilationMode" = betterproto.enum_field(2)
     pip: float = betterproto.float_field(3)
     peep: float = betterproto.float_field(4)
     vt: float = betterproto.float_field(5)
     rr: float = betterproto.float_field(6)
     ie: float = betterproto.float_field(7)
     fio2: float = betterproto.float_field(8)
+    flow: float = betterproto.float_field(9)
 
 
 @dataclass

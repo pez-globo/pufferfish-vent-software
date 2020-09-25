@@ -1,9 +1,9 @@
-import {INITIALIZED, SET_LOCALE, AppAction} from './types';
+import { INITIALIZED, SET_LOCALE, AppAction } from './types';
 
 export function initialize(): AppAction {
-  return {type: INITIALIZED}
+  return { type: INITIALIZED };
 }
 
 export function setLocale(locale: string): AppAction {
-  return {type: SET_LOCALE, locale}
+  return { type: SET_LOCALE, locale };
 }

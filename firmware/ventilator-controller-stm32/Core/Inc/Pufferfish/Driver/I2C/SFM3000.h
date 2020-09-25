@@ -10,19 +10,18 @@
 
 #pragma once
 
-#include "SensirionSensor.h"
 #include "Pufferfish/Driver/Testable.h"
+#include "SensirionSensor.h"
 
 namespace Pufferfish {
 namespace Driver {
 namespace I2C {
 
-
 /**
  * All data in a reading from the Sensirion SFM3000 mass flow meter.
  */
 struct SFM3000Sample {
-  uint16_t rawFlow;
+  uint16_t raw_flow;
   float flow;
 };
 
@@ -31,44 +30,45 @@ struct SFM3000Sample {
  */
 class SFM3000 : public Testable {
  public:
-  static const uint16_t defaultI2CAddr = 0x40;
+  static constexpr uint16_t default_i2c_addr = 0x40;
 
-  static const int offsetFlow = 32000;
-  static constexpr float scaleFactorAir = 140.0f;
-  static constexpr float scaleFactorO2 = 142.8f;
+  static const int offset_flow = 32000;
+  static constexpr float scale_factor_air = 140.0F;
+  static constexpr float scale_factor_o2 = 142.8F;
 
-  SFM3000(HAL::I2CDevice &dev, float scaleFactor = scaleFactorAir)
-      :
-      mSensirion(dev),
-      mScaleFactor(scaleFactor) {
-  }
+  explicit SFM3000(HAL::I2CDevice &dev, float scale_factor = scale_factor_air)
+      : sensirion_(dev), scale_factor_(scale_factor) {}
 
   /**
    * Starts a flow measurement
    * @return ok on success, error code otherwise
    */
-  I2CDeviceStatus startMeasure();
+  I2CDeviceStatus start_measure();
 
   /**
    * Reads out the serial number
    * @param sn[out] the unique serial number
    * @return ok on success, error code otherwise
    */
-  I2CDeviceStatus serialNumber(uint32_t &sn);
+  I2CDeviceStatus serial_number(uint32_t &sn);
 
   /**
    * Reads out the flow rate from the sensor
    * @param sample[out] the sensor reading; only valid on success
    * @return ok on success, error code otherwise
    */
-  I2CDeviceStatus readSample(SFM3000Sample &sample);
+  I2CDeviceStatus read_sample(SFM3000Sample &sample);
 
   I2CDeviceStatus reset() override;
   I2CDeviceStatus test() override;
+
  private:
-  SensirionSensor mSensirion;
-  bool mMeasuring = false;
-  float mScaleFactor;
+  static const uint8_t crc_poly = 0x31;
+  static const uint8_t crc_init = 0x00;
+
+  SensirionSensor sensirion_;
+  bool measuring_ = false;
+  float scale_factor_;
 };
 
 }  // namespace I2C

@@ -7,6 +7,7 @@
 #pragma once
 
 #include "Pufferfish/HAL/Interfaces/I2CDevice.h"
+#include "stm32h7xx_hal.h"
 
 namespace Pufferfish {
 namespace HAL {
@@ -17,18 +18,14 @@ namespace HAL {
 class HALI2CDevice : public I2CDevice {
  public:
   // maximum default time to wait for response from I2C, in ms
-  const static uint32_t DefaultTimeout = 500u;
+  const static uint32_t default_timeout = 100U;
 
   /**
    * Constructs an HAL I2C object
    * @param hi2c    STM32 HAL handler for the I2C port
    * @param address the I2C address of the device
    */
-  HALI2CDevice(I2C_HandleTypeDef &hi2c, uint16_t address)
-      :
-      mDev(hi2c),
-      mAddr(address) {
-  }
+  HALI2CDevice(I2C_HandleTypeDef &hi2c, uint16_t address) : dev_(hi2c), addr(address) {}
 
   I2CDeviceStatus read(uint8_t *buf, size_t count) override;
 
@@ -38,9 +35,9 @@ class HALI2CDevice : public I2CDevice {
    */
   I2CDeviceStatus write(uint8_t *buf, size_t count) override;
 
- protected:
-  I2C_HandleTypeDef &mDev;
-  const uint16_t mAddr;
+ private:
+  I2C_HandleTypeDef &dev_;
+  const uint16_t addr;
 };
 
 }  // namespace HAL

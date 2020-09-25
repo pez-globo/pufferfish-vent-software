@@ -20,6 +20,7 @@ trio-typing = { version = "^0.5.0" }
 # I/O: Devices
 pyserial = { version = "^3.4" }
 trio-websocket = { version = "^0.8.0" }
+crcmod = { version = "^1.7" }
 
 [tool.poetry.dev-dependencies]
 # Code quality
@@ -35,7 +36,6 @@ pytest-cov = "^2.10.1"
 hypothesis = "^5.26.0"
 pytest-trio = "^0.6.0"
 # Unit Test Support
-crcmod = "^1.7"
 
 [build-system]
 requires = ["poetry>=1.0.0"]

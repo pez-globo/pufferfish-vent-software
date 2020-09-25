@@ -7,3 +7,23 @@ message RotaryEncoder {
   float last_button_down = 4;
   float last_button_up = 5;
 }
+
+enum Unit {
+  imperial = 0;
+  metric = 1;
+}
+
+enum ThemeVariant {
+  dark = 0;
+  light = 1;
+}
+
+message FrontendDisplaySetting {
+  ThemeVariant theme = 1;
+  Unit unit = 2;
+}
+
+message SystemSettingRequest {
+  uint32 brightness = 1;
+  uint32 date = 2;
+}

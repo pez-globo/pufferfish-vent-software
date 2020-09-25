@@ -1,14 +1,16 @@
 """Sans-I/O frontend device communication protocol."""
 
 import logging
-import typing
-from typing import Optional
+from typing import Mapping, Optional, Type
 
 import attr
 
-from ventserver.protocols import application
+import betterproto
+
 from ventserver.protocols import exceptions
+from ventserver.protocols import mcu
 from ventserver.protocols import messages
+from ventserver.protocols.protobuf import frontend_pb
 from ventserver.sansio import channels
 from ventserver.sansio import protocols
 
@@ -17,7 +19,20 @@ from ventserver.sansio import protocols
 
 
 LowerEvent = bytes
-UpperEvent = application.PBMessage
+UpperEvent = betterproto.Message
+
+
+# Types
+
+
+MESSAGE_CLASSES: Mapping[int, Type[betterproto.Message]] = {
+    **mcu.MESSAGE_CLASSES,
+    128: frontend_pb.RotaryEncoder
+}
+
+MESSAGE_TYPES: Mapping[Type[betterproto.Message], int] = {
+    pb_class: type for (type, pb_class) in MESSAGE_CLASSES.items()
+}
 
 
 # Filters
@@ -37,9 +52,7 @@ class ReceiveFilter(protocols.Filter[bytes, UpperEvent]):
     @_message_receiver.default
     def init_message_receiver(self) -> messages.MessageReceiver:  # pylint: disable=no-self-use
         """Initialize the frontend message receiver."""
-        return messages.MessageReceiver(
-            message_classes=application.FRONTEND_MESSAGE_CLASSES
-        )
+        return messages.MessageReceiver(message_classes=MESSAGE_CLASSES)
 
     def input(self, event: Optional[bytes]) -> None:
         """Handle input events."""
@@ -52,11 +65,9 @@ class ReceiveFilter(protocols.Filter[bytes, UpperEvent]):
             return None
 
         self._message_receiver.input(event)
-        message: Optional[application.PBMessage] = None
+        message: Optional[betterproto.Message] = None
         try:
-            message = typing.cast(
-                application.PBMessage, self._message_receiver.output()
-            )
+            message = self._message_receiver.output()
         except exceptions.ProtocolDataError:
             self._logger.exception('MessageReceiver: %s', event)
 
@@ -74,9 +85,7 @@ class SendFilter(protocols.Filter[UpperEvent, bytes]):
     @_message_sender.default
     def init_message_sender(self) -> messages.MessageSender:  # pylint: disable=no-self-use
         """Initialize the message sender."""
-        return messages.MessageSender(
-            message_types=application.FRONTEND_MESSAGE_TYPES
-        )
+        return messages.MessageSender(message_types=MESSAGE_TYPES)
 
     def input(self, event: Optional[UpperEvent]) -> None:
         """Handle input events."""

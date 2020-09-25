@@ -1,24 +1,25 @@
 /* USER CODE BEGIN Header */
 /**
-  * Original work Copyright 2020, STMicroelectronics
-  * Modified work Copyright 2020, the Pez Globo team and the Pufferfish project contributors
-  *
-  ******************************************************************************
-  * @file           : main.cpp
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
-  * All rights reserved.</center></h2>
-  *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
-  *
-  ******************************************************************************
-  */
+ * Original work Copyright 2020, STMicroelectronics
+ * Modified work Copyright 2020, the Pez Globo team and the Pufferfish project
+ *contributors
+ *
+ ******************************************************************************
+ * @file           : main.cpp
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
+ * All rights reserved.</center></h2>
+ *
+ * This software component is licensed by ST under BSD 3-Clause license,
+ * the "License"; You may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at:
+ *                        opensource.org/licenses/BSD-3-Clause
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -26,21 +27,24 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "Pufferfish/HAL/HAL.h"
+#include <array>
+
 #include "Pufferfish/AlarmsManager.h"
-#include "Pufferfish/Driver/Indicators/LEDAlarm.h"
-#include "Pufferfish/Driver/Indicators/AuditoryAlarm.h"
-#include "Pufferfish/HAL/STM32/HALI2CDevice.h"
+#include "Pufferfish/Driver/Button/Button.h"
 #include "Pufferfish/Driver/I2C/ExtendedI2CDevice.h"
 #include "Pufferfish/Driver/I2C/HoneywellABP.h"
 #include "Pufferfish/Driver/I2C/SDP.h"
 #include "Pufferfish/Driver/I2C/SFM3000.h"
 #include "Pufferfish/Driver/I2C/TCA9548A.h"
+#include "Pufferfish/Driver/Indicators/AuditoryAlarm.h"
+#include "Pufferfish/Driver/Indicators/LEDAlarm.h"
+#include "Pufferfish/Driver/Serial/Nonin/NoninOEM3.h"
+#include "Pufferfish/Driver/ShiftedOutput.h"
+#include "Pufferfish/HAL/HAL.h"
+#include "Pufferfish/HAL/STM32/BufferedUART.h"
+#include "Pufferfish/HAL/STM32/HAL.h"
+#include "Pufferfish/HAL/STM32/HALI2CDevice.h"
 #include "Pufferfish/Statuses.h"
-#include "Pufferfish/HAL/STM32/Time.h"
-#include "Pufferfish/Driver/Button/Button.h"
-#include "Pufferfish/Driver/SPI/SPIFlash.h"
-#include "Pufferfish/HAL/STM32/HALSPIDevice.h"
 #include "Pufferfish/Driver/SPI/BMP388.h"
 /* USER CODE END Includes */
 
@@ -68,7 +72,6 @@ I2C_HandleTypeDef hi2c2;
 I2C_HandleTypeDef hi2c4;
 
 SPI_HandleTypeDef hspi1;
-SPI_HandleTypeDef hspi2;
 
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
@@ -78,124 +81,209 @@ TIM_HandleTypeDef htim8;
 TIM_HandleTypeDef htim12;
 
 UART_HandleTypeDef huart4;
-UART_HandleTypeDef huart5;
 UART_HandleTypeDef huart7;
 UART_HandleTypeDef huart8;
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart3;
 
-
 /* USER CODE BEGIN PV */
 
 /* Timeout for the Adc poll conversion */
-static const uint32_t adcPollTimeout = 10;
+static const uint32_t adc_poll_timeout = 10;
 
 namespace PF = Pufferfish;
 
+/* NoninOEM TODO: Creating an object for UART for Nonin OEM interface */
+volatile PF::Driver::Serial::Nonin::NoninOEMUART oem_uart(huart4);
+/* NoninOEM TODO: Creating an object for NoninOEM */
+PF::Driver::Serial::Nonin::NoninOEM oemobj(oem_uart);
+/* NoninOEM TODO: Packet measurements */
+PF::Driver::Serial::Nonin::PacketMeasurements test_sensor_measurements;
+/* NoninOEM TODO: status byte error */
+PF::Driver::Serial::Nonin::StatusByteError frame_error_status;
+
 /* Create an object for ADC3 of AnalogInput Class */
-PF::HAL::AnalogInput ADC3Input(hadc3, adcPollTimeout);
+PF::HAL::HALAnalogInput adc3_input(hadc3, adc_poll_timeout);
 
-PF::HAL::DigitalOutput boardLed1(*LD1_GPIO_Port, LD1_Pin);
+// The following lines suppress Eclipse CDT's warning about C-style casts;
+// those come from STM32CubeMX-generated #define constants, which we have no
+// control over
 
-PF::HAL::DigitalOutput wpEnable(*LED1_EN_GPIO_Port, LED1_EN_Pin);
-PF::HAL::DigitalOutput holdEnable(*LED2_EN_GPIO_Port, LED2_EN_Pin);
+// Interface Board
+PF::HAL::HALDigitalOutput ser_clock(
+    *SER_CLK_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+    SER_CLK_Pin,
+    true);
+PF::HAL::HALDigitalOutput ser_clear(
+    *SER_CLR_N_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+    SER_CLR_N_Pin,
+    false);
+PF::HAL::HALDigitalOutput ser_r_clock(
+    *SER_RCLK_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+    SER_RCLK_Pin,
+    true);
+PF::HAL::HALDigitalOutput ser_input(
+    *SER_IN_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+    SER_IN_Pin,
+    true);
 
-PF::HAL::DigitalOutput alarmLedR(*LEDR_CNTRL_GPIO_Port, LEDR_CNTRL_Pin);
-PF::HAL::DigitalOutput alarmLedG(*LEDG_CNTRL_GPIO_Port, LEDG_CNTRL_Pin);
-PF::HAL::DigitalOutput alarmLedB(*LEDB_CNTRL_GPIO_Port, LEDB_CNTRL_Pin);
-PF::HAL::DigitalOutput memoryChipSelect(*MEM_CS_GPIO_Port, MEM_CS_Pin);
+PF::HAL::HALDigitalOutput board_led1(
+    *LD1_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+    LD1_Pin);  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+PF::Driver::ShiftRegister leds_reg(ser_input, ser_clock, ser_r_clock, ser_clear);
 
-/* W25Q16 */
-PF::HAL::HALSPIDevice spi2Falsh(hspi2, memoryChipSelect);
-PF::Driver::SPI::SPIFlash extenalMemory(spi2Falsh);
+PF::Driver::ShiftedOutput alarm_led_r(leds_reg, 0);
+PF::Driver::ShiftedOutput alarm_led_g(leds_reg, 1);
+PF::Driver::ShiftedOutput alarm_led_b(leds_reg, 2);
+PF::Driver::ShiftedOutput led_alarm_en(leds_reg, 3);
+PF::Driver::ShiftedOutput led_full_o2(leds_reg, 4);
+// NOLINTNEXTLINE(readability-magic-numbers)
+PF::Driver::ShiftedOutput led_manual_breath(leds_reg, 5);
+// NOLINTNEXTLINE(readability-magic-numbers)
+PF::Driver::ShiftedOutput led_lock(leds_reg, 6);
 
+PF::HAL::HALDigitalOutput alarm_reg_high(
+    *ALARM1_HIGH_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+    ALARM1_HIGH_Pin);  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+PF::HAL::HALDigitalOutput alarm_reg_med(
+    *ALARM1_MED_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+    ALARM1_MED_Pin);  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+PF::HAL::HALDigitalOutput alarm_reg_low(
+    *ALARM1_LOW_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+    ALARM1_LOW_Pin);  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+PF::HAL::HALDigitalOutput alarm_buzzer(
+    *BUZZ1_EN_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+    BUZZ1_EN_Pin);  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
 /*BMP388 */
-PF::HAL::HALSPIDevice spi2Bmp388(hspi1, memoryChipSelect);
-PF::Driver::SPI::BMP388 bmpPressure(spi2Bmp388);
+PF::HAL::HALDigitalOutput bmp388ChipSelect(*BMP388_CS_GPIO_Port, BMP388_CS_Pin);
+PF::HAL::HALSPIDevice spi1Bmp388(hspi1, bmp388ChipSelect);
+PF::Driver::SPI::BMP388 barometric(spi1Bmp388);
 
-PF::HAL::DigitalOutput alarmRegHigh(*ALARM1_HIGH_GPIO_Port, ALARM1_HIGH_Pin);
-PF::HAL::DigitalOutput alarmRegMed(*ALARM1_MED_GPIO_Port, ALARM1_MED_Pin);
-PF::HAL::DigitalOutput alarmRegLow(*ALARM1_LOW_GPIO_Port, ALARM1_LOW_Pin);
-PF::HAL::DigitalOutput alarmBuzzer(*ALARM2_CNTRL_GPIO_Port, ALARM2_CNTRL_Pin);
-PF::HAL::DigitalInput pushButton(*B1_GPIO_Port, B1_Pin);
-PF::HAL::DigitalInput powerInput(*SET_PWR_ON_OFF_GPIO_Port, SET_PWR_ON_OFF_Pin);
-PF::HAL::DigitalInput inputButton(*Mem_Button_GPIO_Port, Mem_Button_Pin);
+PF::Driver::Indicators::LEDAlarm alarm_dev_led(alarm_led_r, alarm_led_g, alarm_led_b);
+PF::Driver::Indicators::AuditoryAlarm alarm_dev_sound(
+    alarm_reg_high, alarm_reg_med, alarm_reg_low, alarm_buzzer);
+PF::AlarmsManager h_alarms(alarm_dev_led, alarm_dev_sound);
 
-PF::Driver::Button::Debouncer switchDebounce;
-PF::Driver::Button::EdgeDetector switchTransition;
-PF::Driver::Button::Button buttonMembrane(inputButton,switchDebounce);
-PF::Driver::Indicators::LEDAlarm alarmDevLed(alarmLedR, alarmLedG, alarmLedB);
-PF::Driver::Indicators::AuditoryAlarm alarmDevSound(alarmRegHigh, alarmRegMed, alarmRegLow, alarmBuzzer);
-PF::AlarmsManager hAlarms(alarmDevLed, alarmDevSound);
+PF::HAL::HALDigitalInput button_alarm_en(
+    *SET_ALARM_EN_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+    SET_ALARM_EN_Pin,
+    true);
+PF::HAL::HALDigitalInput button_full_o2(
+    *SET_100_O2_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+    SET_100_O2_Pin,
+    true);
+PF::HAL::HALDigitalInput button_manual_breath(
+    *SET_MANUAL_BREATH_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+    SET_MANUAL_BREATH_Pin,
+    true);
+PF::HAL::HALDigitalInput button_lock(
+    *SET_LOCK_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+    SET_LOCK_Pin,
+    true);
+PF::HAL::HALDigitalInput button_power(
+    *SET_PWR_ON_OFF_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+    SET_PWR_ON_OFF_Pin,
+    true);
+
+PF::Driver::Button::Debouncer switch_debounce;
+PF::Driver::Button::EdgeDetector switch_transition;
+PF::Driver::Button::Button button_membrane(button_alarm_en, switch_debounce);
 
 // Solenoid Valves
-PF::HAL::PWM drive1_ch1(htim2, TIM_CHANNEL_4);
-PF::HAL::PWM drive1_ch2(htim2, TIM_CHANNEL_2);
-PF::HAL::PWM drive1_ch3(htim3, TIM_CHANNEL_4);
-PF::HAL::PWM drive1_ch4(htim3, TIM_CHANNEL_1);
-PF::HAL::PWM drive1_ch5(htim3, TIM_CHANNEL_2);
-PF::HAL::PWM drive1_ch6(htim3, TIM_CHANNEL_3);
-PF::HAL::PWM drive1_ch7(htim4, TIM_CHANNEL_2);
-PF::HAL::PWM drive2_ch1(htim4, TIM_CHANNEL_3);
-PF::HAL::PWM drive2_ch2(htim4, TIM_CHANNEL_4);
-PF::HAL::PWM drive2_ch3(htim5, TIM_CHANNEL_1);
-PF::HAL::PWM drive2_ch4(htim8, TIM_CHANNEL_1);
-PF::HAL::PWM drive2_ch5(htim8, TIM_CHANNEL_2);
-PF::HAL::PWM drive2_ch6(htim8, TIM_CHANNEL_4);
-PF::HAL::PWM drive2_ch7(htim12, TIM_CHANNEL_2);
+PF::HAL::HALPWM drive1_ch1(htim2, TIM_CHANNEL_4);
+PF::HAL::HALPWM drive1_ch2(htim2, TIM_CHANNEL_2);
+PF::HAL::HALPWM drive1_ch3(htim3, TIM_CHANNEL_4);
+PF::HAL::HALPWM drive1_ch4(htim3, TIM_CHANNEL_1);
+PF::HAL::HALPWM drive1_ch5(htim3, TIM_CHANNEL_2);
+PF::HAL::HALPWM drive1_ch6(htim3, TIM_CHANNEL_3);
+PF::HAL::HALPWM drive1_ch7(htim4, TIM_CHANNEL_2);
+PF::HAL::HALPWM drive2_ch1(htim4, TIM_CHANNEL_3);
+PF::HAL::HALPWM drive2_ch2(htim4, TIM_CHANNEL_4);
+PF::HAL::HALPWM drive2_ch3(htim5, TIM_CHANNEL_1);
+PF::HAL::HALPWM drive2_ch4(htim8, TIM_CHANNEL_1);
+PF::HAL::HALPWM drive2_ch5(htim8, TIM_CHANNEL_2);
+PF::HAL::HALPWM drive2_ch6(htim8, TIM_CHANNEL_4);
+PF::HAL::HALPWM drive2_ch7(htim12, TIM_CHANNEL_2);
 
 // Base I2C Devices
-PF::HAL::HALI2CDevice i2c_hal_mux1(hi2c1, PF::Driver::I2C::TCA9548A::defaultI2CAddr);
-PF::HAL::HALI2CDevice i2c_hal_sfm1(hi2c1, PF::Driver::I2C::SFM3000::defaultI2CAddr);
-PF::HAL::HALI2CDevice i2c_hal_sdp1(hi2c1, PF::Driver::I2C::SDPSensor::SDP8xxI2CAddr);
-PF::HAL::HALI2CDevice i2c_hal_sdp2(hi2c1, PF::Driver::I2C::SDPSensor::SDP3xI2CAddr);
-PF::HAL::HALI2CDevice i2c_hal_sdp3(hi2c1, PF::Driver::I2C::SDPSensor::SDP3xI2CAddr);
-PF::HAL::HALI2CDevice i2c_hal_abp1(
-    hi2c1, PF::Driver::I2C::HoneywellABP::ABPxxxx030PG2A3.i2cAddr);
-PF::HAL::HALI2CDevice i2c_hal_abp2(
-    hi2c1, PF::Driver::I2C::HoneywellABP::ABPxxxx030PG2A3.i2cAddr);
-PF::HAL::HALI2CDevice i2c_hal_abp3(
-    hi2c1, PF::Driver::I2C::HoneywellABP::ABPxxxx005PG2A3.i2cAddr);
-PF::HAL::HALI2CDevice i2c_hal_abp4(
-    hi2c1, PF::Driver::I2C::HoneywellABP::ABPxxxx005PG2A3.i2cAddr);
-PF::HAL::HALI2CDevice i2c_hal_abp5(
-    hi2c1, PF::Driver::I2C::HoneywellABP::ABPxxxx005PG2A3.i2cAddr);
+// Note: I2C1 is marked I2C2 in the control board v1.0 schematic, and vice versa
+PF::HAL::HALI2CDevice i2c_hal_mux1(hi2c2, PF::Driver::I2C::TCA9548A::default_i2c_addr);
+PF::HAL::HALI2CDevice i2c_hal_mux2(hi2c1, PF::Driver::I2C::TCA9548A::default_i2c_addr);
+
+PF::HAL::HALI2CDevice i2c_hal_press1(hi2c1, PF::Driver::I2C::abpxxxx001pg2a3.i2c_addr);
+PF::HAL::HALI2CDevice i2c_hal_press2(hi2c1, PF::Driver::I2C::abpxxxx001pg2a3.i2c_addr);
+PF::HAL::HALI2CDevice i2c_hal_press3(hi2c1, PF::Driver::I2C::abpxxxx001pg2a3.i2c_addr);
+PF::HAL::HALI2CDevice i2c_hal_press7(hi2c1, PF::Driver::I2C::abpxxxx030pg2a3.i2c_addr);
+PF::HAL::HALI2CDevice i2c_hal_press8(hi2c1, PF::Driver::I2C::abpxxxx030pg2a3.i2c_addr);
+PF::HAL::HALI2CDevice i2c_hal_press9(hi2c1, PF::Driver::I2C::abpxxxx001pg2a3.i2c_addr);
+PF::HAL::HALI2CDevice i2c_hal_press13(hi2c2, PF::Driver::I2C::SDPSensor::sdp8xx_i2c_addr);
+PF::HAL::HALI2CDevice i2c_hal_press14(hi2c2, PF::Driver::I2C::SDPSensor::sdp3x_i2c_addr);
+PF::HAL::HALI2CDevice i2c_hal_press15(hi2c2, PF::Driver::I2C::SDPSensor::sdp3x_i2c_addr);
+PF::HAL::HALI2CDevice i2c_hal_press16(hi2c2, PF::Driver::I2C::SFM3000::default_i2c_addr);
+PF::HAL::HALI2CDevice i2c_hal_press17(hi2c2, PF::Driver::I2C::SDPSensor::sdp3x_i2c_addr);
+PF::HAL::HALI2CDevice i2c_hal_press18(hi2c2, PF::Driver::I2C::SDPSensor::sdp3x_i2c_addr);
 
 // I2C Mux
 PF::Driver::I2C::TCA9548A i2c_mux1(i2c_hal_mux1);
+PF::Driver::I2C::TCA9548A i2c_mux2(i2c_hal_mux2);
 
 // Extended I2C Device
-PF::Driver::I2C::ExtendedI2CDevice i2c_ext_sdp2(i2c_hal_sdp2, i2c_mux1, 0);
-PF::Driver::I2C::ExtendedI2CDevice i2c_ext_sdp3(i2c_hal_sdp3, i2c_mux1, 1);
-PF::Driver::I2C::ExtendedI2CDevice i2c_ext_abp1(i2c_hal_abp1, i2c_mux1, 2);
-PF::Driver::I2C::ExtendedI2CDevice i2c_ext_abp2(i2c_ext_abp2, i2c_mux1, 3);
-PF::Driver::I2C::ExtendedI2CDevice i2c_ext_abp3(i2c_ext_abp3, i2c_mux1, 4);
-PF::Driver::I2C::ExtendedI2CDevice i2c_ext_abp4(i2c_ext_abp4, i2c_mux1, 5);
-PF::Driver::I2C::ExtendedI2CDevice i2c_ext_abp5(i2c_ext_abp5, i2c_mux1, 6);
+PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press1(i2c_hal_press1, i2c_mux2, 0);
+PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press2(i2c_hal_press2, i2c_mux2, 2);
+PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press3(i2c_hal_press3, i2c_mux2, 4);
+PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press7(i2c_hal_press7, i2c_mux2, 1);
+PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press8(i2c_hal_press8, i2c_mux2, 3);
+// NOLINTNEXTLINE(readability-magic-numbers)
+PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press9(i2c_hal_press9, i2c_mux2, 5);
+
+PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press13(i2c_hal_press13, i2c_mux1, 0);
+PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press14(i2c_hal_press14, i2c_mux1, 2);
+PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press15(i2c_hal_press15, i2c_mux1, 4);
+PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press16(i2c_hal_press16, i2c_mux1, 1);
+PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press17(i2c_hal_press17, i2c_mux1, 3);
+PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press18(
+    i2c_hal_press18,
+    i2c_mux1,
+    // NOLINTNEXTLINE(readability-magic-numbers)
+    5);
 
 // Actual usable sensor
-PF::Driver::I2C::SFM3000 i2c_sfm1(i2c_hal_sfm1);
-PF::Driver::I2C::SDPSensor i2c_sdp1(i2c_hal_sdp1);
-PF::Driver::I2C::SDPSensor i2c_sdp2(i2c_ext_sdp2);
-PF::Driver::I2C::SDPSensor i2c_sdp3(i2c_ext_sdp3);
-PF::Driver::I2C::HoneywellABP i2c_abp1(i2c_ext_abp1,
-                                       PF::Driver::I2C::HoneywellABP::ABPxxxx030PG2A3);
-PF::Driver::I2C::HoneywellABP i2c_abp2(i2c_ext_abp2,
-                                       PF::Driver::I2C::HoneywellABP::ABPxxxx030PG2A3);
-PF::Driver::I2C::HoneywellABP i2c_abp3(i2c_ext_abp3,
-                                       PF::Driver::I2C::HoneywellABP::ABPxxxx005PG2A3);
-PF::Driver::I2C::HoneywellABP i2c_abp4(i2c_ext_abp4,
-                                       PF::Driver::I2C::HoneywellABP::ABPxxxx005PG2A3);
-PF::Driver::I2C::HoneywellABP i2c_abp5(i2c_ext_abp5,
-                                       PF::Driver::I2C::HoneywellABP::ABPxxxx005PG2A3);
+PF::Driver::I2C::HoneywellABP i2c_press1(i2c_ext_press1, PF::Driver::I2C::abpxxxx001pg2a3);
+PF::Driver::I2C::HoneywellABP i2c_press2(i2c_ext_press2, PF::Driver::I2C::abpxxxx001pg2a3);
+PF::Driver::I2C::HoneywellABP i2c_press3(i2c_ext_press3, PF::Driver::I2C::abpxxxx001pg2a3);
+PF::Driver::I2C::HoneywellABP i2c_press7(i2c_ext_press7, PF::Driver::I2C::abpxxxx030pg2a3);
+PF::Driver::I2C::HoneywellABP i2c_press8(i2c_ext_press8, PF::Driver::I2C::abpxxxx030pg2a3);
+PF::Driver::I2C::HoneywellABP i2c_press9(i2c_ext_press9, PF::Driver::I2C::abpxxxx001pg2a3);
+PF::Driver::I2C::SDPSensor i2c_press13(i2c_ext_press13);
+PF::Driver::I2C::SDPSensor i2c_press14(i2c_ext_press14);
+PF::Driver::I2C::SDPSensor i2c_press15(i2c_ext_press15);
+PF::Driver::I2C::SFM3000 i2c_press16(i2c_ext_press16);
+PF::Driver::I2C::SDPSensor i2c_press17(i2c_ext_press17);
+PF::Driver::I2C::SDPSensor i2c_press18(i2c_ext_press18);
 
+// Buffered UARTs
+volatile Pufferfish::HAL::LargeBufferedUART buffered_uart3(huart3);
 
 // Test list
-PF::Driver::Testable *i2c_test_list[] =
-    {&i2c_mux1, &i2c_sfm1, &i2c_sdp1, &i2c_sdp2, &i2c_sdp3, &i2c_abp1,
-     &i2c_abp2, &i2c_abp3, &i2c_abp4, &i2c_abp5};
-//PF::HAL::Testable *i2c_test_list[] = { &i2c_sdp1 };
+// NOLINTNEXTLINE(readability-magic-numbers)
+std::array<PF::Driver::Testable *, 14> i2c_test_list{
+    {&i2c_mux1,
+     &i2c_mux2,
+     &i2c_press1,
+     &i2c_press2,
+     &i2c_press3,
+     &i2c_press7,
+     &i2c_press8,
+     &i2c_press9,
+     &i2c_press13,
+     &i2c_press14,
+     &i2c_press15,
+     &i2c_press16,
+     &i2c_press17,
+     &i2c_press18}};
 
+int interface_test_state = 0;
+int interface_test_millis = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -208,7 +296,6 @@ static void MX_ADC3_Init(void);
 static void MX_CRC_Init(void);
 static void MX_I2C2_Init(void);
 static void MX_TIM2_Init(void);
-static void MX_UART5_Init(void);
 static void MX_UART7_Init(void);
 static void MX_UART8_Init(void);
 static void MX_USART1_UART_Init(void);
@@ -219,15 +306,41 @@ static void MX_TIM4_Init(void);
 static void MX_TIM5_Init(void);
 static void MX_TIM8_Init(void);
 static void MX_TIM12_Init(void);
-static void MX_SPI2_Init(void);
-static void Bmp388_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void interface_test_loop() {
+  // get state of buttons
+  bool l_alarm_en = button_alarm_en.read();
+  bool l_o2 = button_full_o2.read();
+  bool l_manual = button_manual_breath.read();
+  bool l_lock = button_lock.read();
+  // bool l_power = button_power.read();
 
+  // simply write back
+  led_alarm_en.write(l_alarm_en);
+  led_full_o2.write(l_o2);
+  led_manual_breath.write(l_manual);
+  led_lock.write(l_lock);
+
+  // cycle though alarms
+  //  if (!l_power) {
+  //    hAlarms.clearAll();
+  //  } else if (PF::HAL::millis() - interface_test_millis > 100) {
+  //    hAlarms.add(PF::AlarmStatus::highPriority);
+  //    interface_test_millis = PF::HAL::millis();
+  //    if (interface_test_state) {
+  //      interface_test_state--;
+  //      hAlarms.add(static_cast<PF::AlarmStatus>(interface_test_state));
+  //    } else {
+  //      interface_test_state = static_cast<int>(PF::AlarmStatus::noAlarm);
+  //      hAlarms.clearAll();
+  //    }
+  //  }
+}
 /* USER CODE END 0 */
 
 /**
@@ -237,19 +350,33 @@ static void Bmp388_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-  
-    //PF::Driver::SPI::TrimmingCoefficients cofficient;
-    //PF::Driver::SPI::RawSensorData rawData;
-    //PF::Driver::SPI::SensorFaults faults;
-    //PF::Driver::SPI::SensorStatus status;
-    uint32_t pressure;
-    uint32_t temperature;
-    double temp;
-    double pres;
-    PF::Driver::Button::EdgeState state;
-    bool memButtonstate = false;
 
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */  
+  /*
+   * FIXME: Added for testing
+   * Local variable to read ADC3 input
+   */
+  uint32_t adc3_data = 0;
+
+  /* Nonin TODO: Local variable to count packets of data received */
+  uint32_t packet_count = 0;
+  /* Nonin TODO */
+  bool dataReady = false;
+  double temp;
+  double pres;
+  uint32_t current_time = 0;
+  /* Nonin TODO */
+  std::array<uint32_t, 4> testcase_results = {0U};
+
+  PF::Driver::Button::EdgeState state;
+  bool mem_buttonstate = false;
+  /* TODO: Added for testing Nonin OEM III */
+  PF::Driver::Serial::Nonin::NoninOEM::NoninPacketStatus return_status;
+
+  /* USER CODE END 1 */
+
+  /* MCU Configuration--------------------------------------------------------*/
+
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
 
   /* USER CODE BEGIN Init */
@@ -272,7 +399,6 @@ int main(void)
   MX_CRC_Init();
   MX_I2C2_Init();
   MX_TIM2_Init();
-  MX_UART5_Init();
   MX_UART7_Init();
   MX_UART8_Init();
   MX_USART1_UART_Init();
@@ -283,61 +409,140 @@ int main(void)
   MX_TIM5_Init();
   MX_TIM8_Init();
   MX_TIM12_Init();
-  MX_SPI2_Init();
   Bmp388_Init();
-
   /* USER CODE BEGIN 2 */
-  PF::HAL::microsDelayInit();
+  PF::HAL::micros_delay_init();
+  interface_test_millis = PF::HAL::millis();
+  /* Nonin TODO: setupIRQ of BufferredUART for setting the UART reception */
+  oem_uart.setup_irq();
 
   /* Start the ADC3 by invoking AnalogInput::Start() */
-  ADC3Input.start();
+  adc3_input.start();
 
-  holdEnable.write(true);
-
-  wpEnable.write(true);
-
+  buffered_uart3.setup_irq();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1) {
+  static const uint32_t blink_low_delay = 5;
+  static const uint32_t loop_delay = 50;
+  while (true) {
+    /* Nonin TODO: Invoking the NoninOEM output method */
+    return_status = oemobj.output(test_sensor_measurements);
+    if (return_status == PF::Driver::Serial::Nonin::NoninOEM::NoninPacketStatus::available) {
+      packet_count = packet_count + 1;
 
+      /// Nonin TODO: Test Scenario 1 On sensor disconnected from Nonin OEM III
+      /// module
+      if (packet_count == 1) {
+        testcase_results[0] = static_cast<uint32_t>(test_sensor_measurements.sensor_disconnect[0]);
+      }
 
-//   bmpPressure.readRawData(rawData);
-//   bmpPressure.rawPressure(pressure);
-//   bmpPressure.rawTemperature(temperature);
-//   bmpPressure.readCalibrationData(cofficient);
-   bmpPressure.readCompensateTemperature(temp);
-   if((temp < -45) && (temp > 85)){
-     boardLed1.write(true);
-   }
-   bmpPressure.readCompensatePressure(pres);
-   if(pres < 300 && pres > 1100){
-     boardLed1.write(true);
-   }
+      /// Nonin TODO: Test Scenario 2 On sensor connected to Nonin OEM III
+      /// module and no contact with  finger clip sensor
+      if (packet_count == 1) {
+        testcase_results[1] = static_cast<uint32_t>(test_sensor_measurements.sensor_alarm[0]);
+      }
+      /// Nonin TODO: Test Scenario 3 Time validation for 15 frames is 5 seconds
+      if (packet_count == 1) {
+        current_time = PF::HAL::millis();
+      }
+      /// Nonin TODO: define magic numbers in meaningful variable names
+      // NOLINTNEXTLINE(readability-magic-numbers)
+      if (packet_count == 16) {
+        current_time = PF::HAL::millis() - current_time;
+        /* Validate time for 5000 milli-seconds */
+        testcase_results[2] =
+            /// Nonin TODO: define magic numbers in meaningful variable names
+            // NOLINTNEXTLINE(readability-magic-numbers)
+            static_cast<uint32_t>(current_time >= 5000 && current_time < 5100);
+      }
+    }
+    /* Nonin TODO : Added to resolve warnings */
+    testcase_results[3] = static_cast<uint32_t>(static_cast<bool>(testcase_results[2]));
+
+    PF::AlarmManagerStatus stat = h_alarms.update(PF::HAL::millis());
+    if (stat != PF::AlarmManagerStatus::ok) {
+      Error_Handler();
+    }
+    board_led1.write(false);
+    PF::HAL::delay(blink_low_delay);
+    board_led1.write(true);
+    interface_test_loop();
+    leds_reg.update();
+
+    for (PF::Driver::Testable *t : i2c_test_list) {
+      if (t->test() != PF::I2CDeviceStatus::ok) {
+        board_led1.write(false);
+      }
+    }
+    PF::HAL::delay(loop_delay);
+
+    uint8_t receive = 0;
+    while (buffered_uart3.read(receive) == PF::BufferStatus::ok) {
+      board_led1.write(true);
+      buffered_uart3.write(receive);
+      PF::HAL::AtomicSize written_size = 0;
+      std::array<uint8_t, 2> repeat_string = {receive, receive};
+      buffered_uart3.write(repeat_string.data(), repeat_string.size(), written_size);
+    }
+    /* USER CODE END WHILE */
+
+    /* 
+     * FIXME: Added for testing 
+     * Read the Analog data of ADC3 and validate the return value
+     */
+    if (adc3_input.read(adc3_data) != PF::ADCStatus::ok) {
+      /* Error Handle */
+    } else {
+      /* Else statements*/
+    }
+    button_membrane.read_state(mem_buttonstate, state);
+    if (state != PF::Driver::Button::EdgeState::rising_edge) {
+      board_led1.write(true);
+      PF::HAL::delay(5);
+		
+  }
+    /* USER CODE BEGIN 3 */
+     barometric.getDataReadyInterrupt(dataReady);
+    if(dataReady)
+    {
+      barometric.readCalibrationData(values);
+      barometric.readCompensateTemperature(temp);
+    }
+    if ((temp < -45) && (temp > 85)) {
+      boardLed1.write(true);
+    }
+    barometric.readCompensatePressure(pres);
+    if (pres < 300 && pres > 1100) {
+      boardLed1.write(true);
+    }
   }
   /* USER CODE END 3 */
-
 }
 
-
+/**
+ * @brief BMP388 device configuration
+ * @retval None
+ */
 static void Bmp388_Init(void){
+
   uint8_t flashChipId;
   /* SPI Flash memory ID */
-  bmpPressure.getChipId(flashChipId);
+  barometric.getChipId(flashChipId);
   if (flashChipId != 0x50) {
     boardLed1.write(true);
   }
-
-  bmpPressure.pressureOverSampling(PF::Driver::SPI::Oversampling::standardResolution);
-  bmpPressure.temperatureOverSampling(PF::Driver::SPI::Oversampling::standardResolution);
-  bmpPressure.outputDataRate(PF::Driver::SPI::TimeStandby::timestandBy80ms);
-  bmpPressure.setIIRFilter(PF::Driver::SPI::FilterCoefficient::coef0);
-  bmpPressure.enablePressure(PF::Driver::SPI::RegisterSet::enable);
-  bmpPressure.enableTemperature(PF::Driver::SPI::RegisterSet::enable);
-  bmpPressure.selectPowerMode(PF::Driver::SPI::Modes::normal);
+  barometric.enableSPIcommunication(PF::Driver::SPI::SPIInterfaceType::spi4);
+  barometric.enablePressure(PF::Driver::SPI::RegisterSet::enable);
+  barometric.enableTemperature(PF::Driver::SPI::RegisterSet::enable);
+  barometric.selectPowerMode(PF::Driver::SPI::PowerModes::normal);
+  barometric.InterruptPinOutputType(PF::Driver::SPI::RegisterSet::disable);
+  barometric.pressureOverSampling(PF::Driver::SPI::Oversampling::standardResolution);
+  barometric.temperatureOverSampling(PF::Driver::SPI::Oversampling::standardResolution);
+  barometric.outputDataRate(PF::Driver::SPI::TimeStandby::time80ms);
+  barometric.setIIRFilter(PF::Driver::SPI::FilterCoefficient::coef0);
 }
-
 /**
   * @brief System Clock Configuration
   * @retval None
@@ -392,16 +597,14 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB2CLKDivider = RCC_APB2_DIV1;
   RCC_ClkInitStruct.APB4CLKDivider = RCC_APB4_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
-  {
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK) {
     Error_Handler();
   }
-  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART3|RCC_PERIPHCLK_UART4
-                              |RCC_PERIPHCLK_UART7|RCC_PERIPHCLK_USART1
-                              |RCC_PERIPHCLK_UART8|RCC_PERIPHCLK_UART5
-                              |RCC_PERIPHCLK_SPI1|RCC_PERIPHCLK_SPI2
-                              |RCC_PERIPHCLK_I2C2|RCC_PERIPHCLK_ADC
-                              |RCC_PERIPHCLK_I2C1|RCC_PERIPHCLK_I2C4;
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART3 | RCC_PERIPHCLK_UART4
+      | RCC_PERIPHCLK_UART7 | RCC_PERIPHCLK_USART1
+      | RCC_PERIPHCLK_UART8 | RCC_PERIPHCLK_SPI1
+      | RCC_PERIPHCLK_I2C2 | RCC_PERIPHCLK_ADC
+      | RCC_PERIPHCLK_I2C1 | RCC_PERIPHCLK_I2C4;
   PeriphClkInitStruct.PLL2.PLL2M = 1;
   PeriphClkInitStruct.PLL2.PLL2N = 19;
   PeriphClkInitStruct.PLL2.PLL2P = 3;
@@ -672,11 +875,11 @@ static void MX_SPI1_Init(void)
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-  hspi1.Init.CRCPolynomial = 0x7;
+  hspi1.Init.CRCPolynomial = 0x0;
   hspi1.Init.NSSPMode = SPI_NSS_PULSE_ENABLE;
   hspi1.Init.NSSPolarity = SPI_NSS_POLARITY_LOW;
   hspi1.Init.FifoThreshold = SPI_FIFO_THRESHOLD_01DATA;
@@ -694,54 +897,6 @@ static void MX_SPI1_Init(void)
   /* USER CODE BEGIN SPI1_Init 2 */
 
   /* USER CODE END SPI1_Init 2 */
-
-}
-
-/**
-  * @brief SPI2 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_SPI2_Init(void)
-{
-
-  /* USER CODE BEGIN SPI2_Init 0 */
-
-  /* USER CODE END SPI2_Init 0 */
-
-  /* USER CODE BEGIN SPI2_Init 1 */
-
-  /* USER CODE END SPI2_Init 1 */
-  /* SPI2 parameter configuration*/
-  hspi2.Instance = SPI2;
-  hspi2.Init.Mode = SPI_MODE_MASTER;
-  hspi2.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
-  hspi2.Init.CLKPolarity = SPI_POLARITY_HIGH;
-  hspi2.Init.CLKPhase = SPI_PHASE_2EDGE;
-  hspi2.Init.NSS = SPI_NSS_SOFT;
-  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;
-  hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
-  hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
-  hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_ENABLE;
-  hspi2.Init.CRCPolynomial = 0x0;
-  hspi2.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
-  hspi2.Init.NSSPolarity = SPI_NSS_POLARITY_HIGH;
-  hspi2.Init.FifoThreshold = SPI_FIFO_THRESHOLD_01DATA;
-  hspi2.Init.TxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
-  hspi2.Init.RxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
-  hspi2.Init.MasterSSIdleness = SPI_MASTER_SS_IDLENESS_00CYCLE;
-  hspi2.Init.MasterInterDataIdleness = SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
-  hspi2.Init.MasterReceiverAutoSusp = SPI_MASTER_RX_AUTOSUSP_DISABLE;
-  hspi2.Init.MasterKeepIOState = SPI_MASTER_KEEP_IO_STATE_DISABLE;
-  hspi2.Init.IOSwap = SPI_IO_SWAP_DISABLE;
-  if (HAL_SPI_Init(&hspi2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN SPI2_Init 2 */
-
-  /* USER CODE END SPI2_Init 2 */
 
 }
 
@@ -1111,7 +1266,7 @@ static void MX_UART4_Init(void)
 
   /* USER CODE END UART4_Init 1 */
   huart4.Instance = UART4;
-  huart4.Init.BaudRate = 115200;
+  huart4.Init.BaudRate = 9600;
   huart4.Init.WordLength = UART_WORDLENGTH_8B;
   huart4.Init.StopBits = UART_STOPBITS_1;
   huart4.Init.Parity = UART_PARITY_NONE;
@@ -1121,7 +1276,7 @@ static void MX_UART4_Init(void)
   huart4.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
   huart4.Init.ClockPrescaler = UART_PRESCALER_DIV1;
   huart4.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-  if (HAL_HalfDuplex_Init(&huart4) != HAL_OK)
+  if (HAL_UART_Init(&huart4) != HAL_OK)
   {
     Error_Handler();
   }
@@ -1140,54 +1295,6 @@ static void MX_UART4_Init(void)
   /* USER CODE BEGIN UART4_Init 2 */
 
   /* USER CODE END UART4_Init 2 */
-
-}
-
-/**
-  * @brief UART5 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_UART5_Init(void)
-{
-
-  /* USER CODE BEGIN UART5_Init 0 */
-
-  /* USER CODE END UART5_Init 0 */
-
-  /* USER CODE BEGIN UART5_Init 1 */
-
-  /* USER CODE END UART5_Init 1 */
-  huart5.Instance = UART5;
-  huart5.Init.BaudRate = 115200;
-  huart5.Init.WordLength = UART_WORDLENGTH_8B;
-  huart5.Init.StopBits = UART_STOPBITS_1;
-  huart5.Init.Parity = UART_PARITY_NONE;
-  huart5.Init.Mode = UART_MODE_TX_RX;
-  huart5.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart5.Init.OverSampling = UART_OVERSAMPLING_16;
-  huart5.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-  huart5.Init.ClockPrescaler = UART_PRESCALER_DIV1;
-  huart5.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-  if (HAL_HalfDuplex_Init(&huart5) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  if (HAL_UARTEx_SetTxFifoThreshold(&huart5, UART_TXFIFO_THRESHOLD_1_8) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  if (HAL_UARTEx_SetRxFifoThreshold(&huart5, UART_RXFIFO_THRESHOLD_1_8) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  if (HAL_UARTEx_DisableFifoMode(&huart5) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN UART5_Init 2 */
-
-  /* USER CODE END UART5_Init 2 */
 
 }
 
@@ -1403,44 +1510,45 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOE, BAT_MEAS_EN_Pin|LED1_EN_Pin|SET_EXTRA_Pin|GPIO3_Pin 
-                          |SENSE_O2_EN_Pin|MOTOR2_EN_Pin|PRESS1_EN_Pin|MOTOR2_DIR_Pin 
-                          |MOTOR3_DIR_Pin|MOTOR2_STEP_Pin|MOTOR3_EN_Pin|PRESS5_EN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOE, BAT_MEAS_EN_Pin | LED1_EN_Pin | GPIO3_Pin | SENSE_O2_EN_Pin
+      | MOTOR2_EN_Pin | PRESS1_EN_Pin | MOTOR2_DIR_Pin | MOTOR3_DIR_Pin
+      | MOTOR2_STEP_Pin | MOTOR3_EN_Pin | PRESS5_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOF, BAT_CHARGE_EN_Pin|PRESS2_EN_Pin|PRESS4_EN_Pin|MOTOR4_EN_Pin 
-                          |MOTOR3_STEP_Pin|PRESS3_EN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOF, BAT_CHARGE_EN_Pin|PRESS2_EN_Pin|BMP388_CS_Pin|PRESS4_EN_Pin
+                          |MOTOR4_EN_Pin|MOTOR3_STEP_Pin|PRESS3_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, ALARM1_MED_Pin|BUZZ1_EN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, ALARM1_MED_Pin | BUZZ1_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, GPIO2_Pin|GPIO1_Pin|LEDR_CNTRL_Pin|LEDB_CNTRL_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, GPIO2_Pin | GPIO1_Pin | SER_CLK_Pin | SER_CLR_N_Pin
+      | SER_RCLK_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, LD1_Pin|ALARM1_LOW_Pin|ALARM2_CNTRL_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, LD1_Pin | ALARM1_LOW_Pin | SER_IN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, MOTOR4_STEP_Pin|MOTOR1_STEP_Pin|MOTOR1_DIR_Pin|LEDG_CNTRL_Pin 
-                          |LTC4421_PWR_nDISABLE1_Pin|LTC4421_PWR_nDISABLE2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOD, MOTOR4_STEP_Pin | MOTOR1_STEP_Pin | MOTOR1_DIR_Pin | LTC4421_PWR_nDISABLE1_Pin
+      | LTC4421_PWR_nDISABLE2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOG, MEM_CS_Pin|PRESS_VDD_EN_Pin|I2C1_RESET_Pin|I2C2_RESET_Pin
-                          |MOTOR1_EN_Pin|PRESS6_EN_Pin|LED3_EN_Pin|ALARM1_HIGH_Pin
-                          |PRESSX_EN_Pin|MOTOR4_DIR_Pin|LED2_EN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOG, PRESS_VDD_EN_Pin | I2C1_RESET_Pin | I2C2_RESET_Pin | MOTOR1_EN_Pin
+      | PRESS6_EN_Pin | LED3_EN_Pin | ALARM1_HIGH_Pin | PRESSX_EN_Pin
+      | MOTOR4_DIR_Pin | LED2_EN_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : SET_PWR_ON_OFF_Pin VSYS_3V3_PGOOD_Pin VSYS_5V0_PGOOD_Pin */
-  GPIO_InitStruct.Pin = SET_PWR_ON_OFF_Pin|VSYS_3V3_PGOOD_Pin|VSYS_5V0_PGOOD_Pin;
+  /*Configure GPIO pins : SET_MANUAL_BREATH_Pin VSYS_3V3_PGOOD_Pin VSYS_5V0_PGOOD_Pin SET_LOCK_Pin */
+  GPIO_InitStruct.Pin = SET_MANUAL_BREATH_Pin | VSYS_3V3_PGOOD_Pin | VSYS_5V0_PGOOD_Pin | SET_LOCK_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : BAT_MEAS_EN_Pin LED1_EN_Pin SET_EXTRA_Pin GPIO3_Pin 
-                           SENSE_O2_EN_Pin MOTOR2_EN_Pin PRESS1_EN_Pin MOTOR2_DIR_Pin 
-                           MOTOR3_DIR_Pin MOTOR2_STEP_Pin MOTOR3_EN_Pin PRESS5_EN_Pin */
-  GPIO_InitStruct.Pin = BAT_MEAS_EN_Pin|LED1_EN_Pin|SET_EXTRA_Pin|GPIO3_Pin 
-                          |SENSE_O2_EN_Pin|MOTOR2_EN_Pin|PRESS1_EN_Pin|MOTOR2_DIR_Pin 
-                          |MOTOR3_DIR_Pin|MOTOR2_STEP_Pin|MOTOR3_EN_Pin|PRESS5_EN_Pin;
+  /*Configure GPIO pins : BAT_MEAS_EN_Pin LED1_EN_Pin GPIO3_Pin SENSE_O2_EN_Pin 
+                           MOTOR2_EN_Pin PRESS1_EN_Pin MOTOR2_DIR_Pin MOTOR3_DIR_Pin 
+                           MOTOR2_STEP_Pin MOTOR3_EN_Pin PRESS5_EN_Pin */
+  GPIO_InitStruct.Pin = BAT_MEAS_EN_Pin | LED1_EN_Pin | GPIO3_Pin | SENSE_O2_EN_Pin
+      | MOTOR2_EN_Pin | PRESS1_EN_Pin | MOTOR2_DIR_Pin | MOTOR3_DIR_Pin
+      | MOTOR2_STEP_Pin | MOTOR3_EN_Pin | PRESS5_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -1458,70 +1566,72 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : BAT_CHARGE_EN_Pin PRESS2_EN_Pin PRESS4_EN_Pin MOTOR4_EN_Pin 
-                           MOTOR3_STEP_Pin PRESS3_EN_Pin */
-  GPIO_InitStruct.Pin = BAT_CHARGE_EN_Pin|PRESS2_EN_Pin|PRESS4_EN_Pin|MOTOR4_EN_Pin 
-                          |MOTOR3_STEP_Pin|PRESS3_EN_Pin;
+  /*Configure GPIO pins : BAT_CHARGE_EN_Pin PRESS2_EN_Pin BMP388_CS_Pin PRESS4_EN_Pin
+                           MOTOR4_EN_Pin MOTOR3_STEP_Pin PRESS3_EN_Pin */
+  GPIO_InitStruct.Pin = BAT_CHARGE_EN_Pin|PRESS2_EN_Pin|BMP388_CS_Pin|PRESS4_EN_Pin
+                          |MOTOR4_EN_Pin|MOTOR3_STEP_Pin|PRESS3_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
 
   /*Configure GPIO pins : ALARM1_MED_Pin BUZZ1_EN_Pin */
-  GPIO_InitStruct.Pin = ALARM1_MED_Pin|BUZZ1_EN_Pin;
+  GPIO_InitStruct.Pin = ALARM1_MED_Pin | BUZZ1_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : GPIO2_Pin GPIO1_Pin LEDR_CNTRL_Pin LEDB_CNTRL_Pin */
-  GPIO_InitStruct.Pin = GPIO2_Pin|GPIO1_Pin|LEDR_CNTRL_Pin|LEDB_CNTRL_Pin;
+  /*Configure GPIO pins : GPIO2_Pin GPIO1_Pin SER_CLK_Pin SER_CLR_N_Pin 
+                           SER_RCLK_Pin */
+  GPIO_InitStruct.Pin = GPIO2_Pin | GPIO1_Pin | SER_CLK_Pin | SER_CLR_N_Pin
+      | SER_RCLK_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LD1_Pin ALARM1_LOW_Pin ALARM2_CNTRL_Pin */
-  GPIO_InitStruct.Pin = LD1_Pin|ALARM1_LOW_Pin|ALARM2_CNTRL_Pin;
+  /*Configure GPIO pins : LD1_Pin ALARM1_LOW_Pin SER_IN_Pin */
+  GPIO_InitStruct.Pin = LD1_Pin | ALARM1_LOW_Pin | SER_IN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : SET_PWR_SRC_Pin */
-  GPIO_InitStruct.Pin = SET_PWR_SRC_Pin;
+  /*Configure GPIO pin : SET_PWR_ON_OFF_Pin */
+  GPIO_InitStruct.Pin = SET_PWR_ON_OFF_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(SET_PWR_SRC_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(SET_PWR_ON_OFF_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LTC4421_PWR_nCH1_Pin LTC4421_PWR_nCH2_Pin SET_LOCK_Pin Mem_Button_Pin */
-  GPIO_InitStruct.Pin = LTC4421_PWR_nCH1_Pin|LTC4421_PWR_nCH2_Pin|SET_LOCK_Pin|Mem_Button_Pin;
+  /*Configure GPIO pins : LTC4421_PWR_nCH1_Pin LTC4421_PWR_nCH2_Pin SET_ALARM_EN_Pin SET_100_O2_Pin */
+  GPIO_InitStruct.Pin = LTC4421_PWR_nCH1_Pin | LTC4421_PWR_nCH2_Pin | SET_ALARM_EN_Pin | SET_100_O2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : MOTOR4_STEP_Pin MOTOR1_STEP_Pin MOTOR1_DIR_Pin LEDG_CNTRL_Pin 
-                           LTC4421_PWR_nDISABLE1_Pin LTC4421_PWR_nDISABLE2_Pin */
-  GPIO_InitStruct.Pin = MOTOR4_STEP_Pin|MOTOR1_STEP_Pin|MOTOR1_DIR_Pin|LEDG_CNTRL_Pin 
-                          |LTC4421_PWR_nDISABLE1_Pin|LTC4421_PWR_nDISABLE2_Pin;
+  /*Configure GPIO pins : MOTOR4_STEP_Pin MOTOR1_STEP_Pin MOTOR1_DIR_Pin LTC4421_PWR_nDISABLE1_Pin 
+                           LTC4421_PWR_nDISABLE2_Pin */
+  GPIO_InitStruct.Pin = MOTOR4_STEP_Pin | MOTOR1_STEP_Pin | MOTOR1_DIR_Pin | LTC4421_PWR_nDISABLE1_Pin
+      | LTC4421_PWR_nDISABLE2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : MEM_CS_Pin PRESS_VDD_EN_Pin I2C1_RESET_Pin I2C2_RESET_Pin
-                           MOTOR1_EN_Pin PRESS6_EN_Pin LED3_EN_Pin ALARM1_HIGH_Pin
-                           PRESSX_EN_Pin MOTOR4_DIR_Pin LED2_EN_Pin */
-  GPIO_InitStruct.Pin = MEM_CS_Pin|PRESS_VDD_EN_Pin|I2C1_RESET_Pin|I2C2_RESET_Pin
-                          |MOTOR1_EN_Pin|PRESS6_EN_Pin|LED3_EN_Pin|ALARM1_HIGH_Pin
-                          |PRESSX_EN_Pin|MOTOR4_DIR_Pin|LED2_EN_Pin;
+  /*Configure GPIO pins : PRESS_VDD_EN_Pin I2C1_RESET_Pin I2C2_RESET_Pin MOTOR1_EN_Pin 
+                           PRESS6_EN_Pin LED3_EN_Pin ALARM1_HIGH_Pin PRESSX_EN_Pin 
+                           MOTOR4_DIR_Pin LED2_EN_Pin */
+  GPIO_InitStruct.Pin = PRESS_VDD_EN_Pin | I2C1_RESET_Pin | I2C2_RESET_Pin | MOTOR1_EN_Pin
+      | PRESS6_EN_Pin | LED3_EN_Pin | ALARM1_HIGH_Pin | PRESSX_EN_Pin
+      | MOTOR4_DIR_Pin | LED2_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LTC4421_PWR_nVALID1_Pin LTC4421_PWR_nVALID2_Pin */
-  GPIO_InitStruct.Pin = LTC4421_PWR_nVALID1_Pin|LTC4421_PWR_nVALID2_Pin;
+  GPIO_InitStruct.Pin = LTC4421_PWR_nVALID1_Pin | LTC4421_PWR_nVALID2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
@@ -1555,8 +1665,10 @@ void Error_Handler(void)
 void assert_failed(uint8_t *file, uint32_t line)
 { 
   /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
-     tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+  /* User can add his own implementation to report the file name and line
+     number,
+     tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line)
+   */
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */

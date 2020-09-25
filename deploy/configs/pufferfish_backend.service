@@ -1,0 +1,14 @@
+[Unit]
+Description=Pufferfish Backend Service
+Requires=nginx.service
+After=nginx.service
+Before=lightdm.service
+
+[Service]
+Type=simple
+User=pi
+ExecStart=/home/pi/.pyenv/versions/ventserver/bin/python3 /home/pi/pufferfish-vent-software/backend/ventserver/simulation.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,140 @@
+name: Firmware Checks
+
+on:
+  push:
+    paths:
+      - 'firmware/**'
+  workflow_dispatch:
+    inputs:
+      git-ref:
+        description: 'Git ref (optional)'
+        required: false
+
+defaults:
+  run:
+    working-directory: firmware/ventilator-controller-stm32
+
+jobs:
+  format:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v1
+      name: Checkout repository
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get install clang-format
+
+    - name: Run clang-format
+      run: |
+        ! ./clang-format-all.sh -dry-run 2>&1 | grep ''
+
+  cppcheck:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get install cppcheck
+
+    - name: Run cppcheck with application
+      run: |
+        mkdir application-cppcheck-build-dir
+        cppcheck --project=application.cppcheck --inline-suppr --enable=all --error-exitcode=1
+
+  build-firmware:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        build-type: [Debug, Release]
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get install gcc-arm-none-eabi cmake
+
+    - name: Run CMake
+      run: |
+        ./cmake.sh ${{ matrix.build-type }}
+
+    - name: Run make
+      run: |
+        cd cmake-build-`echo ${{ matrix.build-type }} | awk '{print tolower($0)}'`
+        make -j2
+
+  scan-build:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        build-type: [Debug, Release, TestCatch2]
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get install gcc-arm-none-eabi cmake
+        sudo apt-get remove -y libllvm10
+        sudo add-apt-repository -y -s 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-10 main'
+        sudo apt-get update
+        sudo apt-get install clang-tools
+
+    - name: Run CMake
+      run: |
+        ./cmake.sh ${{ matrix.build-type }}
+
+    - name: Run scan-build
+      run: |
+        cd cmake-build-`echo ${{ matrix.build-type }} | awk '{print tolower($0)}'`
+        scan-build make -j2
+
+  clang-tidy:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get install gcc-arm-none-eabi cmake
+        sudo apt-get remove -y libllvm10
+        sudo add-apt-repository -y -s 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-10 main'
+        sudo apt-get update
+        sudo apt-get install clang-tidy
+
+    - name: Run CMake
+      run: |
+        ./cmake.sh Clang /usr/lib /usr/bin
+
+    - name: Run clang-tidy
+      run: |
+        ./clang-tidy-all.sh Clang
+
+  catch2:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get install cmake
+
+    - name: Run CMake
+      run: |
+        ./cmake.sh TestCatch2
+
+    - name: Run make
+      run: |
+        cd cmake-build-testcatch2
+        make -j2
+
+    - name: Run Catch2 tests
+      run: |
+        cd cmake-build-testcatch2
+        ./TestCatch2

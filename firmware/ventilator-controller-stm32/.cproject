@@ -248,7 +248,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="Drivers|Core/Inc/Pufferfish/HAL|Core/Src" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
+						<entry excluding="Core/Src/Pufferfish/Driver/I2C|Core/Src/Pufferfish/Driver/Indicators/LEDAlarm.cpp|Core/Src/Pufferfish/Driver/Indicators/AuditoryAlarm.cpp|Core/Src/system_stm32h7xx.c|Core/Src/sysmem.c|Core/Src/syscalls.c|Core/Src/stm32h7xx_it.cpp|Core/Src/stm32h7xx_hal_msp.c|Core/Src/main.cpp|Core/Src/Pufferfish/HAL/STM32|Core/Inc/Pufferfish/HAL/STM32|Drivers" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

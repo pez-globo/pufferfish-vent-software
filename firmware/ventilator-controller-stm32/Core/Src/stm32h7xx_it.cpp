@@ -1,21 +1,21 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file    stm32h7xx_it.c
-  * @brief   Interrupt Service Routines.
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
-  * All rights reserved.</center></h2>
-  *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file    stm32h7xx_it.c
+ * @brief   Interrupt Service Routines.
+ ******************************************************************************
+ * @attention
+ *
+ * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
+ * All rights reserved.</center></h2>
+ *
+ * This software component is licensed by ST under BSD 3-Clause license,
+ * the "License"; You may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at:
+ *                        opensource.org/licenses/BSD-3-Clause
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -23,6 +23,9 @@
 #include "stm32h7xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "Pufferfish/HAL/STM32/BufferedUART.h"
+/* Nonin TODO: Include NoninOEM3.h for UART IRQ handler */
+#include "Pufferfish/Driver/Serial/Nonin/NoninOEM3.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -42,7 +45,8 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
-
+extern volatile Pufferfish::HAL::LargeBufferedUART buffered_uart3;
+extern volatile Pufferfish::Driver::Serial::Nonin::NoninOEMUART oem_uart;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -204,7 +208,7 @@ void SysTick_Handler(void)
 void USART3_IRQHandler(void)
 {
   /* USER CODE BEGIN USART3_IRQn 0 */
-
+  buffered_uart3.handle_irq();
   /* USER CODE END USART3_IRQn 0 */
   HAL_UART_IRQHandler(&huart3);
   /* USER CODE BEGIN USART3_IRQn 1 */
@@ -218,7 +222,7 @@ void USART3_IRQHandler(void)
 void UART4_IRQHandler(void)
 {
   /* USER CODE BEGIN UART4_IRQn 0 */
-
+  oem_uart.handle_irq();
   /* USER CODE END UART4_IRQn 0 */
   HAL_UART_IRQHandler(&huart4);
   /* USER CODE BEGIN UART4_IRQn 1 */

@@ -7,11 +7,11 @@
  *      Author: March Boonyapaluk
  */
 
-#include "stm32h7xx_hal.h"
 #include "Pufferfish/HAL/STM32/Time.h"
 
-namespace Pufferfish {
-namespace HAL {
+#include "stm32h7xx_hal.h"
+
+namespace Pufferfish::HAL {
 
 uint32_t millis() {
   return HAL_GetTick();
@@ -22,37 +22,73 @@ void delay(uint32_t ms) {
 }
 
 // magical sequence to turn on the DWT counter
-// see: https://stackoverflow.com/questions/36378280/stm32-how-to-enable-dwt-cycle-counter
-bool microsDelayInit() {
+// see:
+// https://stackoverflow.com/questions/36378280/stm32-how-to-enable-dwt-cycle-counter
+bool micros_delay_init() {
+  // The following lines suppress Eclipse CDT's warning about C-style casts and
+  // unresolvable fields; these come from the STM32 HAL so we can't do anything
+
   // TRCENA off, just in case
-  CoreDebug->DEMCR &= ~CoreDebug_DEMCR_TRCENA_Msk;
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
+  CoreDebug       // @suppress("C-Style cast instead of C++ cast")
+      ->DEMCR &=  // @suppress("Field cannot be resolved")
+      ~CoreDebug_DEMCR_TRCENA_Msk;
   // TRCENA on
-  CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
+  CoreDebug       // @suppress("C-Style cast instead of C++ cast")
+      ->DEMCR |=  // @suppress("Field cannot be resolved")
+      CoreDebug_DEMCR_TRCENA_Msk;
   // Unlock debugger
-  DWT->LAR = 0xC5ACCE55;
+  static const uint32_t unlock = 0xC5ACCE55;
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
+  DWT->LAR =  // @suppress("C-Style cast instead of C++ cast") // @suppress("Field cannot be resolved")
+      unlock;
   // reset the cycle counter
-  DWT->CYCCNT = 0;
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
+  DWT->CYCCNT =  // @suppress("C-Style cast instead of C++ cast") // @suppress("Field cannot be resolved")
+      0;
   // enable the counter
-  DWT->CTRL |= 1;
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
+  DWT->CTRL |=  // @suppress("C-Style cast instead of C++ cast") // @suppress("Field cannot be resolved")
+      1U;
 
   // do some random works to check that the cycle counter actually working
-  volatile int i;
-  for (i = 2; i < 64; i *= i);
+  static const int limit = 64;
+  volatile int i = 0;
+  for (i = 2; i < limit; i *= i) {
+  }
 
   // verify the cycles
-  return DWT->CYCCNT != 0;
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
+  return DWT->CYCCNT !=  // @suppress("C-Style cast instead of C++ cast") // @suppress("Field cannot be resolved")
+         0;
 }
 
 uint32_t micros() {
-  const uint32_t cyclesPerUs = (HAL_RCC_GetHCLKFreq() / 1000000);
-  return DWT->CYCCNT / cyclesPerUs;
+  const uint32_t cycles_per_us = (HAL_RCC_GetHCLKFreq() / 1000000);
+
+  // The following lines suppress Eclipse CDT's warning about C-style casts and
+  // unresolvable fields; these come from the STM32 HAL so we can't do anything
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
+  return DWT->CYCCNT /  // @suppress("C-Style cast instead of C++ cast") // @suppress("Field cannot be resolved")
+         cycles_per_us;
 }
 
-void delayMicros(uint32_t microseconds) {
-  const uint32_t start = DWT->CYCCNT;
-  microseconds *= HAL_RCC_GetHCLKFreq() / 1000000;
-  while (DWT->CYCCNT - start < microseconds);
+void delay_micros(uint32_t microseconds) {
+  // The following lines suppress Eclipse CDT's warning about C-style casts and
+  // unresolvable fields; these come from the STM32 HAL so we can't do anything
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
+  const uint32_t start =
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
+      DWT->CYCCNT;  // @suppress("C-Style cast instead of C++ cast") // @suppress("Field cannot be resolved")
+  static const uint32_t clock_scale = 1000000;
+  microseconds *= HAL_RCC_GetHCLKFreq() / clock_scale;
+  while (
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
+      DWT->CYCCNT -  // @suppress("Field cannot be resolved") // @suppress("C-Style cast instead of C++ cast")
+          start <
+      microseconds) {
+  }
 }
 
-} /* namespace HAL */
-} /* namespace Pufferfish */
+}  // namespace Pufferfish::HAL

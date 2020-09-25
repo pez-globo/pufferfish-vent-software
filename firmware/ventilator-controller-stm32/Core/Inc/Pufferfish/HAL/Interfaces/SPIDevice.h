@@ -1,14 +1,15 @@
 /*
  * Copyright 2020, the Pez Globo team and the Pufferfish project contributors
  *
- *      Author: 
+ *      Author:
  *
  *  A wrapper for an SPI-based sensor
  */
 
 #pragma once
 
-#include "stm32h7xx_hal.h"
+#include <cstddef>
+#include <cstdint>
 
 #include "Pufferfish/Statuses.h"
 
@@ -35,7 +36,7 @@ class SPIDevice {
    * @return ok on success, error code otherwise
    */
   virtual SPIDeviceStatus write(uint8_t *buf, size_t count) = 0;
-  
+
   /**
    * Write and Read data to and from the device
    * @param txBuf pointer to transmission data buffer
@@ -43,8 +44,13 @@ class SPIDevice {
    * @param count amount of data to be sent and received
    * @return ok on success
    */
-  
-  virtual SPIDeviceStatus writeRead(uint8_t *txBuf, uint8_t *rxBuf, size_t count) = 0;
+  virtual SPIDeviceStatus write_read(uint8_t *tx_buf, uint8_t *rx_buf, size_t count) = 0;
+
+  /**
+   * To make the chip select as high or low
+   * @param cs true(high) or false(low)
+   */
+  virtual void chip_select(bool input) = 0;
 };
 
 }  // namespace HAL

@@ -1,25 +1,25 @@
-import React, { Fragment } from 'react'
-import { connect } from 'react-redux'
-import { createStructuredSelector } from 'reselect'
-import { Grid, Typography } from '@material-ui/core'
-import { StoreState } from '../../../store/types'
+import React, { Fragment } from 'react';
+import { connect } from 'react-redux';
+import { createStructuredSelector } from 'reselect';
+import { Grid, Typography } from '@material-ui/core';
+import { StoreState } from '../../../store/types';
 import {
   getSensorMeasurementsTime,
   getSensorMeasurementsPaw,
   getSensorMeasurementsFlow,
-  getSensorMeasurementsVolume
-} from '../../../store/controller/selectors'
+  getSensorMeasurementsVolume,
+} from '../../../store/controller/selectors';
 
 interface Props {
-  time: number,
-  paw: number,
-  flow: number,
-  volume: number
+  time: number;
+  paw: number;
+  flow: number;
+  volume: number;
 }
 
-export const WaveformInfo = ({ time, paw, flow, volume }: Props) => (
+export const WaveformInfo = ({ time, paw, flow, volume }: Props): JSX.Element => (
   <Grid container item direction="column" alignItems="center" justify="space-evenly">
-    <Fragment>
+    <>
       <Grid item xs={3}>
         <Typography>{time}</Typography>
       </Grid>
@@ -32,15 +32,15 @@ export const WaveformInfo = ({ time, paw, flow, volume }: Props) => (
       <Grid item xs={3}>
         <Typography>{volume}</Typography>
       </Grid>
-    </Fragment>
+    </>
   </Grid>
-)
+);
 
 const selector = createStructuredSelector<StoreState, Props>({
   time: getSensorMeasurementsTime,
   paw: getSensorMeasurementsPaw,
   flow: getSensorMeasurementsFlow,
-  volume: getSensorMeasurementsVolume
-})
+  volume: getSensorMeasurementsVolume,
+});
 
-export default connect(selector)(WaveformInfo)
+export default connect(selector)(WaveformInfo);

@@ -8,7 +8,8 @@
 
 #pragma once
 
-#include "stm32h7xx_hal.h"
+#include <cstddef>
+#include <cstdint>
 
 #include "Pufferfish/Statuses.h"
 
@@ -16,7 +17,8 @@ namespace Pufferfish {
 namespace HAL {
 
 /**
- * An abstract class which represents an arbitrary I2C device with read/write interface
+ * An abstract class which represents an arbitrary I2C device with read/write
+ * interface
  */
 class I2CDevice {
  public:

@@ -9,8 +9,16 @@
 
 #pragma once
 
-#include "Pufferfish/HAL/HAL.h"
 #include "AlarmDevice.h"
+#include "Pufferfish/HAL/HAL.h"
+
+struct LEDAlarmParameters {
+  bool out_high;
+  bool out_med;
+  bool out_low;
+  uint32_t buzzer_pulse_period;
+  uint32_t buzzer_pulse_duty;
+};
 
 namespace Pufferfish {
 namespace Driver {
@@ -28,21 +36,28 @@ class LEDAlarm : public AlarmDevice {
    * @param blue    output for the blue LED
    */
   LEDAlarm(HAL::DigitalOutput &red, HAL::DigitalOutput &green, HAL::DigitalOutput &blue)
-      : mRed(red), mGreen(green), mBlue(blue) {}
+      : red_(red), green_(green), blue_(blue) {}
 
-  AlarmManagerStatus update(uint32_t currentTime) override;
-  AlarmManagerStatus setAlarm(AlarmStatus a) override;
+  AlarmManagerStatus update(uint32_t current_time) override;
+  AlarmManagerStatus set_alarm(AlarmStatus a) override;
+
  private:
-  HAL::DigitalOutput &mRed;
-  HAL::DigitalOutput &mGreen;
-  HAL::DigitalOutput &mBlue;
+  struct Parameters {
+    bool out_red;
+    bool out_green;
+    bool out_blue;
+    uint32_t period;
+  };
 
-  bool mReset = false;
-  bool mOutRed = false, mOutGreen = false, mOutBlue = false;
-  uint32_t mPeriod = 0;
-  uint32_t mLastCycle = 0;
+  HAL::DigitalOutput &red_;
+  HAL::DigitalOutput &green_;
+  HAL::DigitalOutput &blue_;
+
+  bool reset_ = false;
+  Parameters parameters_{false, false, false, 0};
+  uint32_t last_cycle_ = 0;
 };
 
 }  // namespace Indicators
-}  // namespace HAL
+}  // namespace Driver
 }  // namespace Pufferfish

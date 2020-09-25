@@ -39,10 +39,7 @@ async def main() -> None:
     # Initialize State
     all_states = protocol.receive.backend.all_states
     all_states[pb.ParametersRequest] = pb.ParametersRequest(
-        mode=pb.VentilationMode(
-            support=pb.SpontaneousSupport.ac,
-            cycling=pb.VentilationCycling.pc
-        ),
+        mode=pb.VentilationMode.pc_ac,
         pip=30, peep=10, rr=30, ie=1, fio2=60
     )
 

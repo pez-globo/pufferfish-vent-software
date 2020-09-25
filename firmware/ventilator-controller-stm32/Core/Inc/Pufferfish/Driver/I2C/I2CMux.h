@@ -25,13 +25,13 @@ class I2CMux {
    * @param slot    a slot of the mux
    * @return ok if the updating is success, error code otherwise
    */
-  virtual I2CDeviceStatus selectSlot(uint8_t slot) = 0;
+  virtual I2CDeviceStatus select_slot(uint8_t slot) = 0;
 
   /**
    * Gets a current slot multiplexer is in
    * @return current activated slot of the mux, or 0xFF if not connected/unknown
    */
-  virtual uint8_t getCurrentSlot() = 0;
+  [[nodiscard]] virtual uint8_t get_current_slot() const = 0;
 };
 
 }  // namespace I2C

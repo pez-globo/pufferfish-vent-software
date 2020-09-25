@@ -8,15 +8,25 @@
 
 #pragma once
 
-#include "Pufferfish/HAL/Interfaces/I2CDevice.h"
-#include "Pufferfish/HAL/CRC.h"
+#include "CRC.h"
+#include "Types.h"
 
-#include "Pufferfish/HAL/STM32/DigitalInput.h"
-#include "Pufferfish/HAL/STM32/DigitalOutput.h"
-#include "Pufferfish/HAL/STM32/Endian.h"
-#include "Pufferfish/HAL/STM32/HALI2CDevice.h"
-#include "Pufferfish/HAL/STM32/Time.h"
-#include "Pufferfish/HAL/STM32/PWM.h"
-#include "Pufferfish/HAL/STM32/HALSPIDevice.h"
-#include "Pufferfish/HAL/Interfaces/SPIDevice.h"
-#include "Pufferfish/HAL/STM32/AnalogInput.h"
+// Interfaces
+
+#include "Interfaces/AnalogInput.h"
+#include "Interfaces/DigitalOutput.h"
+#include "Interfaces/I2CDevice.h"
+#include "Interfaces/PWM.h"
+#include "Interfaces/SPIDevice.h"
+
+// STM32 HAL
+
+#include "STM32/BufferedUART.h"
+#include "STM32/Endian.h"
+#include "STM32/HALAnalogInput.h"
+#include "STM32/HALDigitalInput.h"
+#include "STM32/HALDigitalOutput.h"
+#include "STM32/HALI2CDevice.h"
+#include "STM32/HALPWM.h"
+#include "STM32/HALSPIDevice.h"
+#include "STM32/Time.h"

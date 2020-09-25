@@ -3,59 +3,47 @@
  *
  * HALSPIDevice.cpp
  *
- *  Created on: 
- *      Author: 
+ *  Created on:
+ *      Author:
  */
 
+#include "Pufferfish/HAL/STM32/HALSPIDevice.h"
+
+#include "Pufferfish/HAL/CRC.h"
 #include "stm32h7xx_hal.h"
 
-#include "Pufferfish/HAL/STM32/HALSPIDevice.h"
-#include "Pufferfish/HAL/CRC.h"
-
-namespace Pufferfish {
-namespace HAL {
+namespace Pufferfish::HAL {
 
 SPIDeviceStatus HALSPIDevice::read(uint8_t *buf, size_t count) {
-  HAL_StatusTypeDef stat = HAL_SPI_Receive(&mDev, buf, count,
-                                                  HALSPIDevice::DefaultTimeout);
+  HAL_StatusTypeDef stat = HAL_SPI_Receive(&dev_, buf, count, HALSPIDevice::default_timeout);
   if (stat == HAL_OK) {
     return SPIDeviceStatus::ok;
-  } else {
-    return SPIDeviceStatus::readError;
   }
+  return SPIDeviceStatus::read_error;
 }
 
 SPIDeviceStatus HALSPIDevice::write(uint8_t *buf, size_t count) {
-  HAL_StatusTypeDef stat = HAL_SPI_Transmit(
-      &mDev, buf, count, HALSPIDevice::DefaultTimeout);
+  HAL_StatusTypeDef stat = HAL_SPI_Transmit(&dev_, buf, count, HALSPIDevice::default_timeout);
   if (stat == HAL_OK) {
     return SPIDeviceStatus::ok;
-  } else {
-    return SPIDeviceStatus::writeError;
   }
+  return SPIDeviceStatus::write_error;
 }
 
-SPIDeviceStatus HALSPIDevice::writeRead(uint8_t *txBuf, uint8_t *rxBuf, size_t count) {
-
-  HAL_StatusTypeDef stat = HAL_SPI_TransmitReceive(
-      &mDev, txBuf, rxBuf, count, HALSPIDevice::DefaultTimeout);
-  if (stat == HAL_OK){
+SPIDeviceStatus HALSPIDevice::write_read(uint8_t *tx_buf, uint8_t *rx_buf, size_t count) {
+  HAL_StatusTypeDef stat =
+      HAL_SPI_TransmitReceive(&dev_, tx_buf, rx_buf, count, HALSPIDevice::default_timeout);
+  if (stat == HAL_OK) {
     return SPIDeviceStatus::ok;
-  } else if(stat == HAL_BUSY) {
-    return SPIDeviceStatus::busy;
-  } else{
-    return SPIDeviceStatus::error;
   }
-
+  if (stat == HAL_BUSY) {
+    return SPIDeviceStatus::busy;
+  }
+  return SPIDeviceStatus::error;
 }
 
-void HALSPIDevice::chipSelect (bool input)
-{
-
-  mCsPin.write(input);
-
+void HALSPIDevice::chip_select(bool input) {
+  cs_pin_.write(input);
 }
 
-
-}  // namespace HAL
-}  // namespace Pufferfish
+}  // namespace Pufferfish::HAL

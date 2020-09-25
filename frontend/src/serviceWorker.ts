@@ -1,3 +1,5 @@
+/* eslint no-underscore-dangle: 0 */
+/* eslint-disable no-lonely-if */
 // This optional code is used to register a service worker.
 // register() is not called by default.
 
@@ -15,9 +17,7 @@ const isLocalhost = Boolean(
     // [::1] is the IPv6 localhost address.
     window.location.hostname === '[::1]' ||
     // 127.0.0.0/8 are considered localhost for IPv4.
-    window.location.hostname.match(
-      /^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/
-    )
+    window.location.hostname.match(/^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/),
 );
 
 type Config = {
@@ -25,13 +25,10 @@ type Config = {
   onUpdate?: (registration: ServiceWorkerRegistration) => void;
 };
 
-export function register(config?: Config) {
+export function register(config?: Config): void {
   if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
     // The URL constructor is available in all browsers that support SW.
-    const publicUrl = new URL(
-      process.env.PUBLIC_URL,
-      window.location.href
-    );
+    const publicUrl = new URL(process.env.PUBLIC_URL, window.location.href);
     if (publicUrl.origin !== window.location.origin) {
       // Our service worker won't work if PUBLIC_URL is on a different origin
       // from what our page is served on. This might happen if a CDN is used to
@@ -49,10 +46,10 @@ export function register(config?: Config) {
         // Add some additional logging to localhost, pointing developers to the
         // service worker/PWA documentation.
         navigator.serviceWorker.ready.then(() => {
-          console.log(
-            'This web app is being served cache-first by a service ' +
-              'worker. To learn more, visit https://bit.ly/CRA-PWA'
-          );
+          // console.log(
+          //   'This web app is being served cache-first by a service ' +
+          //     'worker. To learn more, visit https://bit.ly/CRA-PWA',
+          // );
         });
       } else {
         // Is not localhost. Just register service worker
@@ -65,8 +62,9 @@ export function register(config?: Config) {
 function registerValidSW(swUrl: string, config?: Config) {
   navigator.serviceWorker
     .register(swUrl)
-    .then(registration => {
-      registration.onupdatefound = () => {
+    .then((registration) => {
+      const registrationCopy = registration;
+      registrationCopy.onupdatefound = () => {
         const installingWorker = registration.installing;
         if (installingWorker == null) {
           return;
@@ -77,10 +75,10 @@ function registerValidSW(swUrl: string, config?: Config) {
               // At this point, the updated precached content has been fetched,
               // but the previous service worker will still serve the older
               // content until all client tabs are closed.
-              console.log(
-                'New content is available and will be used when all ' +
-                  'tabs for this page are closed. See https://bit.ly/CRA-PWA.'
-              );
+              // console.log(
+              //   'New content is available and will be used when all ' +
+              //     'tabs for this page are closed. See https://bit.ly/CRA-PWA.',
+              // );
 
               // Execute callback
               if (config && config.onUpdate) {
@@ -90,7 +88,7 @@ function registerValidSW(swUrl: string, config?: Config) {
               // At this point, everything has been precached.
               // It's the perfect time to display a
               // "Content is cached for offline use." message.
-              console.log('Content is cached for offline use.');
+              // console.log('Content is cached for offline use.');
 
               // Execute callback
               if (config && config.onSuccess) {
@@ -101,17 +99,17 @@ function registerValidSW(swUrl: string, config?: Config) {
         };
       };
     })
-    .catch(error => {
-      console.error('Error during service worker registration:', error);
+    .catch((error) => {
+      // console.error('Error during service worker registration:', error);
     });
 }
 
 function checkValidServiceWorker(swUrl: string, config?: Config) {
   // Check if the service worker can be found. If it can't reload the page.
   fetch(swUrl, {
-    headers: { 'Service-Worker': 'script' }
+    headers: { 'Service-Worker': 'script' },
   })
-    .then(response => {
+    .then((response) => {
       // Ensure service worker exists, and that we really are getting a JS file.
       const contentType = response.headers.get('content-type');
       if (
@@ -119,7 +117,7 @@ function checkValidServiceWorker(swUrl: string, config?: Config) {
         (contentType != null && contentType.indexOf('javascript') === -1)
       ) {
         // No service worker found. Probably a different app. Reload the page.
-        navigator.serviceWorker.ready.then(registration => {
+        navigator.serviceWorker.ready.then((registration) => {
           registration.unregister().then(() => {
             window.location.reload();
           });
@@ -130,20 +128,18 @@ function checkValidServiceWorker(swUrl: string, config?: Config) {
       }
     })
     .catch(() => {
-      console.log(
-        'No internet connection found. App is running in offline mode.'
-      );
+      // console.log('No internet connection found. App is running in offline mode.');
     });
 }
 
-export function unregister() {
+export function unregister(): void {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.ready
-      .then(registration => {
+      .then((registration) => {
         registration.unregister();
       })
-      .catch(error => {
-        console.error(error.message);
+      .catch((error) => {
+        // console.error(error.message);
       });
   }
 }

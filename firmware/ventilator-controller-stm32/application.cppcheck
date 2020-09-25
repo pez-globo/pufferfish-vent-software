@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="1">
+    <builddir>application-cppcheck-build-dir</builddir>
+    <platform>arm32-wchar_t2.xml</platform>
+    <analyze-all-vs-configs>false</analyze-all-vs-configs>
+    <check-headers>false</check-headers>
+    <check-unused-templates>false</check-unused-templates>
+    <max-ctu-depth>10</max-ctu-depth>
+    <includedir>
+        <dir name="Core/Inc"/>
+        <dir name="Drivers/STM32H7xx_HAL_Driver/Inc"/>
+        <dir name="Drivers/CMSIS/Device/ST/STM32H7xx/Include"/>
+    </includedir>
+    <paths>
+        <dir name="Core/Inc"/>
+        <dir name="Core/Src"/>
+    </paths>
+    <exclude>
+        <path name="Core/Src/system_stm32h7xx.c"/>
+        <path name="Core/Src/stm32h7xx_hal_msp.c"/>
+        <path name="Core/Src/syscalls.c"/>
+        <path name="Core/Src/sysmem.c"/>
+    </exclude>
+    <suppressions>
+        <suppression>missingIncludeSystem</suppression>
+        <suppression>unusedFunction</suppression>
+    </suppressions>
+    <addons>
+        <addon>cert</addon>
+    </addons>
+</project>
