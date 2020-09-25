@@ -133,9 +133,9 @@ export const ToolBar = (): JSX.Element => {
         >
           <Grid container item xs justify="flex-end" alignItems="center">
             <span className={classes.paddingRight}>{`100${PERCENT}`}</span>
-            <PowerFullIcon style={{ fontSize: '2.5rem' }} />
+            <PowerFullIcon style={{ fontSize: '4rem' }} />
             <span className={classes.paddingRight}>{clockTime}</span>
-            <ClockIcon style={{ fontSize: '2.5rem' }} />
+            <ClockIcon style={{ fontSize: '4rem' }} />
           </Grid>
           <Grid item>{StartPauseButton}</Grid>
         </Grid>

@@ -72,7 +72,7 @@ export const Axes = ({
         x={margin.left / 3}
         y={margin.top / 2}
         fill={theme.typography.body1.color}
-        fontSize={28}
+        fontSize={30}
       >
         {title}
       </text>
@@ -81,7 +81,7 @@ export const Axes = ({
         y={margin.top / 2}
         fill={theme.typography.body1.color}
         opacity={0.8}
-        fontSize={18}
+        fontSize={22}
       >
         - {units}
       </text>
@@ -110,7 +110,7 @@ export const Axes = ({
           labelProps={{
             fill: 'rgba(255,255,255,0)',
             textAnchor: 'middle',
-            fontSize: 12,
+            fontSize: 18,
           }}
           stroke="rgba(255,255,255,0)"
           tickStroke="rgba(255,255,255,0)"
@@ -118,7 +118,7 @@ export const Axes = ({
             fill: theme.typography.body1.color,
             opacity: 0.5,
             textAnchor: 'end',
-            fontSize: 10,
+            fontSize: 15,
             dx: '-0.25em',
             dy: '0.25em',
           })}
@@ -134,7 +134,7 @@ export const Axes = ({
           tickLabelProps={() => ({
             fill: theme.typography.body1.color,
             opacity: 0.5,
-            fontSize: 14,
+            fontSize: 20,
             textAnchor: 'start',
           })}
           label="Time"

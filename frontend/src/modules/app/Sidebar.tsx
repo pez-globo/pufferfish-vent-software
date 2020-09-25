@@ -54,7 +54,7 @@ const Sidebar = (): JSX.Element => {
           disableElevation
         >
           <div>
-            <SCREENSAVER_ROUTE.icon style={{ fontSize: '1.5rem', width: '100%' }} />
+            <SCREENSAVER_ROUTE.icon style={{ fontSize: '2rem', width: '100%' }} />
             <br />
             <Typography variant="subtitle2" align="center">
               {SCREENSAVER_ROUTE.label}

@@ -31,7 +31,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     // border: '1px solid yellow',
   },
   valueLabel: {
-    fontSize: '5rem',
+    fontSize: '7.5rem',
     // border: '1px solid red',
   },
   unitsLabel: {
