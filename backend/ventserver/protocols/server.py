@@ -23,7 +23,7 @@ class ReceiveEvent(events.Event):
     time: Optional[float] = attr.ib(default=None)
     serial_receive: Optional[bytes] = attr.ib(default=None)
     websocket_receive: Optional[bytes] = attr.ib(default=None)
-    rotary_encoder_receive: Optional[Tuple[int, bool]] = attr.ib(default=None)
+    rotary_encoder_receive: Tuple[int, bool] = attr.ib(default=None)
 
     def has_data(self) -> bool:
         """Return whether the event has data."""
@@ -62,7 +62,7 @@ class SendOutputEvent(events.Event):
 
 def make_serial_receive(
         serial_receive: bytes,
-        time: Optional[float] = None
+        time: float
     ) -> ReceiveEvent:
     """Make a ReceiveEvent from serial receive data."""
     return ReceiveEvent(serial_receive=serial_receive, time=time)
@@ -70,7 +70,7 @@ def make_serial_receive(
 
 def make_websocket_receive(
         ws_receive: bytes,
-        time: Optional[float] = None
+        time: float
     ) -> ReceiveEvent:
     """Make a ReceiveEvent from websocket receive data."""
     return ReceiveEvent(websocket_receive=ws_receive, time=time)
@@ -196,7 +196,7 @@ class ReceiveFilter(protocols.Filter[ReceiveEvent, ReceiveOutputEvent]):
         This is just a convenience function intended for writing unit tests
         more concisely.
         """
-        self.input(make_serial_receive(serial_receive))
+        self.input(make_serial_receive(serial_receive, self.current_time))
 
     def input_websocket(self, websocket: bytes) -> None:
         """Input a ReceiveEvent corresponding to websocket data.
@@ -204,7 +204,7 @@ class ReceiveFilter(protocols.Filter[ReceiveEvent, ReceiveOutputEvent]):
         This is just a convenience function intended for writing unit tests
         more concisely.
         """
-        self.input(make_websocket_receive(websocket))
+        self.input(make_websocket_receive(websocket, self.current_time))
 
     @property
     def backend(self) -> backend.ReceiveFilter:

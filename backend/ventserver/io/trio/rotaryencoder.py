@@ -5,7 +5,7 @@ from typing import Optional, Tuple
 import attr
 
 import trio
-import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO     # type: ignore
 
 from ventserver.io import rotaryencoder
 from ventserver.io.trio import endpoints
@@ -127,10 +127,7 @@ class Driver(endpoints.IOEndpoint[bytes, Tuple[int, bool]]):
 
          Raises:
             """
-        try:
-            GPIO.cleanup([self._props.a_quad_pin, self._props.b_quad_pin])
-        except Exception:
-            pass #raise()
+        GPIO.cleanup([self._props.a_quad_pin, self._props.b_quad_pin])
 
 
     async def receive(self) -> Tuple[int, bool]:

@@ -17,7 +17,7 @@ class ReceiveEvent(events.Event):
     """Rotary encoder input receive event"""
 
     time: float = attr.ib(default=None)
-    re_data: Optional[Tuple[int, bool]] = attr.ib(default=None)
+    re_data: Tuple[int, bool] = attr.ib(default=None)
 
     def has_data(self) -> bool:
         """Return whether the event has data."""

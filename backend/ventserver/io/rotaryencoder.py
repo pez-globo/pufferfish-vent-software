@@ -1,7 +1,7 @@
 """" Support for Rotary Encoder communication """
 
 import attr
-import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO     # type: ignore
 
 
 @attr.s(auto_attribs=True)

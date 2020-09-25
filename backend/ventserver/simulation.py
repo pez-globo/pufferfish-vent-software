@@ -2,6 +2,7 @@
 
 import random
 import time
+import functools
 import typing
 from typing import Mapping, Optional, Type
 
@@ -341,9 +342,10 @@ async def main() -> None:
         async with channel.push_endpoint:
             async with trio.open_nursery() as nursery:
                 nursery.start_soon(
-                    _trio.process_all, protocol, None,
-                    websocket_endpoint, rotary_encoder, channel,
-                    channel.push_endpoint
+                    functools.partial(_trio.process_all,
+                                      channel=channel,
+                                      push_endpoint=channel.push_endpoint),
+                    protocol, None, websocket_endpoint, rotary_encoder
                 )
                 nursery.start_soon(simulate_states, all_states)
 
