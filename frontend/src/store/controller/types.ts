@@ -8,7 +8,7 @@ import {
   Announcement,
   AlarmLimitsRequest,
 } from './proto/mcu_pb';
-import { RotaryEncoder, SystemSettingRequest, FrontendDisplaySetting } from './proto/frontend_pb';
+import { SystemSettingRequest, FrontendDisplaySetting, RotaryEncoder } from './proto/frontend_pb';
 
 // Action Types
 
@@ -17,6 +17,18 @@ export const PARAMETER_COMMITTED = '@controller/PARAMETER_COMMITTED';
 export const ALARM_LIMITS = 'ALARM_LIMITS';
 export const FRONTEND_DISPLAY_SETTINGS = 'FRONTEND_DISPLAY_SETTINGS';
 export const SYSTEM_SETTINGS = 'SYSTEM_SETTINGS';
+
+
+// Rotary encoder overriden params
+
+export interface RotaryEncoderParameter {
+  step: number;
+  lastStepChange: number;
+  buttonPressed: boolean;
+  lastButtonDown: number;
+  lastButtonUp: number;
+  stepDiff: number
+}
 
 // Protocol Buffers
 
@@ -33,7 +45,8 @@ export type PBMessage =
   | Ping
   | Announcement
   // frontend_pb
-  | RotaryEncoder;
+  | RotaryEncoder
+  | RotaryEncoderParameter;
 
 export type PBMessageType =
   | // mcu_pb
@@ -108,7 +121,7 @@ export interface ControllerStates {
   announcement: Announcement;
 
   // Message states from frontend_pb
-  rotaryEncoder: RotaryEncoder;
+  rotaryEncoder: RotaryEncoderParameter;
 
   // Derived states
   waveformHistoryPaw: WaveformHistory;

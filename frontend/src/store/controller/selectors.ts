@@ -12,7 +12,7 @@ import {
   VentilationMode,
 } from './proto/mcu_pb';
 import { RotaryEncoder, FrontendDisplaySetting, SystemSettingRequest } from './proto/frontend_pb';
-import { ControllerStates, WaveformPoint, WaveformHistory, PVPoint, PVHistory } from './types';
+import { ControllerStates, WaveformPoint, WaveformHistory, PVPoint, PVHistory, RotaryEncoderParameter } from './types';
 
 export const getController = ({ controller }: StoreState): ControllerStates => controller;
 
@@ -138,7 +138,7 @@ export const getAnnouncement = createSelector(
 // RotaryEncoder
 export const getRotaryEncoder = createSelector(
   getController,
-  (states: ControllerStates): RotaryEncoder => states.rotaryEncoder,
+  (states: ControllerStates): RotaryEncoderParameter => states.rotaryEncoder,
 );
 
 // Waveforms

@@ -32,7 +32,7 @@ import {
   ALARM_LIMITS,
   FRONTEND_DISPLAY_SETTINGS,
   SYSTEM_SETTINGS,
-  commitAction,
+  commitAction, RotaryEncoderParameter
 } from './types';
 import DECIMAL_RADIX from '../../modules/app/AppConstants';
 
@@ -58,9 +58,9 @@ const messageReducer = <T extends PBMessage>(
   }
 };
 
-const calculateStepDiff = (oldState: RotaryEncoder, newState: RotaryEncoder): RotaryEncoder => {
+const calculateStepDiff = (oldState: RotaryEncoder, newState: RotaryEncoder): RotaryEncoderParameter => {
   const stepDiff = newState.step - oldState.step;
-  const stateCopy = { ...newState };
+  const stateCopy = { ...newState } as RotaryEncoderParameter;
   stateCopy.stepDiff = stepDiff;
   return stateCopy;
 };
@@ -312,7 +312,7 @@ export const controllerReducer = combineReducers({
   announcement: messageReducer<Announcement>(MessageType.Announcement, Announcement),
 
   // Message states from frontend_pb
-  rotaryEncoder: messageReducer<RotaryEncoder>(MessageType.RotaryEncoder, RotaryEncoder),
+  rotaryEncoder: messageReducer<RotaryEncoderParameter>(MessageType.RotaryEncoder, RotaryEncoder),
 
   // Derived states
   waveformHistoryPaw: waveformHistoryReducer<SensorMeasurements>(

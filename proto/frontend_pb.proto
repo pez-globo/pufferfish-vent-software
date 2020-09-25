@@ -6,7 +6,6 @@ message RotaryEncoder {
   bool button_pressed = 3;
   float last_button_down = 4;
   float last_button_up = 5;
-  uint32 step_diff = 6;
 }
 
 enum Unit {

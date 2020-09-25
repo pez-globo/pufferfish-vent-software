@@ -8,7 +8,6 @@ export interface RotaryEncoder {
   buttonPressed: boolean;
   lastButtonDown: number;
   lastButtonUp: number;
-  stepDiff: number;
 }
 
 export interface FrontendDisplaySetting {
@@ -27,7 +26,6 @@ const baseRotaryEncoder: object = {
   buttonPressed: false,
   lastButtonDown: 0,
   lastButtonUp: 0,
-  stepDiff: 0,
 };
 
 const baseFrontendDisplaySetting: object = {
@@ -111,7 +109,6 @@ export const RotaryEncoder = {
     writer.uint32(24).bool(message.buttonPressed);
     writer.uint32(37).float(message.lastButtonDown);
     writer.uint32(45).float(message.lastButtonUp);
-    writer.uint32(48).uint32(message.stepDiff);
     return writer;
   },
   decode(input: Uint8Array | Reader, length?: number): RotaryEncoder {
@@ -135,9 +132,6 @@ export const RotaryEncoder = {
           break;
         case 5:
           message.lastButtonUp = reader.float();
-          break;
-        case 6:
-          message.stepDiff = reader.uint32();
           break;
         default:
           reader.skipType(tag & 7);
@@ -173,11 +167,6 @@ export const RotaryEncoder = {
     } else {
       message.lastButtonUp = 0;
     }
-    if (object.stepDiff !== undefined && object.stepDiff !== null) {
-      message.stepDiff = Number(object.stepDiff);
-    } else {
-      message.stepDiff = 0;
-    }
     return message;
   },
   fromPartial(object: DeepPartial<RotaryEncoder>): RotaryEncoder {
@@ -207,11 +196,6 @@ export const RotaryEncoder = {
     } else {
       message.lastButtonUp = 0;
     }
-    if (object.stepDiff !== undefined && object.stepDiff !== null) {
-      message.stepDiff = object.stepDiff;
-    } else {
-      message.stepDiff = 0;
-    }
     return message;
   },
   toJSON(message: RotaryEncoder): unknown {
@@ -221,7 +205,6 @@ export const RotaryEncoder = {
     obj.buttonPressed = message.buttonPressed || false;
     obj.lastButtonDown = message.lastButtonDown || 0;
     obj.lastButtonUp = message.lastButtonUp || 0;
-    obj.stepDiff = message.stepDiff || 0;
     return obj;
   },
 };
