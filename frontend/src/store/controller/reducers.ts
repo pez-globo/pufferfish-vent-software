@@ -32,7 +32,8 @@ import {
   ALARM_LIMITS,
   FRONTEND_DISPLAY_SETTINGS,
   SYSTEM_SETTINGS,
-  commitAction, RotaryEncoderParameter
+  commitAction,
+  RotaryEncoderParameter,
 } from './types';
 import DECIMAL_RADIX from '../../modules/app/AppConstants';
 
@@ -58,7 +59,10 @@ const messageReducer = <T extends PBMessage>(
   }
 };
 
-const calculateStepDiff = (oldState: RotaryEncoder, newState: RotaryEncoder): RotaryEncoderParameter => {
+const calculateStepDiff = (
+  oldState: RotaryEncoder,
+  newState: RotaryEncoder,
+): RotaryEncoderParameter => {
   const stepDiff = newState.step - oldState.step;
   const stateCopy = { ...newState } as RotaryEncoderParameter;
   stateCopy.stepDiff = stepDiff;

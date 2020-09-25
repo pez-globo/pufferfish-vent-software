@@ -18,7 +18,6 @@ export const ALARM_LIMITS = 'ALARM_LIMITS';
 export const FRONTEND_DISPLAY_SETTINGS = 'FRONTEND_DISPLAY_SETTINGS';
 export const SYSTEM_SETTINGS = 'SYSTEM_SETTINGS';
 
-
 // Rotary encoder overriden params
 
 export interface RotaryEncoderParameter {
@@ -27,7 +26,7 @@ export interface RotaryEncoderParameter {
   buttonPressed: boolean;
   lastButtonDown: number;
   lastButtonUp: number;
-  stepDiff: number
+  stepDiff: number;
 }
 
 // Protocol Buffers
