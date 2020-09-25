@@ -7,7 +7,6 @@
  *      Author: March Boonyapaluk
  */
 
-#include "stm32h7xx_hal.h"
 #include "Pufferfish/HAL/STM32/Time.h"
 
 namespace Pufferfish {

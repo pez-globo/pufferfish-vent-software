@@ -1,18 +1,18 @@
 """Sans-I/O MCU device communication protocol."""
 
 import logging
-from typing import Optional
+from typing import Mapping, Optional, Type
 
 import attr
 
 import betterproto
 
-from ventserver.protocols import application
 from ventserver.protocols import datagrams
 from ventserver.protocols import exceptions
 from ventserver.protocols import frames
 from ventserver.protocols import messages
 from ventserver.protocols import crcelements
+from ventserver.protocols.protobuf import mcu_pb
 from ventserver.sansio import protocols
 
 
@@ -21,6 +21,24 @@ from ventserver.sansio import protocols
 
 LowerEvent = bytes
 UpperEvent = betterproto.Message
+
+
+# Types
+
+
+MESSAGE_CLASSES: Mapping[int, Type[betterproto.Message]] = {
+    1: mcu_pb.Alarms,
+    2: mcu_pb.SensorMeasurements,
+    3: mcu_pb.CycleMeasurements,
+    4: mcu_pb.Parameters,
+    5: mcu_pb.ParametersRequest,
+    6: mcu_pb.Ping,
+    7: mcu_pb.Announcement
+}
+
+MESSAGE_TYPES: Mapping[Type[betterproto.Message], int] = {
+    pb_class: type for (type, pb_class) in MESSAGE_CLASSES.items()
+}
 
 
 # Filters
@@ -45,9 +63,7 @@ class ReceiveFilter(protocols.Filter[LowerEvent, UpperEvent]):
     @_message_receiver.default
     def init_message_receiver(self) -> messages.MessageReceiver:  # pylint: disable=no-self-use
         """Initialize the mcu message receiver."""
-        return messages.MessageReceiver(
-            message_classes=application.MCU_MESSAGE_CLASSES
-        )
+        return messages.MessageReceiver(message_classes=MESSAGE_CLASSES)
 
     def input(self, event: Optional[LowerEvent]) -> None:
         """Handle input events."""
@@ -113,9 +129,7 @@ class SendFilter(protocols.Filter[UpperEvent, LowerEvent]):
     @_message_sender.default
     def init_message_sender(self) -> messages.MessageSender:  # pylint: disable=no-self-use
         """Initialize the message sender."""
-        return messages.MessageSender(
-            message_types=application.MCU_MESSAGE_TYPES
-        )
+        return messages.MessageSender(message_types=MESSAGE_TYPES)
 
     def input(self, event: Optional[UpperEvent]) -> None:
         """Handle input events."""

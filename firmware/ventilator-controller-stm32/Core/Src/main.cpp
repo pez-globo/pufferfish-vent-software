@@ -37,6 +37,8 @@
 #include "Pufferfish/Driver/I2C/SFM3000.h"
 #include "Pufferfish/Driver/I2C/TCA9548A.h"
 #include "Pufferfish/Statuses.h"
+#include "Pufferfish/Driver/Serial/Nonin/NoninOEM3.h"
+#include "Pufferfish/Driver/Button/Button.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -84,8 +86,17 @@ static const uint32_t adcPollTimeout = 10;
 
 namespace PF = Pufferfish;
 
+/* NoninOEM TODO: Creating an object for UART for Nonin OEM interface */
+volatile PF::Driver::Serial::Nonin::NoninOEMUART oemUART(huart4);
+/* NoninOEM TODO: Creating an object for NoninOEM */
+PF::Driver::Serial::Nonin::NoninOEM oemobj(oemUART);
+/* NoninOEM TODO: Packet measurements */
+PF::Driver::Serial::Nonin::PacketMeasurements testSensorMeasurements;
+/* NoninOEM TODO: status byte error */
+PF::Driver::Serial::Nonin::StatusByteError frameErrorStatus;
+
 /* Create an object for ADC3 of AnalogInput Class */
-PF::HAL::AnalogInput ADC3Input(hadc3, adcPollTimeout);
+PF::HAL::HALAnalogInput ADC3Input(hadc3, adcPollTimeout);
 
 PF::HAL::HALDigitalOutput boardLed1(*LD1_GPIO_Port, LD1_Pin);
 
@@ -109,39 +120,43 @@ PF::HAL::HALDigitalOutput alarmRegHigh(*ALARM1_HIGH_GPIO_Port, ALARM1_HIGH_Pin);
 PF::HAL::HALDigitalOutput alarmRegMed(*ALARM1_MED_GPIO_Port, ALARM1_MED_Pin);
 PF::HAL::HALDigitalOutput alarmRegLow(*ALARM1_LOW_GPIO_Port, ALARM1_LOW_Pin);
 PF::HAL::HALDigitalOutput alarmBuzzer(*BUZZ1_EN_GPIO_Port, BUZZ1_EN_Pin);
+PF::HAL::HALDigitalInput inputButton(*Mem_Button_GPIO_Port, Mem_Button_Pin);
 
+PF::Driver::Button::Debouncer switchDebounce;
+PF::Driver::Button::EdgeDetector switchTransition;
+PF::Driver::Button::Button buttonMembrane(inputButton,switchDebounce);
 PF::Driver::Indicators::LEDAlarm alarmDevLed(alarmLedR, alarmLedG, alarmLedB);
 PF::Driver::Indicators::AuditoryAlarm alarmDevSound(alarmRegHigh, alarmRegMed, alarmRegLow, alarmBuzzer);
 PF::AlarmsManager hAlarms(alarmDevLed, alarmDevSound);
 
 // Buttons
-PF::HAL::DigitalInput buttonAlarmEn(*SET_ALARM_EN_GPIO_Port, SET_ALARM_EN_Pin,
+PF::HAL::HALDigitalInput buttonAlarmEn(*SET_ALARM_EN_GPIO_Port, SET_ALARM_EN_Pin,
                                     true);
-PF::HAL::DigitalInput buttonFullO2(*SET_100_O2_GPIO_Port, SET_100_O2_Pin, true);
-PF::HAL::DigitalInput buttonManualBreath(*SET_MANUAL_BREATH_GPIO_Port,
+PF::HAL::HALDigitalInput buttonFullO2(*SET_100_O2_GPIO_Port, SET_100_O2_Pin, true);
+PF::HAL::HALDigitalInput buttonManualBreath(*SET_MANUAL_BREATH_GPIO_Port,
                                          SET_MANUAL_BREATH_Pin,
                                          true);
-PF::HAL::DigitalInput buttonLock(*SET_LOCK_GPIO_Port, SET_LOCK_Pin, true);
+PF::HAL::HALDigitalInput buttonLock(*SET_LOCK_GPIO_Port, SET_LOCK_Pin, true);
 
-PF::HAL::DigitalInput buttonPwrOnOff(*SET_PWR_ON_OFF_GPIO_Port,
+PF::HAL::HALDigitalInput buttonPwrOnOff(*SET_PWR_ON_OFF_GPIO_Port,
                                      SET_PWR_ON_OFF_Pin,
                                      true);
 
 // Solenoid Valves
-PF::HAL::PWM drive1_ch1(htim2, TIM_CHANNEL_4);
-PF::HAL::PWM drive1_ch2(htim2, TIM_CHANNEL_2);
-PF::HAL::PWM drive1_ch3(htim3, TIM_CHANNEL_4);
-PF::HAL::PWM drive1_ch4(htim3, TIM_CHANNEL_1);
-PF::HAL::PWM drive1_ch5(htim3, TIM_CHANNEL_2);
-PF::HAL::PWM drive1_ch6(htim3, TIM_CHANNEL_3);
-PF::HAL::PWM drive1_ch7(htim4, TIM_CHANNEL_2);
-PF::HAL::PWM drive2_ch1(htim4, TIM_CHANNEL_3);
-PF::HAL::PWM drive2_ch2(htim4, TIM_CHANNEL_4);
-PF::HAL::PWM drive2_ch3(htim5, TIM_CHANNEL_1);
-PF::HAL::PWM drive2_ch4(htim8, TIM_CHANNEL_1);
-PF::HAL::PWM drive2_ch5(htim8, TIM_CHANNEL_2);
-PF::HAL::PWM drive2_ch6(htim8, TIM_CHANNEL_4);
-PF::HAL::PWM drive2_ch7(htim12, TIM_CHANNEL_2);
+PF::HAL::HALPWM drive1_ch1(htim2, TIM_CHANNEL_4);
+PF::HAL::HALPWM drive1_ch2(htim2, TIM_CHANNEL_2);
+PF::HAL::HALPWM drive1_ch3(htim3, TIM_CHANNEL_4);
+PF::HAL::HALPWM drive1_ch4(htim3, TIM_CHANNEL_1);
+PF::HAL::HALPWM drive1_ch5(htim3, TIM_CHANNEL_2);
+PF::HAL::HALPWM drive1_ch6(htim3, TIM_CHANNEL_3);
+PF::HAL::HALPWM drive1_ch7(htim4, TIM_CHANNEL_2);
+PF::HAL::HALPWM drive2_ch1(htim4, TIM_CHANNEL_3);
+PF::HAL::HALPWM drive2_ch2(htim4, TIM_CHANNEL_4);
+PF::HAL::HALPWM drive2_ch3(htim5, TIM_CHANNEL_1);
+PF::HAL::HALPWM drive2_ch4(htim8, TIM_CHANNEL_1);
+PF::HAL::HALPWM drive2_ch5(htim8, TIM_CHANNEL_2);
+PF::HAL::HALPWM drive2_ch6(htim8, TIM_CHANNEL_4);
+PF::HAL::HALPWM drive2_ch7(htim12, TIM_CHANNEL_2);
 
 // Base I2C Devices
 PF::HAL::HALI2CDevice i2c_hal_mux1(hi2c1, PF::Driver::I2C::TCA9548A::defaultI2CAddr);
@@ -272,6 +287,18 @@ int main(void)
    */
   uint32_t ADC3Data;
   
+  /* Nonin TODO: Local variable to count packets of data received */
+  uint32_t packetCount;
+  /* Nonin TODO */
+  uint32_t currentTime;
+  /* Nonin TODO */
+  uint32_t testcaseResults[4] = {false};
+
+  PF::Driver::Button::EdgeState state;
+  bool memButtonstate = false;
+  /* TODO: Added for testing Nonin OEM III */
+  PF::Driver::Serial::Nonin::NoninOEM::NoninPacketStatus returnStatus;
+
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -312,6 +339,9 @@ int main(void)
   /* USER CODE BEGIN 2 */
   PF::HAL::microsDelayInit();
   interface_test_millis = PF::HAL::millis();
+  /* Nonin TODO: setupIRQ of BufferredUART for setting the UART reception */
+  oemUART.setupIRQ();
+
   /* Start the ADC3 by invoking AnalogInput::Start() */
   ADC3Input.start();
 
@@ -321,6 +351,35 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1) {
+
+    /* Nonin TODO: Invoking the NoninOEM output method */
+    returnStatus = oemobj.output(testSensorMeasurements);
+    if(returnStatus == PF::Driver::Serial::Nonin::NoninOEM::NoninPacketStatus::available ) {
+      packetCount = packetCount + 1;
+
+      /// Nonin TODO: Test Scenario 1 On sensor disconnected from Nonin OEM III module
+      if(packetCount == 1) {
+        testcaseResults[0] = testSensorMeasurements.sensorDisconnect[0] == true? true : false;
+      }
+
+      /// Nonin TODO: Test Scenario 2 On sensor connected to Nonin OEM III module and
+      /// no contact with  finger clip sensor
+      if(packetCount == 1) {
+        testcaseResults[1] = testSensorMeasurements.sensorAlarm[0] == true? true : false;
+      }
+      /// Nonin TODO: Test Scenario 3 Time validation for 15 frames is 5 seconds
+      if(packetCount == 1) {
+        currentTime = PF::HAL::millis();
+      }
+      if(packetCount == 16) {
+        currentTime = PF::HAL::millis() - currentTime;
+        /* Validate time for 5000 milli-seconds */
+        testcaseResults[2] = (currentTime >= 5000 && currentTime < 5100)? true:false;
+      }
+    }
+    /* Nonin TODO : Added to resolve warnings */
+    testcaseResults[3] = testcaseResults[2] == true? true:false;
+
     boardLed1.write(false);
     PF::HAL::delay(5);
     boardLed1.write(true);
@@ -362,7 +421,11 @@ int main(void)
     {
       /* Else statements*/
     }
-
+  buttonMembrane.readState(memButtonstate, state);
+  if(state != PF::Driver::Button::EdgeState::risingEdge){
+    boardLed1.write(true);
+    PF::HAL::delay(5);
+  }
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -1091,7 +1154,7 @@ static void MX_UART4_Init(void)
 
   /* USER CODE END UART4_Init 1 */
   huart4.Instance = UART4;
-  huart4.Init.BaudRate = 115200;
+  huart4.Init.BaudRate = 9600;
   huart4.Init.WordLength = UART_WORDLENGTH_8B;
   huart4.Init.StopBits = UART_STOPBITS_1;
   huart4.Init.Parity = UART_PARITY_NONE;
@@ -1101,7 +1164,7 @@ static void MX_UART4_Init(void)
   huart4.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
   huart4.Init.ClockPrescaler = UART_PRESCALER_DIV1;
   huart4.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-  if (HAL_HalfDuplex_Init(&huart4) != HAL_OK)
+  if (HAL_UART_Init(&huart4) != HAL_OK)
   {
     Error_Handler();
   }

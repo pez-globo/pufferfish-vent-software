@@ -8,30 +8,30 @@ import attr
 
 import betterproto
 
-from ventserver.protocols import application
 from ventserver.protocols import events
 from ventserver.protocols import exceptions
 from ventserver.protocols import frontend
 from ventserver.protocols import mcu
+from ventserver.protocols.application import states
 from ventserver.protocols.protobuf import frontend_pb, mcu_pb
 from ventserver.sansio import channels
 from ventserver.sansio import protocols
 
 
 MCU_SYNCHRONIZER_SCHEDULE = collections.deque([
-    application.ScheduleEntry(time=0.05, type=mcu_pb.ParametersRequest),
+    states.ScheduleEntry(time=0.05, type=mcu_pb.ParametersRequest),
 ])
 
 FRONTEND_SYNCHRONIZER_SCHEDULE = collections.deque([
-    application.ScheduleEntry(time=0.01, type=mcu_pb.SensorMeasurements),
-    application.ScheduleEntry(time=0.01, type=mcu_pb.Parameters),
-    application.ScheduleEntry(time=0.01, type=mcu_pb.Alarms),
-    application.ScheduleEntry(time=0.01, type=mcu_pb.SensorMeasurements),
-    application.ScheduleEntry(time=0.01, type=frontend_pb.RotaryEncoder),
-    application.ScheduleEntry(time=0.01, type=mcu_pb.Alarms),
-    application.ScheduleEntry(time=0.01, type=mcu_pb.SensorMeasurements),
-    application.ScheduleEntry(time=0.01, type=mcu_pb.ParametersRequest),
-    application.ScheduleEntry(time=0.01, type=mcu_pb.CycleMeasurements),
+    states.ScheduleEntry(time=0.01, type=mcu_pb.SensorMeasurements),
+    states.ScheduleEntry(time=0.01, type=mcu_pb.Parameters),
+    states.ScheduleEntry(time=0.01, type=mcu_pb.Alarms),
+    states.ScheduleEntry(time=0.01, type=mcu_pb.SensorMeasurements),
+    states.ScheduleEntry(time=0.01, type=frontend_pb.RotaryEncoder),
+    states.ScheduleEntry(time=0.01, type=mcu_pb.Alarms),
+    states.ScheduleEntry(time=0.01, type=mcu_pb.SensorMeasurements),
+    states.ScheduleEntry(time=0.01, type=mcu_pb.ParametersRequest),
+    states.ScheduleEntry(time=0.01, type=mcu_pb.CycleMeasurements),
 ])
 
 
@@ -110,8 +110,8 @@ class ReceiveFilter(protocols.Filter[ReceiveEvent, OutputEvent]):
     all_states: Dict[
         Type[betterproto.Message], Optional[betterproto.Message]
     ] = attr.ib()
-    _mcu_state_synchronizer: application.StateSynchronizer = attr.ib()
-    _frontend_state_synchronizer: application.StateSynchronizer = attr.ib()
+    _mcu_state_synchronizer: states.Synchronizer = attr.ib()
+    _frontend_state_synchronizer: states.Synchronizer = attr.ib()
 
     @all_states.default
     def init_all_states(self) -> Dict[
@@ -123,24 +123,24 @@ class ReceiveFilter(protocols.Filter[ReceiveEvent, OutputEvent]):
         actual object to store the state values.
         """
         return {
-            type: None for type in application.FRONTEND_MESSAGE_CLASSES.values()
+            type: None for type in frontend.MESSAGE_CLASSES.values()
             # FRONTEND_MESSAGE_CLASSES is a superset of MCU_MESSAGE_CLASSES
         }
 
     @_mcu_state_synchronizer.default
-    def init_mcu_synchronizer(self) -> application.StateSynchronizer:  # pylint: disable=no-self-use
+    def init_mcu_synchronizer(self) -> states.Synchronizer:  # pylint: disable=no-self-use
         """Initialize the mcu state synchronizer."""
-        return application.StateSynchronizer(
-            message_classes=application.MCU_MESSAGE_CLASSES,
+        return states.Synchronizer(
+            message_classes=mcu.MESSAGE_CLASSES,
             all_states=self.all_states,
             output_schedule=MCU_SYNCHRONIZER_SCHEDULE
         )
 
     @_frontend_state_synchronizer.default
-    def init_frontend_synchronizer(self) -> application.StateSynchronizer:
+    def init_frontend_synchronizer(self) -> states.Synchronizer:
         """Initialize the frontend state synchronizer."""
-        return application.StateSynchronizer(
-            message_classes=application.FRONTEND_MESSAGE_CLASSES,
+        return states.Synchronizer(
+            message_classes=frontend.MESSAGE_CLASSES,
             all_states=self.all_states,
             output_schedule=FRONTEND_SYNCHRONIZER_SCHEDULE
         )
@@ -161,10 +161,10 @@ class ReceiveFilter(protocols.Filter[ReceiveEvent, OutputEvent]):
         # Handle clock update
         if event.time is not None:
             self.current_time = event.time
-        self._mcu_state_synchronizer.input(application.StateUpdateEvent(
+        self._mcu_state_synchronizer.input(states.UpdateEvent(
             time=self.current_time
         ))
-        self._frontend_state_synchronizer.input(application.StateUpdateEvent(
+        self._frontend_state_synchronizer.input(states.UpdateEvent(
             time=self.current_time
         ))
 
@@ -175,11 +175,11 @@ class ReceiveFilter(protocols.Filter[ReceiveEvent, OutputEvent]):
         ):
             try:
                 self._mcu_state_synchronizer.input(
-                    application.StateUpdateEvent(pb_message=event.mcu_receive)
+                    states.UpdateEvent(pb_message=event.mcu_receive)
                 )
             except exceptions.ProtocolDataError:
                 self._logger.exception(
-                    'MCU StateSynchronizer: %s', event.mcu_receive
+                    'MCU State Synchronizer: %s', event.mcu_receive
                 )
 
         # Handle inbound state update from frontend
@@ -189,13 +189,13 @@ class ReceiveFilter(protocols.Filter[ReceiveEvent, OutputEvent]):
         ):
             try:
                 self._frontend_state_synchronizer.input(
-                    application.StateUpdateEvent(
+                    states.UpdateEvent(
                         pb_message=event.frontend_receive
                     )
                 )
             except exceptions.ProtocolDataError:
                 self._logger.exception(
-                    'Frontend StateSynchronizer: %s', event.frontend_receive
+                    'Frontend State Synchronizer: %s', event.frontend_receive
                 )
 
         # Output any scheduled outbound state update
@@ -203,12 +203,12 @@ class ReceiveFilter(protocols.Filter[ReceiveEvent, OutputEvent]):
         try:
             mcu_send = self._mcu_state_synchronizer.output()
         except exceptions.ProtocolDataError:
-            self._logger.exception('MCU StateSynchronizer:')
+            self._logger.exception('MCU State Synchronizer:')
         frontend_send = None
         try:
             frontend_send = self._frontend_state_synchronizer.output()
         except exceptions.ProtocolDataError:
-            self._logger.exception('Frontend StateSynchronizer:')
+            self._logger.exception('Frontend State Synchronizer:')
 
         return OutputEvent(mcu_send=mcu_send, frontend_send=frontend_send)
 

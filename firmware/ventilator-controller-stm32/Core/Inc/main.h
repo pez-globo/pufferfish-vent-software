@@ -189,6 +189,8 @@ void Error_Handler(void);
 #define SER_CLR_N_GPIO_Port GPIOC
 #define SER_RCLK_Pin GPIO_PIN_12
 #define SER_RCLK_GPIO_Port GPIOC
+#define OEMIII_RXPin_Pin GPIO_PIN_0
+#define OEMIII_RXPin_GPIO_Port GPIOD
 #define MOTOR1_UART_Pin GPIO_PIN_1
 #define MOTOR1_UART_GPIO_Port GPIOD
 #define LTC4421_PWR_nVALID1_Pin GPIO_PIN_4

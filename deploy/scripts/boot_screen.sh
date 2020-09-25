@@ -4,23 +4,23 @@ echo "********** Setting up custom boot screen **********"
 
 sudo apt-get update
 
-# Disable rainbow screen default splash
-echo -e "\ndisable_splash=1" | sudo tee -a /boot/config.txt
-
 # Copy splash image to home directory
 cp configs/splash.png ~/splash.png
 
 # Disable logs on console
 existing_command=$(cat /boot/cmdline.txt)
-echo $existing_command" logo.nologo consoleblank=0 loglevel=1 quiet vt.global_cursor_default=0" | sudo tee /boot/cmdline.txt
+echo $existing_command" consoleblank=0 loglevel=1 quiet vt.global_cursor_default=0" | sudo tee /boot/cmdline.txt
 
-sudo systemctl disable getty@tty3
+sudo systemctl mask getty@tty1
 
-# fbi package to read the image buffer
-sudo apt install fbi -y
+# fim package to read the image buffer
+sudo apt install fim -y
 
 # Create service file
 sudo cp configs/splashscreen.service /etc/systemd/system/
+
+# Configure lightdm
+sudo cp configs/lightdm.conf /etc/lightdm/lightdm.conf
 
 sudo apt-get update
 sudo systemctl mask plymouth-start.service

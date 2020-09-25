@@ -4,12 +4,12 @@
  *      Author: March Boonyapaluk
  */
 
-#include "Pufferfish/HAL/STM32/DigitalInput.h"
+#include "Pufferfish/HAL/STM32/HALDigitalInput.h"
 
 namespace Pufferfish {
 namespace HAL {
 
-bool DigitalInput::read() {
+bool HALDigitalInput::read() {
   return
       mInverted ?
       HAL_GPIO_ReadPin(&mPort, mPin) == GPIO_PIN_RESET :

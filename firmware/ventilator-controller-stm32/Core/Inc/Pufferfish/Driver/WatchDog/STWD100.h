@@ -19,7 +19,6 @@ namespace WatchDog {
 /**
   * An abstract class for STWD100 WatchDog module
   */
-
 class STWD100 {
 
 public:
@@ -36,10 +35,12 @@ public:
    * Enable watchdog timer
    */
   void enable(void);
+
   /**
    * Disable watchdog timer
    */
   void disable(void);
+
   /**
    * Reset watchdog timer when controller program experienced a freeze or hang
    */
@@ -47,8 +48,8 @@ public:
 
 private:
   static const uint32_t resetTime = 2; /// TBD: resetTime as to be fixed
-  HAL::DigitalOutput mEnablenPin;
-  HAL::DigitalOutput mInputPin;
+  HAL::DigitalOutput &mEnablenPin;
+  HAL::DigitalOutput &mInputPin;
 };
 
 }  // namespace WatchDog

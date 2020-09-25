@@ -7,6 +7,7 @@
 #pragma once
 
 #include "stm32h7xx_hal.h"
+#include "Pufferfish/HAL/Interfaces/DigitalInput.h"
 
 namespace Pufferfish {
 namespace HAL {
@@ -14,7 +15,7 @@ namespace HAL {
 /**
  * Represents a GPIO input in STM32
  */
-class DigitalInput {
+class HALDigitalInput : public DigitalInput {
  public:
   /**
    * Constructs a new Digital Input
@@ -22,7 +23,7 @@ class DigitalInput {
    * @param pin   GPIO pin of the MCU (1, 2, ...)
    * @param inverted   true if the input is active-low, false for active-high
    */
-  DigitalInput(GPIO_TypeDef &port, const uint16_t pin, const bool inverted =
+  HALDigitalInput(GPIO_TypeDef &port, const uint16_t pin, const bool inverted =
   false)
       :
       mPort(port),
