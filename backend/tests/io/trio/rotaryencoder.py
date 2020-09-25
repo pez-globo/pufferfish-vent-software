@@ -1,14 +1,15 @@
+# pylint: skip-file
 """Test Rotary Encoder connection and low-level driver."""
 from ventserver.protocols import rotary_encoder
 from ventserver.io.trio import rotaryencoder
 import trio
-import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO # type: ignore
 import pickle
 import time
 
 GPIO.setmode(GPIO.BCM)
 
-async def main():
+async def main() -> None:
     """"""
     driver = rotaryencoder.Driver()
     protocol = rotary_encoder.ReceiveFilter()

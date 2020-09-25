@@ -21,7 +21,7 @@ class RotaryEncoderState:
     rotation_counts: int = attr.ib(default=0, repr=False)
     button_pressed: bool = attr.ib(default=False, repr=False)
     last_pressed: int = attr.ib(default=None, repr=False)
-    debounce_time: int = attr.ib(default=0) # debounce time in ms
+    debounce_time: int = attr.ib(default=10) # debounce time in ms
 
 
 @attr.s
