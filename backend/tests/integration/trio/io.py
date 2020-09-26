@@ -1,8 +1,9 @@
 """Trio I/O with sans-I/O protocol demo, running on real I/O."""
 
 import logging
-import trio
 import functools
+
+import trio
 
 from ventserver.integration import _trio
 from ventserver.io.trio import _serial

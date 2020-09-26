@@ -58,8 +58,7 @@ async def main() -> None:
                 functools.partial(_trio.process_all,
                                   channel=channel,
                                   push_endpoint=channel.push_endpoint),
-                protocol, serial, websocket, None,
-                
+                protocol, serial, websocket, None
             )
             nursery.start_soon(
                 handle_receive_outputs, channel, channel.pull_endpoint.clone(),
