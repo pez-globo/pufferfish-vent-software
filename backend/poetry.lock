@@ -110,7 +110,7 @@ version = "5.2.1"
 toml = ["toml"]
 
 [[package]]
-category = "dev"
+category = "main"
 description = "CRC Generator"
 name = "crcmod"
 optional = false
@@ -729,7 +729,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools", "func-timeout"]
 
 [metadata]
-content-hash = "df9ba105832d28a22018a5323b54e42b1b45b14c9b24be095082b354411e6fe9"
+content-hash = "e00ba9a2ac7846d110d91ba90b0c1fa51f836ebba29f8aa8c3ddc4e44530a646"
 python-versions = "^3.7"
 
 [metadata.files]

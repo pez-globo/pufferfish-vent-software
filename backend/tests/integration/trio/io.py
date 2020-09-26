@@ -2,6 +2,7 @@
 
 import logging
 import trio
+import functools
 
 from ventserver.integration import _trio
 from ventserver.io.trio import _serial
@@ -38,8 +39,10 @@ async def main() -> None:
         async with channel.push_endpoint:
             async with trio.open_nursery() as nursery:
                 nursery.start_soon(
-                    _trio.process_all, serial_endpoint, protocol,
-                    websocket_endpoint, channel, channel.push_endpoint
+                    functools.partial(_trio.process_all,
+                                      channel=channel,
+                                      push_endpoint=channel.push_endpoint),
+                    protocol, serial_endpoint, websocket_endpoint, None,
                 )
 
                 while True:
