@@ -74,7 +74,7 @@ SPIDeviceStatus BMP388::getChipId(uint8_t &memId) {
   return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus BMP388::getErrors(SensorError faults) {
+SPIDeviceStatus BMP388::getErrors(SensorError &faults) {
 
   const uint8_t size = 3;
   uint8_t rxData[size];
@@ -102,7 +102,7 @@ SPIDeviceStatus BMP388::getDataReadyInterrupt(bool &status) {
   return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus BMP388::getSensorstatus(SensorStatus status) {
+SPIDeviceStatus BMP388::getSensorstatus(SensorStatus &status) {
 
   const uint8_t size = 3;
    uint8_t rxData[size];
