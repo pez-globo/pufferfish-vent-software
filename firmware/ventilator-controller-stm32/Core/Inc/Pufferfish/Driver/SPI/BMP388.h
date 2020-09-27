@@ -312,14 +312,14 @@ class BMP388 {
    * @param  fault fatal error or cmd error or config error
    * @return SPIDeviceStatus returns ok/readError
    */
-  SPIDeviceStatus getErrors(SensorError fault);
+  SPIDeviceStatus getErrors(SensorError &fault);
 
   /**
    * @brief  read sensor status register address is 0x03
    * @param  status command ready or pressure ready, temperature ready
    * @return SPIDeviceStatus returns ok/readError
    */
-  SPIDeviceStatus getSensorstatus(SensorStatus status);
+  SPIDeviceStatus getSensorstatus(SensorStatus &status);
 
   /**
    * @brief  Resets the BMP388 sensor device
