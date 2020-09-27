@@ -74,38 +74,6 @@ enum class SPIDeviceStatus {
   read_error,   /// an error occur when reading from an SPI device
   busy,         /// when SPI device is not ready
   error,        /// fail
-  block_lock    /// when block is locked
-};
-
-/**
- * SPI Instructions
- */
-enum class SPIInstruction {
-  device_id = 0x90,               /// Instruction for read Device ID
-  jedec_id = 0x9F,                /// Instruction for read JEDEC ID
-  write_enable = 0x06,            /// Instruction for write enable
-  write_disable = 0x04,           /// Instruction for write disable
-  write_byte = 0x02,              /// Instruction for write byte
-  read_byte = 0x03,               /// Instruction for read byte
-  lock_block = 0x36,              /// Instruction for individual lock block
-  unlock_block = 0x39,            /// Instruction for individual Unlock block
-  global_lock = 0x7E,             /// Instruction for global lock block
-  global_unlock = 0x98,           /// Instruction for global Unlock block
-  read_block_status = 0x3D,       /// Instruction for read block status
-  chip_erase = 0xC7,              /// Instruction for chip erase
-  sector_erase_4kb = 0x20,        /// Instruction for sector erase of 4KB
-  block_erase_32kb = 0x52,        /// Instruction for block erase of 32KB
-  block_erase_64kb = 0xD8,        /// Instruction for block erase of 64KB
-  write_status_register1 = 0x01,  /// Instruction for write status register 1
-  read_status_register1 = 0x05,   /// Instruction for read status register 1
-  write_status_register2 = 0x31,  /// Instruction for write status register 2
-  read_status_register2 = 0x35,   /// Instruction for read status register 2
-  write_status_register3 = 0x11,  /// Instruction for write status register 3
-  read_status_register3 = 0x15,   /// Instruction for read status register 3
-  power_down = 0xB9,              /// Instruction for power down
-  release_power_down = 0xAB,      /// Instruction for release power down
-  reset_enable = 0x66,            /// Instruction for enable reset
-  reset_device = 0x99             /// Instruction for reset device
 };
 
 /**

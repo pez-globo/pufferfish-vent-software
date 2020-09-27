@@ -25,1080 +25,891 @@
 
 namespace Pufferfish::Driver::SPI {
 
-SPIDeviceStatus SPIFlash::get_device_id(uint8_t &device_id) {
-  static const uint8_t count = 6;
-  std::array<uint8_t, count> tx_buf = {0};
-  std::array<uint8_t, count> rx_buf = {0};
-
-  /* Update the Byte0 of tx_buf with device Id instruction */
-  tx_buf[0] = static_cast<uint8_t>(SPIInstruction::device_id);
+SPIDeviceStatus SPIFlash::mem_read(uint8_t *tx_buf, uint8_t *rx_buf,
+                                   uint16_t count) {
 
   /* Make the CS pin Low before read operation*/
   spi_.chip_select(false);
 
-  /* Write and Read data to and from the device */
-  SPIDeviceStatus ret = spi_.write_read(tx_buf.data(), rx_buf.data(), count);
-
+  /* Read data from the device */
+  if (spi_.write_read(tx_buf, rx_buf, count) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
+  }
   /* Make the CS pin High after read operation */
   spi_.chip_select(true);
 
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
+  /* return ok */
+  return SPIDeviceStatus::ok;
+}
 
+SPIDeviceStatus SPIFlash::mem_write(uint8_t *tx_buf, uint16_t count) {
+
+  /* Make the CS pin Low before write operation*/
+  spi_.chip_select(false);
+
+  /* write data into the device */
+  if (spi_.write(tx_buf, count) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::write_error;
+  }
+  /* Make the CS pin High after write operation */
+  spi_.chip_select(true);
+
+  /* return ok */
+  return SPIDeviceStatus::ok;
+}
+
+SPIDeviceStatus SPIFlash::get_device_id(uint8_t &device_id) {
+  static const uint8_t count = 6;
+  std::array<uint8_t, count> tx_buf = { 0 };
+  std::array<uint8_t, count> rx_buf = { 0 };
+
+  /* Update the Byte0 of txBuf with device Id instruction */
+  tx_buf[0] = static_cast<uint8_t>(SPIInstruction::device_id);
+
+  /* Invoke memRead to read data from the device */
+  if (this->mem_read(tx_buf.data(), rx_buf.data(), count)
+      != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
+  }
   device_id = rx_buf[count - 1];
-  /* return SPIDeviceStatus */
-  return ret;
+
+  /* return ok */
+  return SPIDeviceStatus::ok;
 }
 
 SPIDeviceStatus SPIFlash::get_jedec_id(uint16_t &id) {
   static const uint8_t count = 4;
-  std::array<uint8_t, count> tx_buf = {0};
-  std::array<uint8_t, count> rx_buf = {0};
+  std::array<uint8_t, count> tx_buf = { 0 };
+  std::array<uint8_t, count> rx_buf = { 0 };
 
-  /* Update the Byte0 of tx_buf with JEDEC Id instruction */
+  /* Update Byte0 of txBuf with JEDEC Id instruction */
   tx_buf[0] = static_cast<uint8_t>(SPIInstruction::jedec_id);
 
-  /* Make the CS pin Low before read operation*/
-  spi_.chip_select(false);
-
-  /* Write and Read data to and from the device */
-  SPIDeviceStatus ret = spi_.write_read(tx_buf.data(), rx_buf.data(), count);
-
-  /* Make the CS pin High after read operation */
-  spi_.chip_select(true);
-
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
+  /* Invoke memRead to read data from the device */
+  if (this->mem_read(tx_buf.data(), rx_buf.data(), count)
+      != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
   }
-
   static const uint16_t mask = 0xFF00;
   id = rx_buf[2];
   id = static_cast<uint16_t>(id << static_cast<uint16_t>(CHAR_BIT)) & mask;
   id |= rx_buf[3];
+
   /* return SPIDeviceStatus */
-  return ret;
+  return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus SPIFlash::enable_write() {
-  /* Update the tx_buf with write enable instruction */
+SPIDeviceStatus SPIFlash::enable_write(void) {
+  static const uint8_t count = 1;
+
+  /* Update txBuf with write enable instruction */
   auto tx_buf = static_cast<uint8_t>(SPIInstruction::write_enable);
 
-  /* Make the CS pin Low before write operation*/
-  spi_.chip_select(false);
-
-  /* Write data into the device */
-  SPIDeviceStatus ret = spi_.write(&tx_buf, 1);
-
-  /* Make the CS pin High after write operation */
-  spi_.chip_select(true);
-
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
+  /* Invoke memWrite to write data into the device */
+  if (this->mem_write(&tx_buf, count) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::write_error;
   }
-  /* return SPIDeviceStatus */
-  return ret;
+  /* return ok */
+  return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus SPIFlash::disable_write() {
-  /* Update the tx_buf with write disable instruction */
+SPIDeviceStatus SPIFlash::disable_write(void) {
+  static const uint8_t count = 1;
+
+  /* Update txBuf with write disable instruction */
   auto tx_buf = static_cast<uint8_t>(SPIInstruction::write_disable);
 
-  /* Make the CS pin Low before write operation*/
-  spi_.chip_select(false);
-
-  /* Write data into the device */
-  SPIDeviceStatus ret = spi_.write(&tx_buf, 1);
-
-  /* Make the CS pin High after write operation */
-  spi_.chip_select(true);
-
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
+  /* Invoke memWrite to write data into the device */
+  if (this->mem_write(&tx_buf, count) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::write_error;
   }
-  /* return SPIDeviceStatus */
-  return ret;
+  /* return ok */
+  return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus SPIFlash::write_byte(uint32_t addr, const uint8_t *input, uint8_t size) {
-  uint8_t reg_data = 0;
-  // FIXME: We will need to use a statically-allocated vector instead of a C
-  // array. Also, it is an error to try to initialize a variable-sized array -
-  // that relies on a GCC extension - so the array is left uninitialized.
-  // NOLINTNEXTLINE(modernize-avoid-c-arrays)
-  uint8_t tx_buf[size + 4];
+SPIDeviceStatus SPIFlash::read_busy_status(MemoryStatus &status) {
+  static const size_t size = 2;
+  std::array<uint8_t, size> tx_buf = { 0 };
+  std::array<uint8_t, size> rx_buf = { 0 };
 
-  /* Invoke read_block_status to get the status of block */
-  SPIDeviceStatus block_status = this->read_block_status(addr);
+  /* Update Byte0 of txBuf with read status register 1 instruction */
+  tx_buf[0] = static_cast<uint8_t>(SPIInstruction::read_status_register1);
 
-  if (block_status == SPIDeviceStatus::block_lock) {
-    /* if block is locked then invoke unLockIndividualBlock to unlock the block
-     */
-    SPIDeviceStatus ret = this->unlock_individual_block(addr);
-    /* return ret if it is not ok */
-    if (ret != SPIDeviceStatus::ok) {
-      return ret;
+  /* Invoke memRead to read data from the device */
+  if (this->mem_read(tx_buf.data(), rx_buf.data(), size)
+      != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
+  }
+  /* check SPI flash is busy or not */
+  status.busy = static_cast<bool>(rx_buf[1] & 0x01) != 0 ? true : false;
+
+  /* return ok */
+  return SPIDeviceStatus::ok;
+}
+
+SPIDeviceStatus SPIFlash::read_enable_latch(MemoryStatus &status) {
+  static const size_t size = 2;
+  std::array<uint8_t, size> tx_buf = { 0 };
+  std::array<uint8_t, size> rx_buf = { 0 };
+
+  /* Update Byte0 of txBuf with read status register 1 instruction */
+  tx_buf[0] = static_cast<uint8_t>(SPIInstruction::read_status_register1);
+
+  /* Invoke memRead to read data from the device */
+  if (this->mem_read(tx_buf.data(), rx_buf.data(), size)
+      != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
+  }
+  /* check the status of write enable latch bit */
+  status.enable_latch = static_cast<bool>(rx_buf[1] & 0x02) != 0 ? true : false;
+
+  /* return ok */
+  return SPIDeviceStatus::ok;
+}
+
+SPIDeviceStatus SPIFlash::write_protect_selection(bool protect) {
+  static const size_t size = 2;
+  std::array<uint8_t, size> tx_buf = { 0 };
+  std::array<uint8_t, size> rx_buf = { 0 };
+
+  /* Update Byte0 of txBuf with read status register 3 instruction */
+  tx_buf[0] = static_cast<uint8_t>(SPIInstruction::read_status_register3);
+
+  /* Invoke memRead to read data from the device */
+  if (this->mem_read(tx_buf.data(), rx_buf.data(), size)
+      != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
+  }
+
+  /* Update Byte0 of txBuf with write status register 3 instruction */
+  tx_buf[0] = static_cast<uint8_t>(SPIInstruction::write_status_register1);
+
+  /* Update Byte1 of txBuf with input which is to be written */
+  tx_buf[1] = ((protect << 2) | rx_buf[1]);
+
+  /* Invoke enableWrite to set the WEL bit to 1 */
+  if (this->enable_write() != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::write_error;
+  }
+  /* Invoke memWrite to write data into the device */
+  if (this->mem_write(tx_buf.data(), size) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::write_error;
+  }
+  /* provide a delay of 15ms */
+  HAL::delay(15);
+  /* return ok */
+  return SPIDeviceStatus::ok;
+}
+
+SPIDeviceStatus SPIFlash::unlock_individual_memory(uint32_t addr) {
+  static const uint8_t size = 4;
+  std::array<uint8_t, size + 1> tx_buf = { 0 };
+  bool protect = true;
+  MemoryStatus status;
+
+  /* Invoke readBusyStatus to read the busy bit status  */
+  if (this->read_busy_status(status) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
+  }
+
+  /* if the status of busy bit is false then SPI flash is ready for further instructions */
+  if (status.busy != true) {
+
+    /* Invoke writeStatusRegister3 to make WPS bit to 1 */
+    if (this->write_protect_selection(protect) != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
     }
-  }
 
-  /* Invoke read_status_register1 to get the status of device */
-  SPIDeviceStatus ret = this->read_status_register1(reg_data);
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
+    /* Update the Byte0 of txBuf with individual block/sector unlock instruction */
+    tx_buf[0] = static_cast<uint8_t>(SPIInstruction::unlock_block);
 
-  /* if LSB bit is 1 then return SPIDeviceStatus as busy */
-  if ((reg_data & 0x01U) == 1) {
-    return SPIDeviceStatus::busy;
-  }
-
-  /* Update the Byte0 of tx_buf with write byte instruction */
-  tx_buf[0] = static_cast<uint8_t>(SPIInstruction::write_byte);
-
-  /* Fill the Byte1-Byte3 with address and remaining bytes with input which is
-   * to be written */
-  for (uint8_t index = 1; index <= (size + 4); index++) {
-    if (index < 4) {
+    /* Fill the Byte1-Byte3 with address */
+    for (uint8_t index = 1; index <= 3; index++) {
       tx_buf[index] = addr >> (static_cast<uint8_t>(CHAR_BIT) * (3U - index));
-    } else {
-      tx_buf[index] = input[index - 4];
     }
-  }
-
-  /* Invoke enableWrite to set the WEL bit to 1 */
-  ret = this->enable_write();
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-
-  /* Make the CS pin Low before write operation*/
-  spi_.chip_select(false);
-
-  /* Write data into the device */
-  ret = spi_.write(static_cast<uint8_t *>(tx_buf), size + 4);
-
-  /* Make the CS pin High after write operation */
-  spi_.chip_select(true);
-
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-
-  /* provide a delay of 3ms */
-  HAL::delay(3);
-
-  /* Invoke lockIndividualBlock to lock the block */
-  ret = this->lock_individual_block(addr);
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-  /* return SPIDeviceStatus */
-  return ret;
-}
-
-SPIDeviceStatus SPIFlash::read_byte(uint32_t addr, uint8_t *data, uint8_t size) {
-  // FIXME: We will need to use a statically-allocated vector instead of a C
-  // array. Also, it is an error to try to initialize a variable-sized array -
-  // that relies on a GCC extension - so the array is left uninitialized.
-  // NOLINTNEXTLINE(modernize-avoid-c-arrays)
-  uint8_t tx_buf[size + 4];
-  // FIXME: We will need to use a statically-allocated vector instead of a C
-  // array. Also, it is an error to try to initialize a variable-sized array -
-  // that relies on a GCC extension - so the array is left uninitialized.
-  // NOLINTNEXTLINE(modernize-avoid-c-arrays)
-  uint8_t rx_buf[size + 4];
-
-  /* Update the Byte0 of tx_buf with read byte instruction */
-  tx_buf[0] = static_cast<uint8_t>(SPIInstruction::read_byte);
-
-  /* Fill the Byte1-Byte3 with address */
-  for (uint8_t index = 1; index <= 3; index++) {
-    tx_buf[index] = addr >> (static_cast<uint8_t>(CHAR_BIT) * (3U - index));
-  }
-
-  /* Make the CS pin Low before read operation*/
-  spi_.chip_select(false);
-
-  /* Write and Read data to and from the device */
-  SPIDeviceStatus ret =
-      spi_.write_read(static_cast<uint8_t *>(tx_buf), static_cast<uint8_t *>(rx_buf), size + 4);
-
-  /* Make the CS pin High after read operation */
-  spi_.chip_select(true);
-
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-
-  for (uint8_t index = 4; index < (size + 4); index++) {
-    data[index - 4] = rx_buf[index];
-  }
-  /* return SPIDeviceStatus */
-  return ret;
-}
-
-SPIDeviceStatus SPIFlash::lock_individual_block(uint32_t addr) {
-  static const uint8_t size = 4;
-  std::array<uint8_t, size + 1> tx_buf = {0};
-  uint8_t reg_data = 0;
-
-  /* Invoke read_status_register1 to get the status of device */
-  SPIDeviceStatus ret = this->read_status_register1(reg_data);
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-
-  /* if LSB bit is 1 then return SPIDeviceStatus as busy */
-  if ((reg_data & 0x01U) == 1) {
+    /* Invoke enableWrite to set the WEL bit to 1 */
+    if (this->enable_write() != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+    /* Invoke memWrite to write data into the device */
+    if (this->mem_write(tx_buf.data(), size) != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+    /* return ok */
+    return SPIDeviceStatus::ok;
+  } else {
+    /* return busy */
     return SPIDeviceStatus::busy;
   }
-
-  /* Update the Byte0 of tx_buf with individual lock block instruction */
-  tx_buf[0] = static_cast<uint8_t>(SPIInstruction::lock_block);
-
-  /* Fill the Byte1-Byte3 with address */
-  for (uint8_t index = 1; index <= 3; index++) {
-    tx_buf[index] = addr >> (static_cast<uint8_t>(CHAR_BIT) * (3U - index));
-  }
-
-  /* Invoke enableWrite to set the WEL bit to 1 */
-  ret = this->enable_write();
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-
-  /* Make the CS pin Low before write operation*/
-  spi_.chip_select(false);
-
-  /* Write data into the device */
-  ret = spi_.write(tx_buf.data(), size);
-
-  /* Make the CS pin High after write operation */
-  spi_.chip_select(true);
-
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-  /* return SPIDeviceStatus */
-  return ret;
 }
 
-SPIDeviceStatus SPIFlash::unlock_individual_block(uint32_t addr) {
+SPIDeviceStatus SPIFlash::lock_individual_memory(uint32_t addr) {
   static const uint8_t size = 4;
-  std::array<uint8_t, size + 1> tx_buf = {0};
-  uint8_t reg_data = 0;
+  std::array<uint8_t, size + 1> tx_buf = { 0 };
+  MemoryStatus status;
+  bool protect = true;
 
-  /* Input for Write Status Register 3 - WPS is 1 */
-  uint8_t reg3_input = 0x04;
-
-  /* Invoke read_status_register1 to get the status of device */
-  SPIDeviceStatus ret = this->read_status_register1(reg_data);
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
+  /* Invoke readBusyStatus to read the busy bit status  */
+  if (this->read_busy_status(status) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
   }
 
-  /* if LSB bit is 1 then return SPIDeviceStatus as busy */
-  if ((reg_data & 0x01U) == 1) {
+  /* if the status of busy bit is false then SPI flash is ready for further instructions */
+  if (status.busy != true) {
+
+    /* Invoke writeStatusRegister3 to make WPS bit to 1 */
+    if (this->write_protect_selection(protect) != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+
+    /* Update the Byte0 of txBuf with individual block/sector lock instruction */
+    tx_buf[0] = static_cast<uint8_t>(SPIInstruction::lock_block);
+
+    /* Fill the Byte1-Byte3 with address */
+    for (uint8_t index = 1; index <= 3; index++) {
+      tx_buf[index] = addr >> (static_cast<uint8_t>(CHAR_BIT) * (3U - index));
+    }
+    /* Invoke enableWrite to set the WEL bit to 1 */
+    if (this->enable_write() != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+    /* Invoke memWrite to write data into the device */
+    if (this->mem_write(tx_buf.data(), size) != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+    /* return ok */
+    return SPIDeviceStatus::ok;
+  } else {
+    /* return busy */
     return SPIDeviceStatus::busy;
   }
-
-  /* Invoke write_status_register3 to make WPS bit to 1 */
-  ret = this->write_status_register3(reg3_input);
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-
-  /* Update the Byte0 of tx_buf with individual block unlock instruction */
-  tx_buf[0] = static_cast<uint8_t>(SPIInstruction::unlock_block);
-
-  /* Fill the Byte1-Byte3 with address */
-  for (uint8_t index = 1; index <= 3; index++) {
-    tx_buf[index] = addr >> (static_cast<uint8_t>(CHAR_BIT) * (3U - index));
-  }
-
-  /* Invoke enableWrite to set the WEL bit to 1 */
-  ret = this->enable_write();
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-
-  /* Make the CS pin Low before write operation*/
-  spi_.chip_select(false);
-
-  /* Write data into the device */
-  ret = spi_.write(tx_buf.data(), size);
-
-  /* Make the CS pin High after write operation */
-  spi_.chip_select(true);
-
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-  /* return SPIDeviceStatus */
-  return ret;
 }
 
-SPIDeviceStatus SPIFlash::global_block_unlock() {
-  /* Update the tx_buf with global unlock instruction */
+SPIDeviceStatus SPIFlash::global_unlock_memory(void) {
+  static const uint8_t size = 1;
+  /* Update the txBuf with global unlock block/sector instruction */
   auto tx_buf = static_cast<uint8_t>(SPIInstruction::global_unlock);
-  uint8_t reg_data = 0;
-  /* Input for Write Status Register 3 - WPS is 1 */
-  uint8_t reg_input = 0x04;
+  bool protect = true;
+  MemoryStatus status;
 
-  /* Invoke read_status_register1 to get the status of device */
-  SPIDeviceStatus ret = this->read_status_register1(reg_data);
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
+  /* Invoke readBusyStatus to read the busy bit status  */
+  if (this->read_busy_status(status) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
   }
 
-  /* if LSB bit is 1 then return SPIDeviceStatus as busy */
-  if ((reg_data & 0x01U) == 1) {
+  /* if the status of busy bit is false then SPI flash is ready for further instructions */
+  if (status.busy != true) {
+
+    /* Invoke writeStatusRegister3 to make WPS bit to 1 */
+    if (this->write_protect_selection(protect) != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+    /* Invoke enableWrite to set the WEL bit to 1 */
+    if (this->enable_write() != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+    /* Invoke memWrite to write data into the device */
+    if (this->mem_write(&tx_buf, size) != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+    /* return ok */
+    return SPIDeviceStatus::ok;
+  } else {
+    /* return busy */
     return SPIDeviceStatus::busy;
   }
-
-  /* Invoke write_status_register3 to make WPS bit to 1 */
-  ret = this->write_status_register3(reg_input);
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-
-  /* Invoke enableWrite to set the WEL bit to 1 */
-  ret = this->enable_write();
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-
-  /* Make the CS pin Low before write operation*/
-  spi_.chip_select(false);
-
-  /* Write data into the device */
-  ret = spi_.write(&tx_buf, 1);
-
-  /* Make the CS pin High after write operation */
-  spi_.chip_select(true);
-
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-  /* return SPIDeviceStatus */
-  return ret;
 }
 
-SPIDeviceStatus SPIFlash::global_block_lock() {
-  /* Update the tx_buf with global lock instruction */
+SPIDeviceStatus SPIFlash::global_lock_memory(void) {
+  static const uint8_t size = 1;
+  /* Update the txBuf with global lock block/sector instruction */
   auto tx_buf = static_cast<uint8_t>(SPIInstruction::global_lock);
-  uint8_t reg_data = 0;
+  MemoryStatus status;
+  bool protect = true;
 
-  /* Invoke read_status_register1 to get the status of device */
-  SPIDeviceStatus ret = this->read_status_register1(reg_data);
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
+  /* Invoke readBusyStatus to read the busy bit status  */
+  if (this->read_busy_status(status) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
   }
 
-  /* if LSB bit is 1 then return SPIDeviceStatus as busy */
-  if ((reg_data & 0x01U) == 1) {
+  /* if the status of busy bit is false then SPI flash is ready for further instructions */
+  if (status.busy != true) {
+
+    /* Invoke writeStatusRegister3 to make WPS bit to 1 */
+    if (this->write_protect_selection(protect) != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+    /* Invoke enableWrite to set the WEL bit to 1 */
+    if (this->enable_write() != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+    /* Invoke memWrite to write data into the device */
+    if (this->mem_write(&tx_buf, size) != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+    /* return ok */
+    return SPIDeviceStatus::ok;
+  } else {
+    /* return busy */
     return SPIDeviceStatus::busy;
   }
-
-  /* Invoke enableWrite to set the WEL bit to 1 */
-  ret = this->enable_write();
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-
-  /* Make the CS pin Low before write operation*/
-  spi_.chip_select(false);
-
-  /* Write data into the device */
-  ret = spi_.write(&tx_buf, 1);
-
-  /* Make the CS pin High after write operation */
-  spi_.chip_select(true);
-
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-  /* return SPIDeviceStatus */
-  return ret;
 }
 
-SPIDeviceStatus SPIFlash::read_block_status(uint32_t addr) {
+SPIDeviceStatus SPIFlash::read_memory_status(uint32_t addr,
+                                             MemoryStatus &status) {
   static const uint8_t size = 5;
-  std::array<uint8_t, size> tx_buf = {0};
-  std::array<uint8_t, size> rx_buf = {0};
+  std::array<uint8_t, size> tx_buf = { 0 };
+  std::array<uint8_t, size> rx_buf = { 0 };
 
-  /* Update the Byte0 of tx_buf with read block status instruction */
+  /* Update the Byte0 of txBuf with read block/sector status instruction */
   tx_buf[0] = static_cast<uint8_t>(SPIInstruction::read_block_status);
 
   /* Fill the Byte1-Byte3 with address */
   for (uint8_t index = 1; index <= 3; index++) {
     tx_buf[index] = addr >> (static_cast<uint8_t>(CHAR_BIT) * (3U - index));
   }
-
-  /* Make the CS pin Low before read operation*/
-  spi_.chip_select(false);
-
-  /* Write and Read data to and from the device */
-  SPIDeviceStatus ret = spi_.write_read(tx_buf.data(), rx_buf.data(), size);
-
-  /* Make the CS pin High after read operation */
-  spi_.chip_select(true);
-
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
+  /* Invoke memRead to read data from the device */
+  if (this->mem_read(tx_buf.data(), rx_buf.data(), size)
+      != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
   }
+  /* if LSB bit is 1 then block is locked */
+  status.lock = static_cast<bool>((rx_buf[4]) & 0x01) != 0 ? true : false;
 
-  /* if LSB bit is 1 then return SPIDeviceStatus as block_lock */
-  if (((rx_buf[4]) & 0x01U) == 1) {
-    return SPIDeviceStatus::block_lock;
-  }
-  /* return SPIDeviceStatus */
-  return ret;
+  /* return ok */
+  return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus SPIFlash::erase_chip() {
-  uint8_t reg_data = 0;
-  /* Update the tx_buf with chip erase instruction */
+SPIDeviceStatus SPIFlash::erase_chip(void) {
+  static const uint8_t length = 1;
+  /* Update the txBuf with chip erase instruction */
   auto tx_buf = static_cast<uint8_t>(SPIInstruction::chip_erase);
+  MemoryStatus status;
 
-  /* Invoke read_status_register1 to get the status of device */
-  SPIDeviceStatus ret = this->read_status_register1(reg_data);
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
+  /* Invoke readBusyStatus to read the busy bit status  */
+  if (this->read_busy_status(status) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
   }
 
-  /* if LSB bit is 1 then return SPIDeviceStatus as busy */
-  if ((reg_data & 0x01U) == 1) {
+  /* if the status of busy bit is false then SPI flash is ready for further instructions */
+  if (status.busy != true) {
+
+    /* Invoke globalUnLockMemory to unlock all the blocks/sectors */
+    if (this->global_unlock_memory() != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+    /* Invoke enableWrite to set the WEL bit to 1 */
+    if (this->enable_write() != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+    /* Invoke memWrite to write data into the device */
+    if (this->mem_write(&tx_buf, length) != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+    /* provide a delay of 25000ms */
+    static const uint32_t erase_delay = 25000;
+    HAL::delay(erase_delay);
+    /* Invoke globalLockMemory to lock all the blocks/sectors */
+    if (this->global_lock_memory() != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+    /* return ok */
+    return SPIDeviceStatus::ok;
+  } else {
+    /* return busy */
     return SPIDeviceStatus::busy;
   }
-
-  /* Invoke globalBlockUnLock to unlock all the blocks */
-  ret = this->global_block_unlock();
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-
-  /* Invoke enableWrite to set the WEL bit to 1 */
-  ret = this->enable_write();
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-
-  /* Make the CS pin Low before read operation*/
-  spi_.chip_select(false);
-
-  /* Write data into the device */
-  ret = spi_.write(&tx_buf, 1);
-
-  /* Make the CS pin High after read operation */
-  spi_.chip_select(true);
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-
-  /* provide a delay of 25000ms */
-  static const uint32_t erase_delay = 25000;
-  HAL::delay(erase_delay);
-
-  /* return SPIDeviceStatus */
-  return ret;
 }
 
 SPIDeviceStatus SPIFlash::erase_sector_4kb(uint32_t addr) {
   static const size_t size = 4;
-  std::array<uint8_t, size> tx_buf = {0};
-  uint8_t reg_data = 0;
+  std::array<uint8_t, size> tx_buf = { 0 };
+  MemoryStatus status;
 
-  /* Invoke read_block_status to get the status of block */
-  SPIDeviceStatus block_status = this->read_block_status(addr);
-  if (block_status == SPIDeviceStatus::block_lock) {
-    /* if block is locked then invoke unLockIndividualBlock to unlock the block
-     */
-    SPIDeviceStatus ret = this->unlock_individual_block(addr);
-    /* return ret if it is not ok */
-    if (ret != SPIDeviceStatus::ok) {
-      return ret;
+  /* Invoke readBusyStatus to read the busy bit status  */
+  if (this->read_busy_status(status) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
+  }
+
+  /* if the status of busy bit is false then SPI flash is ready for further instructions */
+  if (status.busy != true) {
+
+    /* Invoke readMemoryStatus to get the status of block/sector */
+    if (this->read_memory_status(addr, status) != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::read_error;
     }
-  }
 
-  /* Invoke read_status_register1 to get the status of device */
-  SPIDeviceStatus ret = this->read_status_register1(reg_data);
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
+    if (status.lock != false) {
+      /* if block is locked then invoke unLockIndividualMemory to unlock the block/sector */
+      if (this->unlock_individual_memory(addr) != SPIDeviceStatus::ok) {
+        return SPIDeviceStatus::write_error;
+      }
+    }
 
-  /* if LSB bit is 1 then return SPIDeviceStatus as busy */
-  if ((reg_data & 0x01U) == 1) {
+    /* Update the Byte0 of txBuf with sector erase of 4KB instruction */
+    tx_buf[0] = static_cast<uint8_t>(SPIInstruction::sector_erase_4kb);
+
+    /* Fill the Byte1-Byte3 with address */
+    for (uint8_t index = 1; index <= 3; index++) {
+      tx_buf[index] = addr >> (static_cast<uint8_t>(CHAR_BIT) * (3U - index));
+    }
+    /* Invoke enableWrite to set the WEL bit to 1 */
+    if (this->enable_write() != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+    /* Invoke memWrite to write data into the device */
+    if (this->mem_write(tx_buf.data(), size) != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+    /* provide a delay of 400ms */
+    static const uint32_t erase_delay = 400;
+    HAL::delay(erase_delay);
+    /* Invoke lockIndividualMemory to lock the block/sector */
+    if (this->lock_individual_memory(addr) != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+    /* return ok */
+    return SPIDeviceStatus::ok;
+  } else {
+    /* return busy */
     return SPIDeviceStatus::busy;
   }
-
-  /* Update the Byte0 of tx_buf with sector erase of 4KB instruction */
-  tx_buf[0] = static_cast<uint8_t>(SPIInstruction::sector_erase_4kb);
-
-  /* Fill the Byte1-Byte3 with address */
-  for (uint8_t index = 1; index <= 3; index++) {
-    tx_buf[index] = addr >> (static_cast<uint8_t>(CHAR_BIT) * (3U - index));
-  }
-
-  /* Invoke enableWrite to set the WEL bit to 1 */
-  ret = this->enable_write();
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-
-  /* Make the CS pin Low before read operation*/
-  spi_.chip_select(false);
-
-  /* Write data into the device */
-  ret = spi_.write(tx_buf.data(), size);
-
-  /* Make the CS pin High after read operation */
-  spi_.chip_select(true);
-
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-
-  /* provide a delay of 400ms */
-  static const uint32_t erase_delay = 400;
-  HAL::delay(erase_delay);
-
-  /* Invoke lockIndividualBlock to lock the block */
-  ret = this->lock_individual_block(addr);
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-  /* return SPIDeviceStatus */
-  return ret;
 }
 
 SPIDeviceStatus SPIFlash::erase_block_32kb(uint32_t addr) {
   static const size_t size = 4;
-  std::array<uint8_t, size> tx_buf = {0};
-  uint8_t reg_data = 0;
+  std::array<uint8_t, size> tx_buf = { 0 };
+  MemoryStatus status;
 
-  /* Invoke read_block_status to get the status of block */
-  SPIDeviceStatus block_status = this->read_block_status(addr);
-  if (block_status == SPIDeviceStatus::block_lock) {
-    /* if block is locked then invoke unLockIndividualBlock to unlock the block
-     */
-    SPIDeviceStatus ret = this->unlock_individual_block(addr);
-    /* return ret if it is not ok */
-    if (ret != SPIDeviceStatus::ok) {
-      return ret;
+  /* Invoke readBusyStatus to read the busy bit status  */
+  if (this->read_busy_status(status) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
+  }
+
+  /* if the status of busy bit is false then SPI flash is ready for further instructions */
+  if (status.busy != true) {
+
+    /* Invoke readMemoryStatus to get the status of block/sector */
+    if (this->read_memory_status(addr, status) != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::read_error;
     }
-  }
 
-  /* Invoke read_status_register1 to get the status of device */
-  SPIDeviceStatus ret = this->read_status_register1(reg_data);
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
+    if (status.lock != false) {
+      /* if block is locked then invoke unLockIndividualMemory to unlock the block/sector */
+      if (this->unlock_individual_memory(addr) != SPIDeviceStatus::ok) {
+        return SPIDeviceStatus::write_error;
+      }
+    }
 
-  /* if LSB bit is 1 then return SPIDeviceStatus as busy */
-  if ((reg_data & 0x01U) == 1) {
+    /* Update the Byte0 of txBuf with block erase 32KB instruction */
+    tx_buf[0] = static_cast<uint8_t>(SPIInstruction::block_erase_32kb);
+
+    /* Fill the Byte1-Byte3 with address */
+    for (uint8_t index = 1; index <= 3; index++) {
+      tx_buf[index] = addr >> (static_cast<uint8_t>(CHAR_BIT) * (3U - index));
+    }
+    /* Invoke enableWrite to set the WEL bit to 1 */
+    if (this->enable_write() != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+    /* Invoke memWrite to write data into the device */
+    if (this->mem_write(tx_buf.data(), size) != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+    /* provide a delay of 1600ms */
+    static const uint32_t erase_delay = 1600;
+    HAL::delay(erase_delay);
+    /* Invoke lockIndividualMemory to lock the block/sector */
+    if (this->lock_individual_memory(addr) != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+    /* return ok */
+    return SPIDeviceStatus::ok;
+  } else {
+    /* return busy */
     return SPIDeviceStatus::busy;
   }
-
-  /* Update the Byte0 of tx_buf with block erase 32KB instruction */
-  tx_buf[0] = static_cast<uint8_t>(SPIInstruction::block_erase_32kb);
-
-  /* Fill the Byte1-Byte3 with address */
-  for (uint8_t index = 1; index <= 3; index++) {
-    tx_buf[index] = addr >> (static_cast<uint8_t>(CHAR_BIT) * (3U - index));
-  }
-
-  /* Invoke enableWrite to set the WEL bit to 1 */
-  ret = this->enable_write();
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-
-  /* Make the CS pin Low before read operation*/
-  spi_.chip_select(false);
-
-  /* Write data into the device */
-  ret = spi_.write(tx_buf.data(), size);
-
-  /* Make the CS pin High after read operation */
-  spi_.chip_select(true);
-
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-
-  /* provide a delay of 1600ms */
-  static const uint32_t erase_delay = 1600;
-  HAL::delay(erase_delay);
-
-  /* Invoke lockIndividualBlock to lock the block */
-  ret = this->lock_individual_block(addr);
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-  /* return SPIDeviceStatus */
-  return ret;
 }
 
 SPIDeviceStatus SPIFlash::erase_block_64kb(uint32_t addr) {
   static const size_t size = 4;
-  std::array<uint8_t, size> tx_buf = {0};
-  uint8_t reg_data = 0;
+  std::array<uint8_t, size> tx_buf = { 0 };
+  MemoryStatus status;
 
-  /* Invoke read_block_status to get the status of block */
-  SPIDeviceStatus block_status = this->read_block_status(addr);
-  if (block_status == SPIDeviceStatus::block_lock) {
-    /* if block is locked then invoke unLockIndividualBlock to unlock the block
-     */
-    SPIDeviceStatus ret = this->unlock_individual_block(addr);
-    /* return ret if it is not ok */
-    if (ret != SPIDeviceStatus::ok) {
-      return ret;
+  /* Invoke readBusyStatus to read the busy bit status  */
+  if (this->read_busy_status(status) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
+  }
+
+  /* if the status of busy bit is false then SPI flash is ready for further instructions */
+  if (status.busy != true) {
+
+    /* Invoke readMemoryStatus to get the status of block/sector */
+    if (this->read_memory_status(addr, status) != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::read_error;
     }
-  }
 
-  /* Invoke read_status_register1 to get the status of device */
-  SPIDeviceStatus ret = this->read_status_register1(reg_data);
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
+    if (status.lock != false) {
+      /* if block is locked then invoke unLockIndividualMemory to unlock the block/sector */
+      if (this->unlock_individual_memory(addr) != SPIDeviceStatus::ok) {
+        return SPIDeviceStatus::write_error;
+      }
+    }
 
-  /* if LSB bit is 1 then return SPIDeviceStatus as busy */
-  if ((reg_data & 0x01U) == 1) {
+    /* Update the Byte0 of txBuf with block erase 64KB instruction */
+    tx_buf[0] = static_cast<uint8_t>(SPIInstruction::block_erase_64kb);
+
+    /* Fill the Byte1-Byte3 with address */
+    for (uint8_t index = 1; index <= 3; index++) {
+      tx_buf[index] = addr >> (static_cast<uint8_t>(CHAR_BIT) * (3U - index));
+    }
+    /* Invoke enableWrite to set the WEL bit to 1 */
+    if (this->enable_write() != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+    /* Invoke memWrite to write data into the device */
+    if (this->mem_write(tx_buf.data(), size) != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+    /* provide a delay of 2000ms */
+    static const uint32_t erase_delay = 2000;
+    HAL::delay(erase_delay);
+    /* Invoke lockIndividualMemory to lock the block/sector */
+    if (this->lock_individual_memory(addr) != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+    /* return ok */
+    return SPIDeviceStatus::ok;
+  } else {
+    /* return busy */
     return SPIDeviceStatus::busy;
   }
+}
 
-  /* Update the Byte0 of tx_buf with block erase 64KB instruction */
-  tx_buf[0] = static_cast<uint8_t>(SPIInstruction::block_erase_64kb);
+SPIDeviceStatus SPIFlash::power_down(void) {
+  static const uint8_t length = 1;
+  /* Update the txBuf with power down instruction */
+  auto tx_buf = static_cast<uint8_t>(SPIInstruction::power_down);
+
+  /* Invoke enableWrite to set the WEL bit to 1 */
+  if (this->enable_write() != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::write_error;
+  }
+  /* Invoke memWrite to write data into the device */
+  if (this->mem_write(&tx_buf, length) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::write_error;
+  }
+  /* provide a delay of 3microsec */
+  HAL::delay_micros(3);
+  /* return ok */
+  return SPIDeviceStatus::ok;
+}
+
+SPIDeviceStatus SPIFlash::release_power_down(void) {
+  static const size_t count = 4;
+  std::array<uint8_t, count> tx_buf = { 0 };
+
+  /* Update Byte0 of txBuf with release power down instruction */
+  tx_buf[0] = static_cast<uint8_t>(SPIInstruction::release_power_down);
+
+  /* Invoke enableWrite to set the WEL bit to 1 */
+  if (this->enable_write() != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::write_error;
+  }
+  /* Invoke memWrite to write data into the device */
+  if (this->mem_write(tx_buf.data(), count) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::write_error;
+  }
+  /* provide a delay of 3microsec */
+  HAL::delay_micros(3);
+  /* return ok */
+  return SPIDeviceStatus::ok;
+}
+
+SPIDeviceStatus SPIFlash::reset_device(void) {
+  static const uint8_t length = 1;
+  std::array<uint8_t, length> tx_buf = { 0 };
+  MemoryStatus status;
+
+  /* Invoke readStatusRegister1 to get the status of device */
+  if (this->read_busy_status(status) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
+  }
+
+  /* if the status of busy bit is false then SPI flash is ready for further instructions */
+  if (status.busy != true) {
+
+    /* Update the Byte0 of txBuf with  enable reset instruction */
+    tx_buf[0] = static_cast<uint8_t>(SPIInstruction::reset_enable);
+
+    /* Invoke enableWrite to set the WEL bit to 1 */
+    if (this->enable_write() != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+    /* Invoke memWrite to write data into the device */
+    if (this->mem_write(tx_buf.data(), length) != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+    /* provide a delay of 30 microsec */
+    static const uint32_t reset_delay = 30;
+    HAL::delay_micros(reset_delay);
+
+    /* Update the Byte0 of txBuf with reset device instruction */
+    tx_buf[0] = static_cast<uint8_t>(SPIInstruction::reset_device);
+
+    /* Invoke memWrite to write data into the device */
+    if (this->mem_write(tx_buf.data(), length) != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+    /* return ok */
+    return SPIDeviceStatus::ok;
+  } else {
+    /* return busy */
+    return SPIDeviceStatus::busy;
+  }
+}
+
+SPIDeviceStatus SPIFlash::is_empty(uint32_t addr, uint16_t size,
+                                   MemoryStatus &status) {
+  uint8_t rx_buf[size] = { 0 };
+
+  /* Invoke readByte to read data from the device */
+  if (this->read_byte(addr, rx_buf, size) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
+  }
+
+  for (uint16_t index = 0; index < size; index++) {
+    if (rx_buf[index] != 0xFF) {
+      status.not_empty = true;
+    }
+  }
+  /* return ok */
+  return SPIDeviceStatus::ok;
+}
+
+SPIDeviceStatus SPIFlash::read_byte(uint32_t addr, uint8_t *data,
+                                    uint16_t size) {
+  // FIXME: We will need to use a statically-allocated vector instead of a C
+  // array. Also, it is an error to try to initialize a variable-sized array -
+  // that relies on a GCC extension - so the array is left uninitialized.
+  // NOLINTNEXTLINE(modernize-avoid-c-arrays)
+  uint8_t tx_buf[size + 4];
+  // FIXME: We will need to use a statically-allocated vector instead of a C
+  // array. Also, it is an error to try to initialize a variable-sized array -
+  // that relies on a GCC extension - so the array is left uninitialized.
+  // NOLINTNEXTLINE(modernize-avoid-c-arrays)
+  uint8_t rx_buf[size + 4] = { 0 };
+
+  /* Update the Byte0 of txBuf with read byte instruction */
+  tx_buf[0] = static_cast<uint8_t>(SPIInstruction::read_byte);
 
   /* Fill the Byte1-Byte3 with address */
   for (uint8_t index = 1; index <= 3; index++) {
     tx_buf[index] = addr >> (static_cast<uint8_t>(CHAR_BIT) * (3U - index));
   }
-
-  /* Invoke enableWrite to set the WEL bit to 1 */
-  ret = this->enable_write();
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
+  /* Invoke memRead to read data from the device */
+  if (this->mem_read(tx_buf, rx_buf, size + 4) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
   }
-
-  /* Make the CS pin Low before read operation*/
-  spi_.chip_select(false);
-
-  /* Write data into the device */
-  ret = spi_.write(tx_buf.data(), size);
-
-  /* Make the CS pin High after read operation */
-  spi_.chip_select(true);
-
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
+  /* copy the read data into data buffer */
+  for (uint16_t index = 4; index <= (size + 4); index++) {
+    data[index - 4] = rx_buf[index];
   }
-
-  /* provide a delay of 2000ms */
-  static const uint32_t erase_delay = 2000;
-  HAL::delay(erase_delay);
-
-  /* Invoke lockIndividualBlock to lock the block */
-  ret = this->lock_individual_block(addr);
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-  /* return SPIDeviceStatus */
-  return ret;
+  /* return ok */
+  return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus SPIFlash::write_status_register1(uint8_t input) {
-  static const size_t size = 2;
-  std::array<uint8_t, size> tx_buf = {0};
-  uint8_t reg_data = 0;
+SPIDeviceStatus SPIFlash::write_byte(uint32_t addr, uint8_t *dataBuf,
+                                     uint8_t length) {
+  // FIXME: We will need to use a statically-allocated vector instead of a C
+  // array. Also, it is an error to try to initialize a variable-sized array -
+  // that relies on a GCC extension - so the array is left uninitialized.
+  // NOLINTNEXTLINE(modernize-avoid-c-arrays)
+  uint8_t tx_buf[length + 4];
+  MemoryStatus status;
 
-  /* Invoke read_status_register1 to get the status of device */
-  SPIDeviceStatus ret = this->read_status_register1(reg_data);
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
+  /* Invoke readBusyStatus to read the busy bit status  */
+  if (this->read_busy_status(status) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
   }
 
-  /* if LSB bit is 1 then return SPIDeviceStatus as busy */
-  if ((reg_data & 0x01U) == 1) {
+  /* if the status of busy bit is false then SPI flash is ready for further instructions */
+  if (status.busy != true) {
+
+    /* Invoke readMemoryStatus to get the status of block/sector */
+    if (this->read_memory_status(addr, status) != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::read_error;
+    }
+
+    if (status.lock != false) {
+      /* if block is locked then invoke unLockIndividualMemory to unlock the block/sector */
+      if (this->unlock_individual_memory(addr) != SPIDeviceStatus::ok) {
+        return SPIDeviceStatus::write_error;
+      }
+    }
+
+    /* Update the Byte0 of txBuf with write byte instruction */
+    tx_buf[0] = static_cast<uint8_t>(SPIInstruction::write_byte);
+
+    /* Fill the Byte1-Byte3 with address and remaining bytes with input which is to be written */
+    for (uint8_t index = 1; index <= (length + 4); index++) {
+      if (index < 4) {
+        tx_buf[index] = addr >> (static_cast<uint8_t>(CHAR_BIT) * (3U - index));
+      } else {
+        tx_buf[index] = dataBuf[index - 4];
+      }
+    }
+    /* Invoke enableWrite to set the WEL bit to 1 */
+    if (this->enable_write() != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+    /* Invoke memWrite to write data into the device */
+    if (this->mem_write(static_cast<uint8_t*>(tx_buf), length + 4)
+        != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+    /* provide a delay of 3ms */
+    HAL::delay(3);
+    /* Invoke lockIndividualMemory to lock the block/sector */
+    if (this->lock_individual_memory(addr) != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+    /* return ok */
+    return SPIDeviceStatus::ok;
+  } else {
+    /* return busy */
     return SPIDeviceStatus::busy;
   }
-
-  /* Update the Byte0 of tx_buf with write status register 1 instruction */
-  tx_buf[0] = static_cast<uint8_t>(SPIInstruction::write_status_register1);
-
-  /* Update the Byte1 of tx_buf with input which is to be written */
-  tx_buf[1] = (reg_data & input);
-
-  /* Invoke enableWrite to set the WEL bit to 1 */
-  ret = this->enable_write();
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-
-  /* Make the CS pin Low before write operation*/
-  spi_.chip_select(false);
-
-  /* Write data into the device */
-  ret = spi_.write(tx_buf.data(), size);
-
-  /* Make the CS pin High after write operation */
-  spi_.chip_select(true);
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-
-  /* provide a delay of 15ms */
-  static const uint32_t write_delay = 15;
-  HAL::delay(write_delay);
-
-  /* return SPIDeviceStatus */
-  return ret;
 }
 
-SPIDeviceStatus SPIFlash::read_status_register1(uint8_t &rx_buf) {
-  static const size_t size = 2;
-  std::array<uint8_t, size> tx_buf = {0};
-  std::array<uint8_t, size> temp = {0};
+SPIDeviceStatus SPIFlash::write_page(uint32_t addr, uint8_t *dataBuf) {
+  static const uint16_t length = page_size + 4;
+  uint8_t tx_buf[length + 4];
+  MemoryStatus status;
 
-  /* Update the Byte0 of tx_buf with read status register 1 instruction */
-  tx_buf[0] = static_cast<uint8_t>(SPIInstruction::read_status_register1);
-
-  /* Make the CS pin Low before read operation*/
-  spi_.chip_select(false);
-
-  /* Write and Read data to and from the device */
-  SPIDeviceStatus ret = spi_.write_read(tx_buf.data(), temp.data(), size);
-
-  /* Make the CS pin High after read operation */
-  spi_.chip_select(true);
-
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
+  /* Invoke readStatusRegister1 to get the status of device */
+  if (this->read_busy_status(status) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
   }
 
-  rx_buf = temp[1];
-  /* return SPIDeviceStatus */
-  return ret;
-}
+  /* if the status of busy bit is false then SPI flash is ready for further instructions */
+  if (status.busy != true) {
 
-SPIDeviceStatus SPIFlash::write_status_register2(uint8_t input) {
-  static const size_t size = 2;
-  std::array<uint8_t, size> tx_buf = {0};
-  uint8_t data_reg1 = 0;
-  uint8_t data_reg2 = 0;
+    /* Invoke readMemoryStatus to get the status of block/sector */
+    if (this->read_memory_status(addr, status) != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::read_error;
+    }
 
-  /* Invoke read_status_register1 to get the status of device */
-  SPIDeviceStatus ret = this->read_status_register1(data_reg1);
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
+    if (status.lock != false) {
+      /* if block is locked then invoke unLockIndividualMemory to unlock the block/sector */
+      if (this->unlock_individual_memory(addr) != SPIDeviceStatus::ok) {
+        return SPIDeviceStatus::write_error;
+      }
+    }
 
-  /* if LSB bit is 1 then return SPIDeviceStatus as busy */
-  if ((data_reg1 & 0x01U) == 1) {
+    /* Update the Byte0 of txBuf with write byte instruction */
+    tx_buf[0] = static_cast<uint8_t>(SPIInstruction::write_byte);
+
+    /* Fill the Byte1-Byte3 with address and remaining bytes with data which is to be written */
+    for (uint16_t index = 1; index <= (page_size + 4); index++) {
+      if (index < 4) {
+        tx_buf[index] = addr >> (static_cast<uint8_t>(CHAR_BIT) * (3U - index));
+      } else {
+        tx_buf[index] = dataBuf[index - 4];
+      }
+    }
+    /* Invoke enableWrite to set the WEL bit to 1 */
+    if (this->enable_write() != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+    /* Invoke memWrite to write data into the device */
+    if (this->mem_write(tx_buf, length) != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+    /* provide a delay of 3ms */
+    HAL::delay(3);
+    /* Invoke lockIndividualMemory to lock the block/sector */
+    if (this->lock_individual_memory(addr) != SPIDeviceStatus::ok) {
+      return SPIDeviceStatus::write_error;
+    }
+    /* return ok */
+    return SPIDeviceStatus::ok;
+  } else {
+    /* return busy */
     return SPIDeviceStatus::busy;
   }
-
-  /* Invoke read_status_register2 to get the register data */
-  ret = this->read_status_register2(data_reg2);
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-
-  /* Update the Byte0 of tx_buf with write status register 2 instruction */
-  tx_buf[0] = static_cast<uint8_t>(SPIInstruction::write_status_register2);
-
-  /* Update the Byte1 of tx_buf with input which is to be written */
-  tx_buf[1] = (data_reg2 & input);
-
-  /* Invoke enableWrite to set the WEL bit to 1 */
-  ret = this->enable_write();
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-
-  /* Make the CS pin Low before write operation*/
-  spi_.chip_select(false);
-
-  /* Write data into the device */
-  ret = spi_.write(tx_buf.data(), size);
-
-  /* Make the CS pin High after write operation */
-  spi_.chip_select(true);
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-
-  /* provide a delay of 15ms */
-  static const uint32_t write_delay = 15;
-  HAL::delay(write_delay);
-  /* return SPIDeviceStatus */
-  return ret;
 }
 
-SPIDeviceStatus SPIFlash::read_status_register2(uint8_t &rx_buf) {
-  static const size_t size = 2;
-  std::array<uint8_t, size> tx_buf = {0};
-  std::array<uint8_t, size> temp = {0};
+SPIDeviceStatus SPIFlash::write_sector(uint32_t addr, uint8_t *tx_buf,
+                                       uint16_t length) {
+  uint32_t page_loop_count = ((addr % page_size) + length);
+  /* calculate the number of bytes to be written in a page */
+  uint16_t current_page_count = page_size - (addr % page_size);
+  uint16_t index;
+  SPIDeviceStatus ret;
 
-  /* Update the Byte0 of tx_buf with read status register 2 instruction */
-  tx_buf[0] = static_cast<uint8_t>(SPIInstruction::read_status_register2);
+  /* calculate the number of pages */
+  page_loop_count =
+      (page_loop_count % page_size) == 0 ?
+          (page_loop_count / page_size) : (page_loop_count / page_size + 1);
 
-  /* Make the CS pin Low before write operation*/
-  spi_.chip_select(false);
+  for (index = 0; index < page_loop_count; index++) {
+    if (current_page_count < page_size) {
+      /* Invoke writeByte to write the data */
+      ret = this->write_byte(addr, tx_buf, current_page_count);
+      /* return ret if it is not ok */
+      if (ret != SPIDeviceStatus::ok) {
+        return ret;
+      }
+    }
 
-  /* Write and Read data to and from the device */
-  SPIDeviceStatus ret = spi_.write_read(tx_buf.data(), temp.data(), size);
-
-  /* Make the CS pin High after write operation */
-  spi_.chip_select(true);
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-
-  rx_buf = temp[1];
-  /* return SPIDeviceStatus */
-  return ret;
-}
-
-SPIDeviceStatus SPIFlash::write_status_register3(uint8_t input) {
-  static const size_t size = 2;
-  std::array<uint8_t, size> tx_buf = {0};
-  uint8_t data_reg1 = 0;
-  uint8_t data_reg3 = 0;
-
-  /* Invoke read_status_register1 to get the status of device */
-  SPIDeviceStatus ret = this->read_status_register1(data_reg1);
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-
-  /* if LSB bit is 1 then return SPIDeviceStatus as busy */
-  if ((data_reg1 & 0x01U) == 1) {
-    return SPIDeviceStatus::busy;
-  }
-
-  /* Invoke read_status_register3 to get the status register 3 data */
-  ret = this->read_status_register3(data_reg3);
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-
-  /* Update the Byte0 of tx_buf with write status register 3 instruction */
-  tx_buf[0] = static_cast<uint8_t>(SPIInstruction::write_status_register3);
-
-  /* Update the Byte1 of tx_buf with input which is to be written */
-  tx_buf[1] = (data_reg3 | input);
-
-  /* Invoke enableWrite to set the WEL bit to 1 */
-  ret = this->enable_write();
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-
-  /* Make the CS pin Low before write operation*/
-  spi_.chip_select(false);
-
-  /* Write data into the device */
-  ret = spi_.write(tx_buf.data(), size);
-
-  /* Make the CS pin High after write operation */
-  spi_.chip_select(true);
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-
-  /* provide a delay of 15ms */
-  static const uint32_t write_delay = 15;
-  HAL::delay(write_delay);
-  /* return SPIDeviceStatus */
-  return ret;
-}
-
-SPIDeviceStatus SPIFlash::read_status_register3(uint8_t &rx_buf) {
-  static const size_t size = 2;
-  std::array<uint8_t, size> tx_buf = {0};
-  std::array<uint8_t, size> temp = {0};
-
-  /* Update the Byte0 of tx_buf with read status register 3 instruction */
-  tx_buf[0] = static_cast<uint8_t>(SPIInstruction::read_status_register3);
-
-  /* Make the CS pin Low before read operation*/
-  spi_.chip_select(false);
-
-  /* Write and Read data to and from the device */
-  SPIDeviceStatus ret = spi_.write_read(tx_buf.data(), temp.data(), size);
-
-  /* Make the CS pin high after read operation*/
-  spi_.chip_select(true);
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-
-  rx_buf = temp[1];
-  /* return SPIDeviceStatus */
-  return ret;
-}
-
-SPIDeviceStatus SPIFlash::power_down() {
-  /* Update the tx_buf with power down instruction */
-  auto tx_buf = static_cast<uint8_t>(SPIInstruction::power_down);
-
-  /* Make the CS pin Low before write operation*/
-  spi_.chip_select(false);
-
-  /* Write data into the device */
-  SPIDeviceStatus ret = spi_.write(&tx_buf, 1);
-
-  /* Make the CS pin High after write operation */
-  spi_.chip_select(true);
-
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-
-  /* provide a delay of 3microsec */
-  HAL::delay_micros(3);
-  /* return SPIDeviceStatus */
-  return ret;
-}
-
-SPIDeviceStatus SPIFlash::release_power_down() {
-  static const size_t count = 4;
-  std::array<uint8_t, count> tx_buf = {0};
-
-  /* Update the Byte0 of tx_buf with release power down instruction */
-  tx_buf[0] = static_cast<uint8_t>(SPIInstruction::release_power_down);
-
-  /* Make the CS pin Low before write operation*/
-  spi_.chip_select(false);
-
-  /* Write data into the device */
-  SPIDeviceStatus ret = spi_.write(tx_buf.data(), count);
-
-  /* Make the CS pin High after write operation */
-  spi_.chip_select(true);
-
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-
-  /* provide a delay of 3microsec */
-  HAL::delay_micros(3);
-  /* return SPIDeviceStatus */
-  return ret;
-}
-
-SPIDeviceStatus SPIFlash::reset_device() {
-  std::array<uint8_t, 1> tx_buf = {0};
-  uint8_t data = 0;
-
-  /* Invoke read_status_register1 to get the status of device */
-  SPIDeviceStatus ret = this->read_status_register1(data);
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-
-  /* if LSB bit is 1 then return SPIDeviceStatus as busy */
-  if ((data & 0x01U) == 1) {
-    return SPIDeviceStatus::busy;
-  }
-
-  /* Update the Byte0 of tx_buf with  enable reset instruction */
-  tx_buf[0] = static_cast<uint8_t>(SPIInstruction::reset_enable);
-
-  /* Make the CS pin Low before write operation */
-  spi_.chip_select(false);
-
-  /* Write data into the device */
-  ret = spi_.write(tx_buf.data(), 1);
-
-  /* Make the CS pin High after write operation */
-  spi_.chip_select(true);
-
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
-  }
-
-  /* provide a delay of 30 microsec */
-  static const uint32_t reset_delay = 30;
-  HAL::delay_micros(reset_delay);
-
-  /* Update the Byte0 of tx_buf with reset device instruction */
-  tx_buf[0] = static_cast<uint8_t>(SPIInstruction::reset_device);
-
-  /* Make the CS pin Low after write operation */
-  spi_.chip_select(false);
-
-  /* Write data into the device */
-  ret = spi_.write(tx_buf.data(), 1);
-
-  /* Make the CS pin High after write operation */
-  spi_.chip_select(true);
-
-  /* return ret if it is not ok */
-  if (ret != SPIDeviceStatus::ok) {
-    return ret;
+    if (current_page_count == page_size) {
+      /* Invoke writeByte to write the data into page */
+      ret = this->write_page(addr, tx_buf);
+      /* return ret if it is not ok */
+      if (ret != SPIDeviceStatus::ok) {
+        return ret;
+      }
+    }
+    addr += current_page_count;
+    tx_buf += current_page_count;
+    length = length - current_page_count;
+    /* calculate the number of bytes to be written in a page */
+    current_page_count = (length < page_size) ? length : page_size;
   }
   /* return SPIDeviceStatus */
   return ret;
 }
 
-}  // namespace Pufferfish::Driver::SPI
+SPIDeviceStatus SPIFlash::write_to_memory(uint32_t addr, uint8_t *data_buf,
+                                          uint16_t length) {
+  uint16_t page_start_index = (addr % page_size);
+  SPIDeviceStatus ret;
+  MemoryStatus stat;
+
+  /* Invoke isEmpty to check the page/sector/block is empty or not */
+  if (this->is_empty(addr, length, stat) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
+  }
+
+  if (stat.not_empty != true) {
+    /* length < 256 */
+    if (length == page_size && page_start_index == 0) {
+      /* Invoke writeByte to write the data into page */
+      ret = this->write_page(addr, data_buf);
+      return ret;
+    }
+    /* length <= 256 */
+    if ((length + page_start_index) <= page_size) {
+      /* Invoke writeByte to write the data into address */
+      ret = this->write_byte(addr, data_buf, length);
+      return ret;
+    }
+    /* length > 256 */
+    /* Invoke writeSector to write the data in page by page */
+    ret = this->write_sector(addr, data_buf, length);
+    return ret;
+  }
+}
+
+} // namespace Pufferfish::Driver::SPI
