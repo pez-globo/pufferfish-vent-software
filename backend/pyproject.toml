@@ -21,6 +21,7 @@ trio-typing = { version = "^0.5.0" }
 pyserial = { version = "^3.4" }
 trio-websocket = { version = "^0.8.0" }
 crcmod = { version = "^1.7" }
+"RPi.GPIO" = { version = "^0.7.0"}
 
 [tool.poetry.dev-dependencies]
 # Code quality

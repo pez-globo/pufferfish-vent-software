@@ -38,6 +38,7 @@
 #include "Pufferfish/Driver/I2C/TCA9548A.h"
 #include "Pufferfish/Statuses.h"
 #include "Pufferfish/Driver/Serial/Nonin/NoninOEM3.h"
+#include "Pufferfish/Driver/Button/Button.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -119,7 +120,11 @@ PF::HAL::HALDigitalOutput alarmRegHigh(*ALARM1_HIGH_GPIO_Port, ALARM1_HIGH_Pin);
 PF::HAL::HALDigitalOutput alarmRegMed(*ALARM1_MED_GPIO_Port, ALARM1_MED_Pin);
 PF::HAL::HALDigitalOutput alarmRegLow(*ALARM1_LOW_GPIO_Port, ALARM1_LOW_Pin);
 PF::HAL::HALDigitalOutput alarmBuzzer(*BUZZ1_EN_GPIO_Port, BUZZ1_EN_Pin);
+PF::HAL::HALDigitalInput inputButton(*Mem_Button_GPIO_Port, Mem_Button_Pin);
 
+PF::Driver::Button::Debouncer switchDebounce;
+PF::Driver::Button::EdgeDetector switchTransition;
+PF::Driver::Button::Button buttonMembrane(inputButton,switchDebounce);
 PF::Driver::Indicators::LEDAlarm alarmDevLed(alarmLedR, alarmLedG, alarmLedB);
 PF::Driver::Indicators::AuditoryAlarm alarmDevSound(alarmRegHigh, alarmRegMed, alarmRegLow, alarmBuzzer);
 PF::AlarmsManager hAlarms(alarmDevLed, alarmDevSound);
@@ -289,7 +294,8 @@ int main(void)
   /* Nonin TODO */
   uint32_t testcaseResults[4] = {false};
 
-
+  PF::Driver::Button::EdgeState state;
+  bool memButtonstate = false;
   /* TODO: Added for testing Nonin OEM III */
   PF::Driver::Serial::Nonin::NoninOEM::NoninPacketStatus returnStatus;
 
@@ -415,7 +421,11 @@ int main(void)
     {
       /* Else statements*/
     }
-
+  buttonMembrane.readState(memButtonstate, state);
+  if(state != PF::Driver::Button::EdgeState::risingEdge){
+    boardLed1.write(true);
+    PF::HAL::delay(5);
+  }
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */

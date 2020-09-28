@@ -10,42 +10,11 @@ import betterproto
 
 from ventserver.protocols import events
 from ventserver.protocols import exceptions
-from ventserver.protocols.protobuf import frontend_pb, mcu_pb
 from ventserver.sansio import protocols
 
 
-# Messages
-
-
-MCU_MESSAGE_CLASSES: Mapping[int, Type[betterproto.Message]] = {
-    1: mcu_pb.Alarms,
-    2: mcu_pb.SensorMeasurements,
-    3: mcu_pb.CycleMeasurements,
-    4: mcu_pb.Parameters,
-    5: mcu_pb.ParametersRequest,
-    6: mcu_pb.Ping,
-    7: mcu_pb.Announcement
-}
-
-FRONTEND_MESSAGE_CLASSES: Mapping[int, Type[betterproto.Message]] = {
-    **MCU_MESSAGE_CLASSES,
-    128: frontend_pb.RotaryEncoder
-}
-
-MCU_MESSAGE_TYPES: Mapping[Type[betterproto.Message], int] = {
-    pb_class: type for (type, pb_class) in MCU_MESSAGE_CLASSES.items()
-}
-
-FRONTEND_MESSAGE_TYPES: Mapping[Type[betterproto.Message], int] = {
-    pb_class: type for (type, pb_class) in FRONTEND_MESSAGE_CLASSES.items()
-}
-
-
-# State Synchronization
-
-
 @attr.s
-class StateUpdateEvent(events.Event):
+class UpdateEvent(events.Event):
     """State update event."""
 
     time: Optional[float] = attr.ib(default=None)
@@ -65,8 +34,8 @@ class ScheduleEntry:
 
 
 @attr.s
-class StateSynchronizer(
-        protocols.Filter[StateUpdateEvent, betterproto.Message]
+class Synchronizer(
+        protocols.Filter[UpdateEvent, betterproto.Message]
 ):
     """State synchronization filter.
 
@@ -74,11 +43,9 @@ class StateSynchronizer(
     are state updates for the peer.
     """
 
-    _logger = logging.getLogger('.'.join((__name__, 'StateSynchronizer')))
+    _logger = logging.getLogger('.'.join((__name__, 'Synchronizer')))
 
-    message_classes: Mapping[int, Type[betterproto.Message]] = attr.ib(
-        default=MCU_MESSAGE_CLASSES
-    )
+    message_classes: Mapping[int, Type[betterproto.Message]] = attr.ib()
     current_time: float = attr.ib(default=0)
     all_states: Dict[
         Type[betterproto.Message], Optional[betterproto.Message]
@@ -107,7 +74,7 @@ class StateSynchronizer(
         """
         return collections.deque([])
 
-    def input(self, event: Optional[StateUpdateEvent]) -> None:
+    def input(self, event: Optional[UpdateEvent]) -> None:
         """Handle input events."""
         if event is None or not event.has_data():
             return

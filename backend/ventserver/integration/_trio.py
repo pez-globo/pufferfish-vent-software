@@ -3,7 +3,7 @@
 import functools
 import logging
 import time
-from typing import Callable, Optional, TypeVar
+from typing import Callable, Optional, TypeVar, Tuple
 
 import trio
 
@@ -163,11 +163,17 @@ async def process_protocol_receive_output(
 
 # Protocol receive
 
+_ReceiveInputType = TypeVar("_ReceiveInputType")
+_ReceiveOutputType = TypeVar("_ReceiveOutputType")
 
 async def process_io_receive(
-        io_endpoint: endpoints.IOEndpoint[bytes, bytes],
+        io_endpoint: endpoints.IOEndpoint[
+            _ReceiveInputType, _ReceiveOutputType
+        ],
         protocol: server.Protocol,
-        receive_event_maker: Callable[[bytes], server.ReceiveEvent],
+        receive_event_maker: Callable[
+            [_ReceiveOutputType, float], server.ReceiveEvent
+        ],
         channel: triochannels.TrioChannel[server.ReceiveOutputEvent],
         push_endpoint: 'trio.MemorySendChannel[server.ReceiveOutputEvent]'
 ) -> None:
@@ -186,7 +192,7 @@ async def process_io_receive(
     """
     async with push_endpoint:
         async for receive in io_endpoint.receive_all():
-            protocol.receive.input(receive_event_maker(receive))
+            protocol.receive.input(receive_event_maker(receive, time.time()))
             await process_protocol_receive_output(protocol, channel)
 
 
@@ -194,9 +200,13 @@ async def process_io_receive(
 
 
 async def process_io_persistently(
-        io_endpoint: endpoints.IOEndpoint[bytes, bytes],
+        io_endpoint: endpoints.IOEndpoint[
+            _ReceiveInputType, _ReceiveOutputType
+        ],
         protocol: server.Protocol,
-        receive_event_maker: Callable[[bytes], server.ReceiveEvent],
+        receive_event_maker: Callable[
+            [_ReceiveOutputType, float], server.ReceiveEvent
+        ],
         nursery: trio.Nursery,
         channel: triochannels.TrioChannel[server.ReceiveOutputEvent],
         push_endpoint: 'trio.MemorySendChannel[server.ReceiveOutputEvent]',
@@ -244,9 +254,12 @@ async def process_clock(
 
 
 async def process_all(
-        serial: Optional[endpoints.IOEndpoint[bytes, bytes]],
         protocol: server.Protocol,
+        serial: Optional[endpoints.IOEndpoint[bytes, bytes]],
         websocket: Optional[endpoints.IOEndpoint[bytes, bytes]],
+        rotary_encoder: Optional[
+            endpoints.IOEndpoint[bytes, Tuple[int, bytes]]
+        ],
         channel: triochannels.TrioChannel[server.ReceiveOutputEvent],
         push_endpoint: 'trio.MemorySendChannel[server.ReceiveOutputEvent]'
 ) -> None:
@@ -279,6 +292,15 @@ async def process_all(
                     functools.partial(
                         process_io_persistently, websocket, protocol,
                         server.make_websocket_receive, nursery, channel,
+                        push_endpoint.clone()
+                    )
+                )
+            if rotary_encoder is not None:
+                nursery.start_soon(
+                    # mypy only supports <= 5 args with trio-typing
+                    functools.partial(
+                        process_io_receive, rotary_encoder, protocol,
+                        server.make_rotary_encoder_receive, channel,
                         push_endpoint.clone()
                     )
                 )

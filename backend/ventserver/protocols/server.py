@@ -1,6 +1,6 @@
 """Sans-I/O ventilator backend server protocol."""
 
-from typing import Optional, Union
+from typing import Optional, Union, Tuple
 
 import attr
 
@@ -8,6 +8,7 @@ from ventserver.protocols import backend
 from ventserver.protocols import events
 from ventserver.protocols import frontend
 from ventserver.protocols import mcu
+from ventserver.protocols import rotary_encoder
 from ventserver.sansio import channels
 from ventserver.sansio import protocols
 
@@ -22,6 +23,7 @@ class ReceiveEvent(events.Event):
     time: Optional[float] = attr.ib(default=None)
     serial_receive: Optional[bytes] = attr.ib(default=None)
     websocket_receive: Optional[bytes] = attr.ib(default=None)
+    rotary_encoder_receive: Tuple[int, bool] = attr.ib(default=None)
 
     def has_data(self) -> bool:
         """Return whether the event has data."""
@@ -58,14 +60,27 @@ class SendOutputEvent(events.Event):
         return bool(self.serial_send) or self.websocket_send is not None
 
 
-def make_serial_receive(serial_receive: bytes) -> ReceiveEvent:
+def make_serial_receive(
+        serial_receive: bytes,
+        time: float
+    ) -> ReceiveEvent:
     """Make a ReceiveEvent from serial receive data."""
-    return ReceiveEvent(serial_receive=serial_receive)
+    return ReceiveEvent(serial_receive=serial_receive, time=time)
 
 
-def make_websocket_receive(ws_receive: bytes) -> ReceiveEvent:
+def make_websocket_receive(
+        ws_receive: bytes,
+        time: float
+    ) -> ReceiveEvent:
     """Make a ReceiveEvent from websocket receive data."""
-    return ReceiveEvent(websocket_receive=ws_receive)
+    return ReceiveEvent(websocket_receive=ws_receive, time=time)
+
+def make_rotary_encoder_receive(
+        re_receive: Tuple[int, bool],
+        time: float
+    ) -> ReceiveEvent:
+    """Make a ReceiveEvent from rotary encoder receive data."""
+    return ReceiveEvent(rotary_encoder_receive=re_receive, time=time)
 
 
 # Filters
@@ -81,7 +96,11 @@ class ReceiveFilter(protocols.Filter[ReceiveEvent, ReceiveOutputEvent]):
     current_time: float = attr.ib(default=0)
     _mcu: mcu.ReceiveFilter = attr.ib(factory=mcu.ReceiveFilter)
     _frontend: frontend.ReceiveFilter = attr.ib(factory=frontend.ReceiveFilter)
+    _rotary_encoder: rotary_encoder.ReceiveFilter = attr.ib(
+        factory=rotary_encoder.ReceiveFilter
+    )
     _backend: backend.ReceiveFilter = attr.ib(factory=backend.ReceiveFilter)
+
 
     def input(self, event: Optional[ReceiveEvent]) -> None:
         """Handle input events."""
@@ -99,6 +118,8 @@ class ReceiveFilter(protocols.Filter[ReceiveEvent, ReceiveOutputEvent]):
         any_updated = self._process_mcu() or any_updated
         # Process frontend output
         any_updated = self._process_frontend() or any_updated
+        # Process rotary encoder output
+        any_updated = self._process_rotary_encoder() or any_updated
         # Process time
         if not any_updated:
             self._backend.input(backend.ReceiveEvent(time=self.current_time))
@@ -128,6 +149,12 @@ class ReceiveFilter(protocols.Filter[ReceiveEvent, ReceiveOutputEvent]):
             self.current_time = event.time
         self._mcu.input(event.serial_receive)
         self._frontend.input(event.websocket_receive)
+        self._rotary_encoder.input(
+            rotary_encoder.ReceiveEvent(
+                time=self.current_time,
+                re_data=event.rotary_encoder_receive
+            )
+        )
 
     def _process_mcu(self) -> bool:
         """Process the next event from the mcu protocol."""
@@ -152,13 +179,24 @@ class ReceiveFilter(protocols.Filter[ReceiveEvent, ReceiveOutputEvent]):
         ))
         return True
 
+    def _process_rotary_encoder(self) -> bool:
+        """Process the next event from the rotary encoder."""
+        rotary_encoder_output = self._rotary_encoder.output()
+        if rotary_encoder_output is None:
+            return False
+        self._backend.input(backend.ReceiveEvent(
+            time=self.current_time, mcu_receive=None,
+            frontend_receive=rotary_encoder_output
+        ))
+        return True
+
     def input_serial(self, serial_receive: bytes) -> None:
         """Input a ReceiveEvent corresponding to serial data.
 
         This is just a convenience function intended for writing unit tests
         more concisely.
         """
-        self.input(make_serial_receive(serial_receive))
+        self.input(make_serial_receive(serial_receive, self.current_time))
 
     def input_websocket(self, websocket: bytes) -> None:
         """Input a ReceiveEvent corresponding to websocket data.
@@ -166,7 +204,7 @@ class ReceiveFilter(protocols.Filter[ReceiveEvent, ReceiveOutputEvent]):
         This is just a convenience function intended for writing unit tests
         more concisely.
         """
-        self.input(make_websocket_receive(websocket))
+        self.input(make_websocket_receive(websocket, self.current_time))
 
     @property
     def backend(self) -> backend.ReceiveFilter:
