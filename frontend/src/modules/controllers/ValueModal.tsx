@@ -90,7 +90,7 @@ export const ValueModal = ({
   useEffect(() => {
     updateRotaryData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rotaryEncoder]);
+  }, [rotaryEncoder.step, rotaryEncoder.buttonPressed]);
 
   function pipClarify(label: string) {
     if (label === 'PIP') return '*not PEEP compensated';
