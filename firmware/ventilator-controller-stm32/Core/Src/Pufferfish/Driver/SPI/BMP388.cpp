@@ -19,375 +19,334 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 #include "Pufferfish/Driver/SPI/BMP388.h"
 
 namespace Pufferfish {
 namespace Driver {
 namespace SPI {
 
-SPIDeviceStatus BMP388::read(RegisterAddress registerType, uint8_t *rxBuf,
-                             size_t count) {
-
-  uint8_t txRegister[2];
-  txRegister[0] = static_cast<uint8_t>(registerType);
-  txRegister[0] |= 0x80; /// To make 7th bit as '1' for reading
-
-  mSpi.chipSelect(false);
-  if (mSpi.writeRead(txRegister, rxBuf, count) != SPIDeviceStatus::ok) {
-    mSpi.chipSelect(true);
-    return SPIDeviceStatus::readError;
+SPIDeviceStatus BMP388::read(RegisterAddress register_type, uint8_t *rx_buf, size_t count) {
+  uint8_t tx_register[2];
+  tx_register[0] = static_cast<uint8_t>(register_type);
+  tx_register[0] |= 0x80;  /// To make 7th bit as '1' for reading
+  spi_.chip_select(false);
+  if (spi_.write_read(tx_register, rx_buf, count) != SPIDeviceStatus::ok) {
+    spi_.chip_select(true);
+    return SPIDeviceStatus::read_error;
   }
-  mSpi.chipSelect(true);
+  spi_.chip_select(true);
   return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus BMP388::write(RegisterAddress registerType, uint8_t *txBuff,
-                              size_t count) {
-
+SPIDeviceStatus BMP388::write(RegisterAddress register_type, uint8_t *tx_buf, size_t count) {
   /* Byte 1 : RW (bit 7 of byte 1)  reset to write the data */
-  uint8_t txRegister[2];
-  txRegister[0] = static_cast<uint8_t>(registerType);
-  txRegister[0] &= 0x7F;
-  txRegister[1] = txBuff[0];
+  uint8_t tx_register[2];
+  tx_register[0] = static_cast<uint8_t>(register_type);
+  tx_register[0] &= 0x7F;
+  tx_register[1] = tx_buf[0];
 
-  mSpi.chipSelect(false);
-  if (mSpi.write(txRegister, count) != SPIDeviceStatus::ok) {
-    mSpi.chipSelect(true);
-    return SPIDeviceStatus::writeError;
+  spi_.chip_select(false);
+  if (spi_.write(tx_register, count) != SPIDeviceStatus::ok) {
+    spi_.chip_select(true);
+    return SPIDeviceStatus::write_error;
   }
-  mSpi.chipSelect(true);
+  spi_.chip_select(true);
   return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus BMP388::getChipId(uint8_t &memId) {
-
+SPIDeviceStatus BMP388::get_chip_id(uint8_t &mem_id) {
   const uint8_t size = 3;
-  uint8_t rxData[size];
+  uint8_t rx_data[size];
 
   /* Read chip id */
-  if (this->read(RegisterAddress::chipID, rxData,size)
-      != SPIDeviceStatus::ok) {
-    return SPIDeviceStatus::readError;
+  if (this->read(RegisterAddress::chip_id, rx_data, size) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
   }
-  memId = rxData[2];
+  mem_id = rx_data[2];
   return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus BMP388::getErrors(SensorError &faults) {
-
+SPIDeviceStatus BMP388::get_errors(SensorError &faults) {
   const uint8_t size = 3;
-  uint8_t rxData[size];
+  uint8_t rx_data[size];
   /* Read Sensor faults */
-  if (this->read(RegisterAddress::sensorErrors,rxData,size)
-      != SPIDeviceStatus::ok) {
-    return SPIDeviceStatus::readError;
+  if (this->read(RegisterAddress::sensor_errors, rx_data, size) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
   }
-  faults.fatal = (((rxData[2] & 0x01) != 0x00) ? true : false);
-  faults.command = (((rxData[2] & 0x02) != 0x00) ? true : false);
-  faults.configuration = (((rxData[2] & 0x04) != 0x00) ? true : false);
+  faults.fatal = (((rx_data[2] & 0x01) != 0x00) ? true : false);
+  faults.command = (((rx_data[2] & 0x02) != 0x00) ? true : false);
+  faults.configuration = (((rx_data[2] & 0x04) != 0x00) ? true : false);
   return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus BMP388::getDataReadyInterrupt(bool &status) {
-
+SPIDeviceStatus BMP388::get_data_ready_interrupt(bool &status) {
   const uint8_t size = 3;
-  uint8_t rxData[size];
+  uint8_t rx_data[size];
   /* Read Sensor faults */
-  if (this->read(RegisterAddress::interruptstatus,rxData,size)
-      != SPIDeviceStatus::ok) {
-    return SPIDeviceStatus::readError;
+  if (this->read(RegisterAddress::interrupt_status, rx_data, size) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
   }
-  status = (((rxData[2] & 0x80) != 0x00) ? true : false);
+  status = (((rx_data[2] & 0x80) != 0x00) ? true : false);
   return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus BMP388::getSensorstatus(SensorStatus &status) {
-
+SPIDeviceStatus BMP388::get_sensor_status(SensorStatus &status) {
   const uint8_t size = 3;
-   uint8_t rxData[size];
-   /* Read Sensor faults */
-   if (this->read(RegisterAddress::sensorStatus,rxData,size)
-       != SPIDeviceStatus::ok) {
-     return SPIDeviceStatus::readError;
-   }
-   status.cmdReady = (((rxData[2] & 0x10) != 0x00) ? true : false);
-   status.pressureReady = (((rxData[2] & 0x20) != 0x00) ? true : false);
-   status.temperatureReady = (((rxData[2] & 0x40) != 0x00) ? true : false);
-   return SPIDeviceStatus::ok;
+  uint8_t rx_data[size];
+  /* Read Sensor faults */
+  if (this->read(RegisterAddress::sensor_status, rx_data, size) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
+  }
+  status.cmd_ready = (((rx_data[2] & 0x10) != 0x00) ? true : false);
+  status.pressure_ready = (((rx_data[2] & 0x20) != 0x00) ? true : false);
+  status.temperature_ready = (((rx_data[2] & 0x40) != 0x00) ? true : false);
+  return SPIDeviceStatus::ok;
 }
 
 /// Triggers a reset, all user configuration setting are overwritten with their default state
 SPIDeviceStatus BMP388::reset() {
-
   const uint8_t size = 1;
-  uint8_t softReset = 0xB6;
+  uint8_t soft_reset = 0xB6;
   /* Write the sensor CMD for reset */
-  if (this->write(RegisterAddress::command, &softReset, size)
-      != SPIDeviceStatus::ok) {
-    return SPIDeviceStatus::readError;
+  if (this->write(RegisterAddress::command, &soft_reset, size) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
   }
   /// TBD: delay time needs to be updated
   return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus BMP388::enableSPIcommunication(SPIInterfaceType const mode) {
-
-  uint8_t data = static_cast<uint8_t>(CommunicationType::spi)| static_cast<uint8_t>(mode);
-  uint8_t bitPos = bitManipulation(static_cast<uint8_t>(CommunicationType::spi));
-
-   /* Write the sensor CMD for reset */
-  if(this->setRegister(RegisterAddress::ifConfig, bitPos, data) != SPIDeviceStatus::ok ){
-    return SPIDeviceStatus::writeError;
-  }
-  return SPIDeviceStatus::ok;
-}
-
-SPIDeviceStatus BMP388::setRegister(RegisterAddress address,uint8_t const bitmask, uint8_t value) {
-
-  const uint8_t txSize = 2;
-  const uint8_t rxSize = 3;
-  uint8_t txData;
-  uint8_t rxData[rxSize];
-  /* Read data from register 8*/
-  if (this->read(address, rxData, rxSize) != SPIDeviceStatus::ok) {
-    return SPIDeviceStatus::readError;
-  }
-  txData = rxData[2];
-  txData &= ~(bitmask);
-  txData |= (value & bitmask);
-  /* Write data to the register */
-  if (this->write(address, &txData, txSize) != SPIDeviceStatus::ok) {
-    return SPIDeviceStatus::writeError;
-  }
-  return SPIDeviceStatus::ok;
-}
-
-SPIDeviceStatus BMP388::enablePressure(RegisterSet const status) {
-
-  uint8_t data = static_cast<uint8_t>(status);
-  uint8_t bitPos = bitManipulation(static_cast<uint8_t>(PowerControl::pressureEnable));
-  data = data << (bitPos - 1);
-  SPIDeviceStatus ret = this->setRegister(RegisterAddress::powerCtrl, bitPos, data);
+SPIDeviceStatus BMP388::enable_spi_communication(SPIInterfaceType const mode) {
+  uint8_t data = static_cast<uint8_t>(CommunicationType::spi) | static_cast<uint8_t>(mode);
+  uint8_t bit_pos = bit_manipulation(static_cast<uint8_t>(CommunicationType::spi));
   /* Write the sensor CMD for reset */
-  if(ret != SPIDeviceStatus::ok ){
-    return SPIDeviceStatus::writeError;
+  if (this->set_register(RegisterAddress::if_config, bit_pos, data) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::write_error;
   }
   return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus BMP388::enableTemperature(RegisterSet const status) {
-
-  uint8_t data = static_cast<uint8_t>(status);
-  uint8_t bitPos = bitManipulation(static_cast<uint8_t>(PowerControl::temperatureEnable));
-  data = data << (bitPos - 1);
-  SPIDeviceStatus ret = this->setRegister(RegisterAddress::powerCtrl, bitPos, data);
-   /* Write the sensor CMD for reset */
-   if( ret != SPIDeviceStatus::ok ){
-     return SPIDeviceStatus::writeError;
-   }
-   return SPIDeviceStatus::ok;
+SPIDeviceStatus BMP388::set_register(RegisterAddress address, uint8_t const bit_mask, uint8_t value) {
+  const uint8_t tx_size = 2;
+  const uint8_t rx_size = 3;
+  uint8_t tx_data;
+  uint8_t rx_data[rx_size];
+  /* Read data from register 8*/
+  if (this->read(address, rx_data, rx_size) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
+  }
+  tx_data = rx_data[2];
+  tx_data &= ~(bit_mask);
+  tx_data |= (value & bit_mask);
+  /* Write data to the register */
+  if (this->write(address, &tx_data, tx_size) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::write_error;
+  }
+  return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus BMP388::selectPowerMode(PowerModes const mode) {
+SPIDeviceStatus BMP388::enable_pressure(RegisterSet const status) {
+  uint8_t data = static_cast<uint8_t>(status);
+  uint8_t bit_pos = bit_manipulation(static_cast<uint8_t>(PowerControl::pressure_enable));
+  data = data << (bit_pos - 1);
+  SPIDeviceStatus ret = this->set_register(RegisterAddress::power_ctrl, bit_pos, data);
+  /* Write the sensor CMD for reset */
+  if (ret != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::write_error;
+  }
+  return SPIDeviceStatus::ok;
+}
 
+SPIDeviceStatus BMP388::enable_temperature(RegisterSet const status) {
+  uint8_t data = static_cast<uint8_t>(status);
+  uint8_t bit_pos = bit_manipulation(static_cast<uint8_t>(PowerControl::temperature_enable));
+  data = data << (bit_pos - 1);
+  SPIDeviceStatus ret = this->set_register(RegisterAddress::power_ctrl, bit_pos, data);
+  /* Write the sensor CMD for reset */
+  if (ret != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::write_error;
+  }
+  return SPIDeviceStatus::ok;
+}
+
+SPIDeviceStatus BMP388::select_power_mode(PowerModes const mode) {
   uint8_t data = static_cast<uint8_t>(mode);
-  uint8_t bitPos = bitManipulation(static_cast<uint8_t>(PowerControl::modeBit0))
-                   |bitManipulation(static_cast<uint8_t>(PowerControl::modeBit1));
+  uint8_t bit0 = bit_manipulation(static_cast<uint8_t>(PowerControl::mode_bit0));
+  uint8_t bit1 = bit_manipulation(static_cast<uint8_t>(PowerControl::mode_bit1));
+  uint8_t bit_pos = bit0 | bit1;
   data = data << 4;
   /* Write the sensor CMD for reset */
-  SPIDeviceStatus ret = this->setRegister(RegisterAddress::powerCtrl, bitPos,
-                                          data);
+  SPIDeviceStatus ret = this->set_register(RegisterAddress::power_ctrl, bit_pos, data);
   if (ret != SPIDeviceStatus::ok) {
-    return SPIDeviceStatus::writeError;
+    return SPIDeviceStatus::write_error;
   }
   return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus BMP388::InterruptPinOutputType(RegisterSet const status) {
-
+SPIDeviceStatus BMP388::interrupt_pin_output_type(RegisterSet const status) {
   uint8_t data = static_cast<uint8_t>(status);
-  uint8_t bitPos = bitManipulation(static_cast<uint8_t>(Interrupts::odInt));
-  data = data << (bitPos - 1);
+  uint8_t bit_pos = bit_manipulation(static_cast<uint8_t>(Interrupts::od_int));
+  data = data << (bit_pos - 1);
   /* Write the sensor CMD for reset */
-  SPIDeviceStatus ret = this->setRegister(RegisterAddress::interruptControl, bitPos, data);
+  SPIDeviceStatus ret = this->set_register(RegisterAddress::interrupt_control, bit_pos, data);
   if (ret != SPIDeviceStatus::ok) {
-    return SPIDeviceStatus::writeError;
+    return SPIDeviceStatus::write_error;
   }
   return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus BMP388::levelOfInterruptPin(RegisterSet const level) {
-
+SPIDeviceStatus BMP388::level_of_interrupt_pin(RegisterSet const level) {
   uint8_t data = static_cast<uint8_t>(level);
-  uint8_t bitPos = bitManipulation(static_cast<uint8_t>(Interrupts::levelOfInt));
-  data = data << (bitPos - 1);
+  uint8_t bit_pos = bit_manipulation(static_cast<uint8_t>(Interrupts::level_of_int));
+  data = data << (bit_pos - 1);
   /* Write the sensor CMD for reset */
-  SPIDeviceStatus ret = this->setRegister(RegisterAddress::interruptControl,
-                                          bitPos, data);
+  SPIDeviceStatus ret = this->set_register(RegisterAddress::interrupt_control, bit_pos, data);
   if (ret != SPIDeviceStatus::ok) {
-    return SPIDeviceStatus::writeError;
+    return SPIDeviceStatus::write_error;
   }
   return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus BMP388::dataReadyInterrupt(RegisterSet const status) {
-
+SPIDeviceStatus BMP388::data_ready_interrupt(RegisterSet const status) {
   uint8_t data = static_cast<uint8_t>(status);
-  uint8_t bitPos = bitManipulation(static_cast<uint8_t>(Interrupts::latchInt));
-  data = data << (bitPos - 1);
+  uint8_t bit_pos = bit_manipulation(static_cast<uint8_t>(Interrupts::latch_int));
+  data = data << (bit_pos - 1);
   /* Write the sensor CMD for reset */
-  SPIDeviceStatus ret = this->setRegister(RegisterAddress::interruptControl,
-                                          bitPos, data);
+  SPIDeviceStatus ret = this->set_register(RegisterAddress::interrupt_control, bit_pos, data);
   if (ret != SPIDeviceStatus::ok) {
-    return SPIDeviceStatus::writeError;
+    return SPIDeviceStatus::write_error;
   }
   return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus BMP388::pressureOverSampling(Oversampling const rate) {
-
+SPIDeviceStatus BMP388::pressure_over_sampling(Oversampling const rate) {
   uint8_t data = static_cast<uint8_t>(rate);
-  uint8_t bitMask = 0x07;
+  uint8_t bit_mask = 0x07;
   /* Write the sensor CMD for reset */
-  SPIDeviceStatus ret = this->setRegister(RegisterAddress::overSamplingControl,
-                                          bitMask, data);
+  SPIDeviceStatus ret = this->set_register(RegisterAddress::over_sampling_control, bit_mask, data);
   if (ret != SPIDeviceStatus::ok) {
-    return SPIDeviceStatus::writeError;
+    return SPIDeviceStatus::write_error;
   }
   return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus BMP388::temperatureOverSampling(Oversampling const rate) {
-
+SPIDeviceStatus BMP388::temperature_over_sampling(Oversampling const rate) {
   uint8_t data = static_cast<uint8_t>(rate);
-  uint8_t bitMask = 0x38;
+  uint8_t bit_mask = 0x38;
   data = data << 3;
   /* Write the sensor CMD for reset */
-  SPIDeviceStatus ret = this->setRegister(RegisterAddress::overSamplingControl,
-                                          bitMask, data);
+  SPIDeviceStatus ret = this->set_register(RegisterAddress::over_sampling_control, bit_mask, data);
   if (ret != SPIDeviceStatus::ok) {
-    return SPIDeviceStatus::writeError;
+    return SPIDeviceStatus::write_error;
   }
   return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus BMP388::outputDataRate(TimeStandby const prescaler) {
-
-  uint8_t data = static_cast<uint8_t>(prescaler);
-  uint8_t bitMask = 0x1F;
+SPIDeviceStatus BMP388::output_data_rate(TimeStandby const pre_scaler) {
+  uint8_t data = static_cast<uint8_t>(pre_scaler);
+  uint8_t bit_mask = 0x1F;
 
   /* Write the sensor CMD for reset */
-  SPIDeviceStatus ret = this->setRegister(RegisterAddress::outputDataRates,
-                                          bitMask, data);
+  SPIDeviceStatus ret = this->set_register(RegisterAddress::output_data_rates, bit_mask, data);
   if (ret != SPIDeviceStatus::ok) {
-    return SPIDeviceStatus::writeError;
+    return SPIDeviceStatus::write_error;
   }
   return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus BMP388::setIIRFilter(const FilterCoefficient coefficient) {
-
+SPIDeviceStatus BMP388::set_IIR_filter(const FilterCoefficient coefficient) {
   uint8_t data = static_cast<uint8_t>(coefficient);
-  uint8_t bitMask = 0x0E;
+  uint8_t bit_mask = 0x0E;
   data = data << 1;
-    /* Write the sensor CMD for reset */
-    SPIDeviceStatus ret = this->setRegister(RegisterAddress::interruptControl,
-                                            bitMask, data);
-    if (ret != SPIDeviceStatus::ok) {
-      return SPIDeviceStatus::writeError;
-    }
-    return SPIDeviceStatus::ok;
-}
-
-SPIDeviceStatus BMP388::readCalibrationData(TrimValues &data){
-  const uint8_t len = 23;
-  uint8_t rxNvm[len]={0};
-
-  /* Read  data from the register */
-  if(this->read(RegisterAddress::calibrationData, rxNvm, len) != SPIDeviceStatus::ok){
-    return SPIDeviceStatus::readError;
+  /* Write the sensor CMD for reset */
+  SPIDeviceStatus ret = this->set_register(RegisterAddress::interrupt_control, bit_mask, data);
+  if (ret != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::write_error;
   }
-  data.parT1 = ConcatTwoBytes(rxNvm[3], rxNvm[2]);
-  data.parT2 = ConcatTwoBytes(rxNvm[5], rxNvm[4]);
-  data.parT3 =  static_cast<int8_t>(rxNvm[6]);
-  data.parP1 = static_cast<int16_t>(ConcatTwoBytes(rxNvm[8], rxNvm[7]));
-  data.parP2 = static_cast<int16_t>(ConcatTwoBytes(rxNvm[10], rxNvm[9]));
-  data.parP3 =  static_cast<int8_t>(rxNvm[11]);
-  data.parP4 =  static_cast<int8_t>(rxNvm[12]);
-  data.parP5 = ConcatTwoBytes(rxNvm[14], rxNvm[13]);
-  data.parP6 = ConcatTwoBytes(rxNvm[16], rxNvm[15]);
-  data.parP7 =  static_cast<int8_t>(rxNvm[17]);
-  data.parP8 =  static_cast<int8_t>(rxNvm[18]);
-  data.parP9 = static_cast<int16_t>(ConcatTwoBytes(rxNvm[20], rxNvm[19]));
-  data.parP10 =  static_cast<int8_t>(rxNvm[21]);
-  data.parP11 =  static_cast<int8_t>(rxNvm[22]);
   return SPIDeviceStatus::ok;
 }
 
-uint16_t BMP388::ConcatTwoBytes(uint8_t msb, uint8_t lsb){
-  uint16_t reult;
-  /* combine two 8 bit data's */
-  return reult = static_cast<uint16_t>(msb << 8) | static_cast<uint16_t>(lsb);
+SPIDeviceStatus BMP388::read_calibration_data(TrimValues &data) {
+  const uint8_t len = 23;
+  uint8_t rx_nvm[len] = {0};
+  /* Read  data from the register */
+  if (this->read(RegisterAddress::calibration_data, rx_nvm, len) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
+  }
+  data.parT1 = concat_two_bytes(rx_nvm[3], rx_nvm[2]);
+  data.parT2 = concat_two_bytes(rx_nvm[5], rx_nvm[4]);
+  data.parT3 = static_cast<int8_t>(rx_nvm[6]);
+  data.parP1 = static_cast<int16_t>(concat_two_bytes(rx_nvm[8], rx_nvm[7]));
+  data.parP2 = static_cast<int16_t>(concat_two_bytes(rx_nvm[10], rx_nvm[9]));
+  data.parP3 = static_cast<int8_t>(rx_nvm[11]);
+  data.parP4 = static_cast<int8_t>(rx_nvm[12]);
+  data.parP5 = concat_two_bytes(rx_nvm[14], rx_nvm[13]);
+  data.parP6 = concat_two_bytes(rx_nvm[16], rx_nvm[15]);
+  data.parP7 = static_cast<int8_t>(rx_nvm[17]);
+  data.parP8 = static_cast<int8_t>(rx_nvm[18]);
+  data.parP9 = static_cast<int16_t>(concat_two_bytes(rx_nvm[20], rx_nvm[19]));
+  data.parP10 = static_cast<int8_t>(rx_nvm[21]);
+  data.parP11 = static_cast<int8_t>(rx_nvm[22]);
+  return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus  BMP388::readRawData(RawSensorData &samples){
+uint16_t BMP388::concat_two_bytes(uint8_t msb, uint8_t lsb) {
+  uint16_t result;
+  /* combine two 8 bit data's */
+  return result = static_cast<uint16_t>(msb << 8) | static_cast<uint16_t>(lsb);
+}
+
+SPIDeviceStatus BMP388::read_raw_data(RawSensorData &samples) {
   const uint8_t len = 8;
   /* Store the pressure and temperature data read from the sensor to array */
-   uint8_t rxdata[len] = { 0 };
+  uint8_t rx_data[len] = {0};
   /* Read 6 bytes sensor data */
-  if (this->read(RegisterAddress::pressureData, rxdata, len)
-        != SPIDeviceStatus::ok) {
-      return SPIDeviceStatus::readError;
-    }
-  samples.data0 = rxdata[2];
-  samples.data1 = rxdata[3];
-  samples.data2 = rxdata[4];
-  samples.data3 = rxdata[5];
-  samples.data4 = rxdata[6];
-  samples.data5 = rxdata[7];
+  if (this->read(RegisterAddress::pressure_data, rx_data, len) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
+  }
+  samples.data0 = rx_data[2];
+  samples.data1 = rx_data[3];
+  samples.data2 = rx_data[4];
+  samples.data3 = rx_data[5];
+  samples.data4 = rx_data[6];
+  samples.data5 = rx_data[7];
   return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus BMP388::rawPressure(uint32_t &pressure) {
-
-  RawSensorData sensorData;
-  uint32_t dataXlsb = 0, dataLsb = 0, dataMsb = 0;
+SPIDeviceStatus BMP388::raw_pressure(uint32_t &pressure) {
+  RawSensorData sensor_data;
+  uint32_t data_xlsb = 0, data_lsb = 0, data_msb = 0;
   /* Convert 3 bytes pressure data to raw pressure*/
-  if (this->readRawData(sensorData)!= SPIDeviceStatus::ok) {
-    return SPIDeviceStatus::readError;
+  if (this->read_raw_data(sensor_data) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
   }
-  dataXlsb = static_cast<uint32_t>(sensorData.data0);
-  dataLsb = static_cast<uint32_t>(sensorData.data1 << 8);
-  dataMsb = static_cast<uint32_t>(sensorData.data2 << 16);
-  pressure = dataXlsb | dataLsb | dataMsb;
+  data_xlsb = static_cast<uint32_t>(sensor_data.data0);
+  data_lsb = static_cast<uint32_t>(sensor_data.data1 << 8);
+  data_msb = static_cast<uint32_t>(sensor_data.data2 << 16);
+  pressure = data_xlsb | data_lsb | data_msb;
   return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus BMP388::rawTemperature(uint32_t &temperature) {
-
-  RawSensorData sensorData;
-  uint32_t dataXlsb = 0, dataLsb = 0, dataMsb = 0;
+SPIDeviceStatus BMP388::raw_temperature(uint32_t &temperature) {
+  RawSensorData sensor_data;
+  uint32_t data_xlsb = 0, data_lsb = 0, data_msb = 0;
   /* Convert 3 bytes Temperature data to raw Temperature*/
-  if (this->readRawData(sensorData) != SPIDeviceStatus::ok) {
-    return SPIDeviceStatus::readError;
+  if (this->read_raw_data(sensor_data) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
   }
-  dataXlsb = static_cast<uint32_t>(sensorData.data3);
-  dataLsb = static_cast<uint32_t>(sensorData.data4 << 8);
-  dataMsb = static_cast<uint32_t>(sensorData.data5 << 16);
-  temperature = dataXlsb | dataLsb | dataMsb;
+  data_xlsb = static_cast<uint32_t>(sensor_data.data3);
+  data_lsb = static_cast<uint32_t>(sensor_data.data4 << 8);
+  data_msb = static_cast<uint32_t>(sensor_data.data5 << 16);
+  temperature = data_xlsb | data_lsb | data_msb;
   return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus BMP388::calcCalibrationCoefficient(
-    CalibrationData &cofficients) {
-
+SPIDeviceStatus BMP388::calc_calibration_coefficient(CalibrationData &cofficients) {
   TrimValues data;
   /** Calibration structure is updated from register used for
    * pressure and temperature Trim coefficient
    */
-  if (this->readCalibrationData(data) != SPIDeviceStatus::ok) {
-    return SPIDeviceStatus::readError;
+  if (this->read_calibration_data(data) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
   }
   cofficients.parT1 = (static_cast<double>(data.parT1) / pow(2, -8));
   cofficients.parT2 = (static_cast<double>(data.parT2) / pow(2, 30));
@@ -406,91 +365,83 @@ SPIDeviceStatus BMP388::calcCalibrationCoefficient(
   return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus BMP388::readCompensateTemperature(double &compensatedData) {
-
-  uint32_t uncompTemperature;
-  CalibrationData calibData;
+SPIDeviceStatus BMP388::read_compensate_temperature(double &compensated_data) {
+  uint32_t uncomp_temperature;
+  CalibrationData calib_data;
   /* Read raw temperature */
-  if (this->rawTemperature(uncompTemperature) != SPIDeviceStatus::ok) {
-    return SPIDeviceStatus::readError;
+  if (this->raw_temperature(uncomp_temperature) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
   }
   /* Read calibration data */
-  if (this->calcCalibrationCoefficient(calibData) != SPIDeviceStatus::ok) {
-    return SPIDeviceStatus::readError;
+  if (this->calc_calibration_coefficient(calib_data) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
   }
   /* Compensate the temperature using raw temperature and calibration data */
-  double const partialData1 = (double) (uncompTemperature - calibData.parT1);
-  double const partialData2 = (double) (partialData1 * calibData.parT2);
+  double const partial_data1 = static_cast<double>(uncomp_temperature - calib_data.parT1);
+  double const partial_data2 = static_cast<double>(partial_data1 * calib_data.parT2);
   /* Update the compensated temperature in structure since this is needed for pressure calculation*/
-  calibData.compTemperature = (partialData2 + (partialData1 * partialData1) * calibData.parT3);
-  compensatedData = calibData.compTemperature;
+  calib_data.comp_temperature = partial_data2 + (partial_data1 * partial_data1) * calib_data.parT3;
+  compensated_data = calib_data.comp_temperature;
   return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus BMP388::readCompensatePressure(double &compensatedPressure) {
-
-  uint32_t uncompPressure;
-  CalibrationData calibData;
+SPIDeviceStatus BMP388::read_compensate_pressure(double &compensated_pressure) {
+  uint32_t uncomp_pressure;
+  CalibrationData calib_data;
   /* Read raw Pressure */
-  if (this->rawPressure(uncompPressure) != SPIDeviceStatus::ok) {
-    return SPIDeviceStatus::readError;
+  if (this->raw_pressure(uncomp_pressure) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
   }
   /* Read calibration data */
-  if (this->calcCalibrationCoefficient(calibData) != SPIDeviceStatus::ok) {
-    return SPIDeviceStatus::readError;
+  if (this->calc_calibration_coefficient(calib_data) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
   }
   /* Compensate the pressure using raw temperature, raw pressure and calibration data */
-  double partialData1 = calibData.parP6 * calibData.compTemperature;
-  double partialData2 = calibData.parP7 * pow(calibData.compTemperature, 2);
-  double partialData3 = calibData.parP8 * pow(calibData.compTemperature, 3);
-  double const partialOut1 = calibData.parP5 + partialData1 + partialData2 + partialData3;
+  double partial_data1 = calib_data.parP6 * calib_data.comp_temperature;
+  double partial_data2 = calib_data.parP7 * pow(calib_data.comp_temperature, 2);
+  double partial_data3 = calib_data.parP8 * pow(calib_data.comp_temperature, 3);
+  double const partial_out = calib_data.parP1 + partial_data1 + partial_data2 + partial_data3;
+  double const partial_out1 = calib_data.parP5 + partial_data1 + partial_data2 + partial_data3;
 
-  partialData1 = calibData.parP2 * calibData.compTemperature;
-  partialData2 = calibData.parP3 * pow(calibData.compTemperature, 2);
-  partialData3 = calibData.parP4 * pow(calibData.compTemperature, 3);
-  double const partialOut2 = static_cast<double>(uncompPressure)
-      * (calibData.parP1 + partialData1 + partialData2 + partialData3);
-
-  partialData1 = static_cast<double>(uncompPressure * uncompPressure);
-  partialData2 = calibData.parP9 + calibData.parP10 * calibData.compTemperature;
-  partialData3 = partialData1 * partialData2;
-  double const partialOut3 = partialData3
-      + pow(uncompPressure, 3) * calibData.parP11;
-
-  compensatedPressure = (partialOut1 + partialOut2 + partialOut3) / 100.0;
+  partial_data1 = calib_data.parP2 * calib_data.comp_temperature;
+  partial_data2 = calib_data.parP3 * pow(calib_data.comp_temperature, 2);
+  partial_data3 = calib_data.parP4 * pow(calib_data.comp_temperature, 3);
+  double const partial_out2 = static_cast<double>(uncomp_pressure) * partial_out;
+  partial_data1 = static_cast<double>(uncomp_pressure * uncomp_pressure);
+  partial_data2 = calib_data.parP9 + calib_data.parP10 * calib_data.comp_temperature;
+  partial_data3 = partial_data1 * partial_data2;
+  double const partial_out3 = partial_data3 + pow(uncomp_pressure, 3) * calib_data.parP11;
+  compensated_pressure = (partial_out1 + partial_out2 + partial_out3) / 100.0;
   return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus BMP388::getSensorTime(uint32_t &time){
-
+SPIDeviceStatus BMP388::get_sensor_time(uint32_t &time) {
   const uint8_t len = 5;
   /* Store the pressure and temperature data read from the sensor to array */
-  uint8_t rxdata[len] = { 0 };
+  uint8_t rx_data[len] = {0};
   uint32_t byte1 = 0, byte2 = 0, byte3 = 0;
   /* Read 3 bytes sensor data */
-  if (this->read(RegisterAddress::sensorTime, rxdata, len)
-        != SPIDeviceStatus::ok) {
-      return SPIDeviceStatus::readError;
-    }
-  byte1 = static_cast<uint32_t>(rxdata[2]);
-  byte2 = static_cast<uint32_t>(rxdata[3]) << 8;
-  byte3 = static_cast<uint32_t>(rxdata[4]) << 16;
+  if (this->read(RegisterAddress::sensor_time, rx_data, len) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
+  }
+  byte1 = static_cast<uint32_t>(rx_data[2]);
+  byte2 = static_cast<uint32_t>(rx_data[3]) << 8;
+  byte3 = static_cast<uint32_t>(rx_data[4]) << 16;
   time = byte1 | byte2 | byte3;
   return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus BMP388::getPowerOnReset(bool &flag){
+SPIDeviceStatus BMP388::get_power_on_reset(bool &flag) {
   const uint8_t size = 3;
-  uint8_t rxData[size];
+  uint8_t rx_data[size];
   /*Read Event flag register */
-  if (this->read(RegisterAddress::event, rxData, size)
-        != SPIDeviceStatus::ok) {
-      return SPIDeviceStatus::readError;
-    }
-  flag = ((rxData[2] & 0x01) != 0x00) ? true : false;
+  if (this->read(RegisterAddress::event, rx_data, size) != SPIDeviceStatus::ok) {
+    return SPIDeviceStatus::read_error;
+  }
+  flag = ((rx_data[2] & 0x01) != 0x00) ? true : false;
   return SPIDeviceStatus::ok;
 }
 
-}  // namespace BMP388
+}  // namespace SPI
 }  // namespace Driver
 }  // namespace Pufferfish
