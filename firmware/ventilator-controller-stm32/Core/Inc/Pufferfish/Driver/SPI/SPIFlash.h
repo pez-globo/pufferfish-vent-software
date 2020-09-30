@@ -56,23 +56,22 @@ enum class SPIInstruction {
   reset_enable = 0x66,            /// Instruction for enable reset
   reset_device = 0x99             /// Instruction for reset device
 };
- /**
-  * Memory Status
-  */
- struct MemoryStatus{
-   bool lock;  /// status of page/sector/block - lock/unlock
-   bool not_empty;  /// status of page/sector/block - empty/not empty
-   bool busy;      /// status of SPI flash busy
-   bool enable_latch;  /// status of write enable latch bit
- };
+
+/**
+ * Memory Status
+ */
+struct MemoryStatus {
+  bool lock;          /// Status of page/sector/block - lock/unlock
+  bool not_empty;     /// Status of page/sector/block - empty or not
+  bool busy;          /// Status of SPI Flash busy
+  bool enable_latch;  /// Status of write enable latch bit
+};
 
 /**
  * A class represents external SPI flash memory w25q16
  */
 class SPIFlash {
-
-public:
-
+ public:
   /**
    * Constructor for SPI Flash memory
    * @param spi STM32 HAL handler for the SPI port
@@ -80,21 +79,21 @@ public:
   explicit SPIFlash(HAL::SPIDevice &spi) : spi_(spi) {}
 
   /**
-   * mem_read - It is used to read the data from device.
-   * @param txBuf pointer to transmission data buffer
-   * @param rxBuf pointer to reception data buffer
+   * It is used to read the data from device.
+   * @param tx_buf pointer to transmission data buffer
+   * @param rx_buf pointer to reception data buffer
    * @param count the number of bytes to be read
    * @return ok on success, error code otherwise
    */
-  SPIDeviceStatus mem_read(uint8_t *txBuf, uint8_t *rxBuf, uint16_t count);
+  SPIDeviceStatus mem_read(uint8_t *tx_buf, uint8_t *rx_buf, uint16_t count);
 
   /**
-   * mem_write - It is used to write data into the device.
+   * It is used to write data into the device.
    * @param txBuf pointer to transmission data buffer
    * @param count the number of bytes to write
    * @return ok on success, error code otherwise
    */
-  SPIDeviceStatus mem_write(uint8_t *txBuf, uint16_t count);
+  SPIDeviceStatus mem_write(uint8_t *tx_buf, uint16_t count);
 
   /**
    * Read the specific device ID (14h).
@@ -116,7 +115,7 @@ public:
    * @param void
    * @return ok on success, error code otherwise
    */
-  SPIDeviceStatus enable_write(void);
+  SPIDeviceStatus enable_write();
 
   /**
    * Disable write for SPI device - It resets the Write Enable Latch (WEL)
@@ -124,7 +123,7 @@ public:
    * @param void
    * @return ok on success, error code otherwise
    */
-  SPIDeviceStatus disable_write(void);
+  SPIDeviceStatus disable_write();
 
   /**
    * Read Busy Status - It checks the BUSY status bit to determine
@@ -171,7 +170,7 @@ public:
    * @param void
    * @return ok on success, error code otherwise
    */
-  SPIDeviceStatus global_lock_memory(void);
+  SPIDeviceStatus global_lock_memory();
 
   /**
    * Unlock the block globally - All Block/Sector Lock bits can
@@ -179,7 +178,7 @@ public:
    * @param void
    * @return ok on success, error code otherwise
    */
-  SPIDeviceStatus global_unlock_memory(void);
+  SPIDeviceStatus global_unlock_memory();
 
   /**
    * Read the block/sector status - To read out the lock bit value
@@ -197,7 +196,7 @@ public:
    * @param void
    * @return ok on success, error code otherwise
    */
-  SPIDeviceStatus erase_chip(void);
+  SPIDeviceStatus erase_chip();
 
   /**
    * Sector Erase - The Sector Erase instruction sets all memory within
@@ -229,7 +228,7 @@ public:
    * @param void
    * @return ok on success, error code otherwise
    */
-  SPIDeviceStatus power_down(void);
+  SPIDeviceStatus power_down();
 
   /**
    * Release power down - It is used to release the
@@ -237,14 +236,14 @@ public:
    * @param void
    * @return ok on success, error code otherwise
    */
-  SPIDeviceStatus release_power_down(void);
+  SPIDeviceStatus release_power_down();
 
   /**
    * Reset device - It is used to reset the device
    * @param void
    * @return ok on success, error code otherwise
    */
-  SPIDeviceStatus reset_device(void);
+  SPIDeviceStatus reset_device();
 
   /**
    * IsEmpty - It is used to check the page/sector/block is empty or not.
@@ -259,19 +258,19 @@ public:
    * Read bytes of data from SPI device
    * @param addr address to read data
    * @param data pointer to reception data buffer
-   * @param length the number of bytes to read
+   * @param size the number of bytes to read
    * @return ok on success, error code otherwise
    */
-  SPIDeviceStatus read_byte(uint32_t addr, uint8_t *data, uint16_t length);
+  SPIDeviceStatus read_byte(uint32_t addr, uint8_t *data, uint16_t size);
 
   /**
    * Write bytes of data into SPI device
    * @param addr address to write data
    * @param dataBuf pointer to transmission data buffer
-   * @param size the number of bytes to write
+   * @param length the number of bytes to write
    * @return ok on success, error code otherwise
    */
-  SPIDeviceStatus write_byte(uint32_t addr, uint8_t *data_buf, uint8_t size);
+  SPIDeviceStatus write_byte(uint32_t addr, uint8_t *data_buf, uint8_t length);
 
   /**
    * WritePage - It is used to write the data in a page.
@@ -291,7 +290,7 @@ public:
   SPIDeviceStatus write_sector(uint32_t addr, uint8_t *tx_buf, uint16_t length);
 
   /**
-   * writeToMemory - It is used to write the data into a memory.
+   * Write To Memory - It is used to write the data into a memory.
    * @param addr address to write data
    * @param dataBuf pointer to transmission data buffer
    * @param length the number of bytes to write
@@ -299,7 +298,7 @@ public:
    */
   SPIDeviceStatus write_to_memory(uint32_t addr, uint8_t *data_buf, uint16_t length);
 
-private:
+ private:
   HAL::SPIDevice &spi_;
   static const uint16_t page_size = 0x100;
 };
