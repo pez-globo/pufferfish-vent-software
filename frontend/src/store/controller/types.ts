@@ -27,6 +27,7 @@ export interface RotaryEncoderParameter {
   lastButtonDown: number;
   lastButtonUp: number;
   stepDiff: number;
+  prevStep: number;
 }
 
 // Protocol Buffers

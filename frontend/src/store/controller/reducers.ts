@@ -66,6 +66,8 @@ const calculateStepDiff = (
   const stepDiff = newState.step - oldState.step;
   const stateCopy = { ...newState } as RotaryEncoderParameter;
   stateCopy.stepDiff = stepDiff;
+  stateCopy.prevStep = oldState.step;
+  console.log('On redux change ', stateCopy)
   return stateCopy;
 };
 
