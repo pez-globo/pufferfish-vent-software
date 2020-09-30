@@ -748,8 +748,8 @@ SPIDeviceStatus SPIFlash::write_byte(uint32_t addr, uint8_t *data_buf, uint8_t l
       return SPIDeviceStatus::write_error;
     }
     /* Provide a delay of 3ms */
-	static const uint8_t write_delay = 3;
-	HAL::delay(write_delay);
+    static const uint8_t write_delay = 3;
+    HAL::delay(write_delay);
     /* Invoke lockIndividualMemory to lock the block/sector */
     if (this->lock_individual_memory(addr) != SPIDeviceStatus::ok) {
       return SPIDeviceStatus::write_error;
@@ -806,8 +806,8 @@ SPIDeviceStatus SPIFlash::write_page(uint32_t addr, uint8_t *data_buf) {
       return SPIDeviceStatus::write_error;
     }
     /* Provide a delay of 3ms */
-	static const uint8_t write_delay = 3;
-	HAL::delay(write_delay);
+    static const uint8_t write_delay = 3;
+    HAL::delay(write_delay);
     /* Invoke lockIndividualMemory to lock the block/sector */
     if (this->lock_individual_memory(addr) != SPIDeviceStatus::ok) {
       return SPIDeviceStatus::write_error;
