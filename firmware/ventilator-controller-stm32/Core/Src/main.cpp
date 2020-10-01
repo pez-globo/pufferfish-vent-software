@@ -71,6 +71,7 @@ UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart3;
 
 SPI_HandleTypeDef hspi1;
+SPI_HandleTypeDef hspi2;
 
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
@@ -209,6 +210,7 @@ static void MX_ADC1_Init(void);
 static void MX_I2C4_Init(void);
 static void MX_LPUART1_UART_Init(void);
 static void MX_UART8_Init(void);
+static void MX_SPI2_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -290,6 +292,7 @@ int main(void)
   MX_I2C4_Init();
   MX_LPUART1_UART_Init();
   MX_UART8_Init();
+  MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
   PF::HAL::microsDelayInit();
   interface_test_millis = PF::HAL::millis();
@@ -384,9 +387,9 @@ void SystemClock_Config(void)
   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART3|RCC_PERIPHCLK_LPUART1
                               |RCC_PERIPHCLK_UART4|RCC_PERIPHCLK_UART7
                               |RCC_PERIPHCLK_USART1|RCC_PERIPHCLK_UART8
-                              |RCC_PERIPHCLK_SPI1|RCC_PERIPHCLK_I2C2
-                              |RCC_PERIPHCLK_ADC|RCC_PERIPHCLK_I2C1
-                              |RCC_PERIPHCLK_I2C4;
+                              |RCC_PERIPHCLK_SPI1|RCC_PERIPHCLK_SPI2
+                              |RCC_PERIPHCLK_I2C2|RCC_PERIPHCLK_ADC
+                              |RCC_PERIPHCLK_I2C1|RCC_PERIPHCLK_I2C4;
   PeriphClkInitStruct.PLL2.PLL2M = 1;
   PeriphClkInitStruct.PLL2.PLL2N = 19;
   PeriphClkInitStruct.PLL2.PLL2P = 3;
@@ -623,7 +626,7 @@ static void MX_I2C2_Init(void)
 
   /* USER CODE END I2C2_Init 1 */
   hi2c2.Instance = I2C2;
-  hi2c2.Init.Timing = 0x10707DBC;
+  hi2c2.Init.Timing = 0x00602173;
   hi2c2.Init.OwnAddress1 = 0;
   hi2c2.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c2.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -669,7 +672,7 @@ static void MX_I2C4_Init(void)
 
   /* USER CODE END I2C4_Init 1 */
   hi2c4.Instance = I2C4;
-  hi2c4.Init.Timing = 0x10707DBC;
+  hi2c4.Init.Timing = 0x00300B29;
   hi2c4.Init.OwnAddress1 = 0;
   hi2c4.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c4.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -693,6 +696,9 @@ static void MX_I2C4_Init(void)
   {
     Error_Handler();
   }
+  /** I2C Enable Fast Mode Plus 
+  */
+  HAL_I2CEx_EnableFastModePlus(I2C_FASTMODEPLUS_I2C4);
   /* USER CODE BEGIN I2C4_Init 2 */
 
   /* USER CODE END I2C4_Init 2 */
@@ -1036,6 +1042,54 @@ static void MX_SPI1_Init(void)
 }
 
 /**
+  * @brief SPI2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_SPI2_Init(void)
+{
+
+  /* USER CODE BEGIN SPI2_Init 0 */
+
+  /* USER CODE END SPI2_Init 0 */
+
+  /* USER CODE BEGIN SPI2_Init 1 */
+
+  /* USER CODE END SPI2_Init 1 */
+  /* SPI2 parameter configuration*/
+  hspi2.Instance = SPI2;
+  hspi2.Init.Mode = SPI_MODE_MASTER;
+  hspi2.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi2.Init.DataSize = SPI_DATASIZE_4BIT;
+  hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi2.Init.NSS = SPI_NSS_SOFT;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi2.Init.CRCPolynomial = 0x0;
+  hspi2.Init.NSSPMode = SPI_NSS_PULSE_ENABLE;
+  hspi2.Init.NSSPolarity = SPI_NSS_POLARITY_LOW;
+  hspi2.Init.FifoThreshold = SPI_FIFO_THRESHOLD_01DATA;
+  hspi2.Init.TxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+  hspi2.Init.RxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+  hspi2.Init.MasterSSIdleness = SPI_MASTER_SS_IDLENESS_00CYCLE;
+  hspi2.Init.MasterInterDataIdleness = SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
+  hspi2.Init.MasterReceiverAutoSusp = SPI_MASTER_RX_AUTOSUSP_DISABLE;
+  hspi2.Init.MasterKeepIOState = SPI_MASTER_KEEP_IO_STATE_DISABLE;
+  hspi2.Init.IOSwap = SPI_IO_SWAP_DISABLE;
+  if (HAL_SPI_Init(&hspi2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN SPI2_Init 2 */
+
+  /* USER CODE END SPI2_Init 2 */
+
+}
+
+/**
   * @brief TIM3 Initialization Function
   * @param None
   * @retval None
@@ -1256,57 +1310,57 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOE, BAT_MEAS_EN_Pin|LED1_EN_Pin|GPIO3_Pin|I2C4_MUX_S1_Pin 
-                          |MOTOR2_EN_Pin|I2C4_MUX_S2_Pin|MOTOR2_DIR_Pin|I2C4_MUX_EN_N_Pin 
-                          |MOTOR2_STEP_Pin|I2C1_MUX_EN_N_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOE, MOTOR1_DIR_Pin|BLOWER_CTRL_EN_Pin|LED1_EN_Pin|GPIO3_Pin 
+                          |I2C4_MUX_S1_Pin|MOTOR2_EN_Pin|I2C4_MUX_S2_Pin|MOTOR2_DIR_Pin 
+                          |I2C4_MUX_EN_N_Pin|MOTOR2_STEP_Pin|I2C1_MUX_EN_N_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOF, BAT_CHARGE_EN_Pin|EXT_MEM_PROTECT_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, BLOWER_STATUS_Pin|GPIO2_Pin|GPIO1_Pin|I2C1_MUX_S2_Pin 
+                          |SER_CLK_Pin|SER_CLR_N_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOF, BLOWER_SPI_CTRL_nCS_Pin|BLOWER_SPI_DRV_nCS_Pin|STM32_SHDN_INT_Pin|EXT_MEM_PROTECT_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, MOTOR1_CS_Pin|ALARM1_MED_Pin|MOTOR2_CS_Pin|EXT_MEM_CS_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, GPIO2_Pin|GPIO1_Pin|I2C1_MUX_S2_Pin|I2C1_MUX_S3_Pin 
-                          |SER_CLK_Pin|SER_CLR_N_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOG, STM32_nKILL_Pin|SOLENOID_DRIVE_8_Pin|I2C2_MUX_S1_Pin|BMP_CS_Pin 
+                          |EXT_MEM_HOLD_Pin|MOTOR1_EN_Pin|I2C1_MUX_S1_Pin|OEM_UART_EN_Pin 
+                          |LED3_EN_Pin|WD_RST_Pin|ALARM1_HIGH_Pin|LED2_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, ALARM1_LOW_Pin|SER_IN_Pin|MOTOR1_DIR_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOD, MOTOR1_STEP_Pin|I2C2_MUX_S2_Pin|SER_RCLK_Pin|SPI1_CS5_Pin 
+                          |ALARM1_LOW_Pin|SER_IN_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, MOTOR1_STEP_Pin|I2C2_MUX_S2_Pin|I2C2_MUX_EN_N_Pin|SER_RCLK_Pin 
-                          |SPI1_CS5_Pin|LTC4421_PWR_nDISABLE1_Pin|LTC4421_PWR_nDISABLE2_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOG, I2C2_MUX_S1_Pin|BMP_CS_Pin|EXT_MEM_HOLD_Pin|MOTOR1_EN_Pin 
-                          |I2C1_MUX_S1_Pin|OEM_UART_EN_Pin|LED3_EN_Pin|WD_RST_Pin 
-                          |ALARM1_HIGH_Pin|PRESSX_EN_Pin|LED2_EN_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pins : SET_MANUAL_BREATH_Pin VSYS_3V3_PGOOD_Pin VSYS_5V0_PGOOD_Pin SET_LOCK_Pin */
-  GPIO_InitStruct.Pin = SET_MANUAL_BREATH_Pin|VSYS_3V3_PGOOD_Pin|VSYS_5V0_PGOOD_Pin|SET_LOCK_Pin;
+  /*Configure GPIO pins : SET_MANUAL_BREATH_Pin VSYS_5V0_PGOOD_Pin SET_LOCK_Pin */
+  GPIO_InitStruct.Pin = SET_MANUAL_BREATH_Pin|VSYS_5V0_PGOOD_Pin|SET_LOCK_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : BAT_MEAS_EN_Pin LED1_EN_Pin GPIO3_Pin I2C4_MUX_S1_Pin 
-                           MOTOR2_EN_Pin I2C4_MUX_S2_Pin MOTOR2_DIR_Pin I2C4_MUX_EN_N_Pin 
-                           MOTOR2_STEP_Pin I2C1_MUX_EN_N_Pin */
-  GPIO_InitStruct.Pin = BAT_MEAS_EN_Pin|LED1_EN_Pin|GPIO3_Pin|I2C4_MUX_S1_Pin 
-                          |MOTOR2_EN_Pin|I2C4_MUX_S2_Pin|MOTOR2_DIR_Pin|I2C4_MUX_EN_N_Pin 
-                          |MOTOR2_STEP_Pin|I2C1_MUX_EN_N_Pin;
+  /*Configure GPIO pins : MOTOR1_DIR_Pin BLOWER_CTRL_EN_Pin LED1_EN_Pin GPIO3_Pin 
+                           I2C4_MUX_S1_Pin MOTOR2_EN_Pin I2C4_MUX_S2_Pin MOTOR2_DIR_Pin 
+                           I2C4_MUX_EN_N_Pin MOTOR2_STEP_Pin I2C1_MUX_EN_N_Pin */
+  GPIO_InitStruct.Pin = MOTOR1_DIR_Pin|BLOWER_CTRL_EN_Pin|LED1_EN_Pin|GPIO3_Pin 
+                          |I2C4_MUX_S1_Pin|MOTOR2_EN_Pin|I2C4_MUX_S2_Pin|MOTOR2_DIR_Pin 
+                          |I2C4_MUX_EN_N_Pin|MOTOR2_STEP_Pin|I2C1_MUX_EN_N_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LTC4421_PWR_nFAULT2_Pin LTC4421_PWR_nFAULT1_Pin */
-  GPIO_InitStruct.Pin = LTC4421_PWR_nFAULT2_Pin|LTC4421_PWR_nFAULT1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  /*Configure GPIO pins : BLOWER_STATUS_Pin GPIO2_Pin GPIO1_Pin I2C1_MUX_S2_Pin 
+                           SER_CLK_Pin SER_CLR_N_Pin */
+  GPIO_InitStruct.Pin = BLOWER_STATUS_Pin|GPIO2_Pin|GPIO1_Pin|I2C1_MUX_S2_Pin 
+                          |SER_CLK_Pin|SER_CLR_N_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : BAT_CHARGE_EN_Pin EXT_MEM_PROTECT_Pin */
-  GPIO_InitStruct.Pin = BAT_CHARGE_EN_Pin|EXT_MEM_PROTECT_Pin;
+  /*Configure GPIO pins : BLOWER_SPI_CTRL_nCS_Pin BLOWER_SPI_DRV_nCS_Pin STM32_SHDN_INT_Pin EXT_MEM_PROTECT_Pin */
+  GPIO_InitStruct.Pin = BLOWER_SPI_CTRL_nCS_Pin|BLOWER_SPI_DRV_nCS_Pin|STM32_SHDN_INT_Pin|EXT_MEM_PROTECT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -1319,56 +1373,34 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : GPIO2_Pin GPIO1_Pin I2C1_MUX_S2_Pin I2C1_MUX_S3_Pin 
-                           SER_CLK_Pin SER_CLR_N_Pin */
-  GPIO_InitStruct.Pin = GPIO2_Pin|GPIO1_Pin|I2C1_MUX_S2_Pin|I2C1_MUX_S3_Pin 
-                          |SER_CLK_Pin|SER_CLR_N_Pin;
+  /*Configure GPIO pins : STM32_nKILL_Pin SOLENOID_DRIVE_8_Pin I2C2_MUX_S1_Pin BMP_CS_Pin 
+                           EXT_MEM_HOLD_Pin MOTOR1_EN_Pin I2C1_MUX_S1_Pin OEM_UART_EN_Pin 
+                           LED3_EN_Pin WD_RST_Pin ALARM1_HIGH_Pin LED2_EN_Pin */
+  GPIO_InitStruct.Pin = STM32_nKILL_Pin|SOLENOID_DRIVE_8_Pin|I2C2_MUX_S1_Pin|BMP_CS_Pin 
+                          |EXT_MEM_HOLD_Pin|MOTOR1_EN_Pin|I2C1_MUX_S1_Pin|OEM_UART_EN_Pin 
+                          |LED3_EN_Pin|WD_RST_Pin|ALARM1_HIGH_Pin|LED2_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : SET_PWR_ON_OFF_Pin */
-  GPIO_InitStruct.Pin = SET_PWR_ON_OFF_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(SET_PWR_ON_OFF_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : LTC4421_PWR_nCH1_Pin LTC4421_PWR_nCH2_Pin SET_ALARM_EN_Pin SET_100_O2_Pin */
-  GPIO_InitStruct.Pin = LTC4421_PWR_nCH1_Pin|LTC4421_PWR_nCH2_Pin|SET_ALARM_EN_Pin|SET_100_O2_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : ALARM1_LOW_Pin SER_IN_Pin MOTOR1_DIR_Pin */
-  GPIO_InitStruct.Pin = ALARM1_LOW_Pin|SER_IN_Pin|MOTOR1_DIR_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : MOTOR1_STEP_Pin I2C2_MUX_S2_Pin I2C2_MUX_EN_N_Pin SER_RCLK_Pin 
-                           SPI1_CS5_Pin LTC4421_PWR_nDISABLE1_Pin LTC4421_PWR_nDISABLE2_Pin */
-  GPIO_InitStruct.Pin = MOTOR1_STEP_Pin|I2C2_MUX_S2_Pin|I2C2_MUX_EN_N_Pin|SER_RCLK_Pin 
-                          |SPI1_CS5_Pin|LTC4421_PWR_nDISABLE1_Pin|LTC4421_PWR_nDISABLE2_Pin;
+  /*Configure GPIO pins : MOTOR1_STEP_Pin I2C2_MUX_S2_Pin SER_RCLK_Pin SPI1_CS5_Pin 
+                           ALARM1_LOW_Pin SER_IN_Pin */
+  GPIO_InitStruct.Pin = MOTOR1_STEP_Pin|I2C2_MUX_S2_Pin|SER_RCLK_Pin|SPI1_CS5_Pin 
+                          |ALARM1_LOW_Pin|SER_IN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : I2C2_MUX_S1_Pin BMP_CS_Pin EXT_MEM_HOLD_Pin MOTOR1_EN_Pin 
-                           I2C1_MUX_S1_Pin OEM_UART_EN_Pin LED3_EN_Pin WD_RST_Pin 
-                           ALARM1_HIGH_Pin PRESSX_EN_Pin LED2_EN_Pin */
-  GPIO_InitStruct.Pin = I2C2_MUX_S1_Pin|BMP_CS_Pin|EXT_MEM_HOLD_Pin|MOTOR1_EN_Pin 
-                          |I2C1_MUX_S1_Pin|OEM_UART_EN_Pin|LED3_EN_Pin|WD_RST_Pin 
-                          |ALARM1_HIGH_Pin|PRESSX_EN_Pin|LED2_EN_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  /*Configure GPIO pins : SET_ALARM_EN_Pin SET_100_O2_Pin */
+  GPIO_InitStruct.Pin = SET_ALARM_EN_Pin|SET_100_O2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LTC4421_PWR_nVALID1_Pin LTC4421_PWR_nVALID2_Pin */
-  GPIO_InitStruct.Pin = LTC4421_PWR_nVALID1_Pin|LTC4421_PWR_nVALID2_Pin;
+  /*Configure GPIO pins : SET_WINDOW_Pin SET_NEBULIZATION_Pin */
+  GPIO_InitStruct.Pin = SET_WINDOW_Pin|SET_NEBULIZATION_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
