@@ -72,8 +72,9 @@ export const ValueModal = ({
   const updateRotaryData = useCallback(
     () => {
       if (open) {
+        const stepDiff = rotaryEncoder.stepDiff || 0;
         const valueClone = value >= 0 ? value : 0;
-        const newValue = valueClone + rotaryEncoder.stepDiff;
+        const newValue = valueClone + stepDiff;
         // TODO: Replace 0/100 with respective min/max value
         if (newValue < 0) {
           setValue(0);
