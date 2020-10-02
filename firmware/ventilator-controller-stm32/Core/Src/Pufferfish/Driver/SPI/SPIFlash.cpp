@@ -135,7 +135,7 @@ SPIDeviceStatus SPIFlash::read_busy_status(MemoryStatus &status) {
     return SPIDeviceStatus::read_error;
   }
   /* Check SPI flash is busy or not */
-  status.busy = static_cast<bool>(rx_buf[1] & 0x01) != 0 ? true : false;
+  status.busy = (rx_buf[1] & 0x01) != 0x00 ? true : false;
 
   /* Return ok */
   return SPIDeviceStatus::ok;
@@ -177,7 +177,7 @@ SPIDeviceStatus SPIFlash::write_protect_selection(bool protect) {
   tx_buf[0] = static_cast<uint8_t>(SPIInstruction::write_status_register1);
 
   /* Update Byte1 of txBuf with input which is to be written */
-  tx_buf[1] = ((protect << 2) | rx_buf[1]);
+  tx_buf[1] = (static_cast<uint8_t>(protect) << 2) | rx_buf[1];
 
   /* Invoke enableWrite to set the WEL bit to 1 */
   if (this->enable_write() != SPIDeviceStatus::ok) {
@@ -189,7 +189,7 @@ SPIDeviceStatus SPIFlash::write_protect_selection(bool protect) {
   }
   /* Provide a delay of 15ms */
   static const uint8_t write_reg_delay = 15;
-  HAL::delay(write_reg_delay);
+  time_.delay(write_reg_delay);
   /* Return ok */
   return SPIDeviceStatus::ok;
 }
@@ -198,7 +198,7 @@ SPIDeviceStatus SPIFlash::unlock_individual_memory(uint32_t addr) {
   static const uint8_t size = 4;
   std::array<uint8_t, size + 1> tx_buf = {0};
   bool protect = true;
-  MemoryStatus status;
+  MemoryStatus status{};
 
   /* Invoke readBusyStatus to read the busy bit status  */
   if (this->read_busy_status(status) != SPIDeviceStatus::ok) {
@@ -206,7 +206,7 @@ SPIDeviceStatus SPIFlash::unlock_individual_memory(uint32_t addr) {
   }
 
   /* If the status of busy bit is false then SPI flash is ready for further instructions */
-  if (status.busy != true) {
+  if (!status.busy) {
     /* Invoke writeStatusRegister3 to make WPS bit to 1 */
     if (this->write_protect_selection(protect) != SPIDeviceStatus::ok) {
       return SPIDeviceStatus::write_error;
@@ -238,7 +238,7 @@ SPIDeviceStatus SPIFlash::unlock_individual_memory(uint32_t addr) {
 SPIDeviceStatus SPIFlash::lock_individual_memory(uint32_t addr) {
   static const uint8_t size = 4;
   std::array<uint8_t, size + 1> tx_buf = {0};
-  MemoryStatus status;
+  MemoryStatus status{};
   bool protect = true;
 
   /* Invoke readBusyStatus to read the busy bit status  */
@@ -247,7 +247,7 @@ SPIDeviceStatus SPIFlash::lock_individual_memory(uint32_t addr) {
   }
 
   /* If the status of busy bit is false then SPI flash is ready for further instructions */
-  if (status.busy != true) {
+  if (!status.busy) {
     /* Invoke writeStatusRegister3 to make WPS bit to 1 */
     if (this->write_protect_selection(protect) != SPIDeviceStatus::ok) {
       return SPIDeviceStatus::write_error;
@@ -270,10 +270,9 @@ SPIDeviceStatus SPIFlash::lock_individual_memory(uint32_t addr) {
     }
     /* Return ok */
     return SPIDeviceStatus::ok;
-  } else {
-    /* Return busy */
-    return SPIDeviceStatus::busy;
   }
+  /* Return busy */
+  return SPIDeviceStatus::busy;
 }
 
 SPIDeviceStatus SPIFlash::global_unlock_memory() {
@@ -281,7 +280,7 @@ SPIDeviceStatus SPIFlash::global_unlock_memory() {
   /* Update the txBuf with global unlock block/sector instruction */
   auto tx_buf = static_cast<uint8_t>(SPIInstruction::global_unlock);
   bool protect = true;
-  MemoryStatus status;
+  MemoryStatus status{};
 
   /* Invoke readBusyStatus to read the busy bit status  */
   if (this->read_busy_status(status) != SPIDeviceStatus::ok) {
@@ -289,7 +288,7 @@ SPIDeviceStatus SPIFlash::global_unlock_memory() {
   }
 
   /* If the status of busy bit is false then SPI flash is ready for further instructions */
-  if (status.busy != true) {
+  if (!status.busy) {
     /* Invoke writeStatusRegister3 to make WPS bit to 1 */
     if (this->write_protect_selection(protect) != SPIDeviceStatus::ok) {
       return SPIDeviceStatus::write_error;
@@ -314,7 +313,7 @@ SPIDeviceStatus SPIFlash::global_lock_memory() {
   static const uint8_t size = 1;
   /* Update the txBuf with global lock block/sector instruction */
   auto tx_buf = static_cast<uint8_t>(SPIInstruction::global_lock);
-  MemoryStatus status;
+  MemoryStatus status{};
   bool protect = true;
 
   /* Invoke readBusyStatus to read the busy bit status  */
@@ -323,7 +322,7 @@ SPIDeviceStatus SPIFlash::global_lock_memory() {
   }
 
   /* If the status of busy bit is false then SPI flash is ready for further instructions */
-  if (status.busy != true) {
+  if (!status.busy) {
     /* Invoke writeStatusRegister3 to make WPS bit to 1 */
     if (this->write_protect_selection(protect) != SPIDeviceStatus::ok) {
       return SPIDeviceStatus::write_error;
@@ -361,7 +360,7 @@ SPIDeviceStatus SPIFlash::read_memory_status(uint32_t addr, MemoryStatus &status
     return SPIDeviceStatus::read_error;
   }
   /* If LSB bit is 1 then block is locked */
-  status.lock = static_cast<bool>((rx_buf[4]) & 0x01) != 0 ? true : false;
+  status.lock = ((rx_buf[4] & 0x01) != 0x00) ? true : false;
 
   /* Return ok */
   return SPIDeviceStatus::ok;
@@ -371,7 +370,7 @@ SPIDeviceStatus SPIFlash::erase_chip() {
   static const uint8_t length = 1;
   /* Update the txBuf with chip erase instruction */
   auto tx_buf = static_cast<uint8_t>(SPIInstruction::chip_erase);
-  MemoryStatus status;
+  MemoryStatus status{};
 
   /* Invoke readBusyStatus to read the busy bit status  */
   if (this->read_busy_status(status) != SPIDeviceStatus::ok) {
@@ -379,7 +378,7 @@ SPIDeviceStatus SPIFlash::erase_chip() {
   }
 
   /* If the status of busy bit is false then SPI flash is ready for further instructions */
-  if (status.busy != true) {
+  if (!status.busy) {
     /* Invoke globalUnLockMemory to unlock all the blocks/sectors */
     if (this->global_unlock_memory() != SPIDeviceStatus::ok) {
       return SPIDeviceStatus::write_error;
@@ -394,7 +393,7 @@ SPIDeviceStatus SPIFlash::erase_chip() {
     }
     /* Provide a delay of 25000ms */
     static const uint32_t erase_delay = 25000;
-    HAL::delay(erase_delay);
+    time_.delay(erase_delay);
     /* Invoke globalLockMemory to lock all the blocks/sectors */
     if (this->global_lock_memory() != SPIDeviceStatus::ok) {
       return SPIDeviceStatus::write_error;
@@ -410,7 +409,7 @@ SPIDeviceStatus SPIFlash::erase_chip() {
 SPIDeviceStatus SPIFlash::erase_sector_4kb(uint32_t addr) {
   static const size_t size = 4;
   std::array<uint8_t, size> tx_buf = {0};
-  MemoryStatus status;
+  MemoryStatus status{};
 
   /* Invoke readBusyStatus to read the busy bit status  */
   if (this->read_busy_status(status) != SPIDeviceStatus::ok) {
@@ -418,13 +417,13 @@ SPIDeviceStatus SPIFlash::erase_sector_4kb(uint32_t addr) {
   }
 
   /* If the status of busy bit is false then SPI flash is ready for further instructions */
-  if (status.busy != true) {
+  if (!status.busy) {
     /* Invoke readMemoryStatus to get the status of block/sector */
     if (this->read_memory_status(addr, status) != SPIDeviceStatus::ok) {
       return SPIDeviceStatus::read_error;
     }
 
-    if (status.lock != false) {
+    if (status.lock) {
       /* If block is locked then invoke unLockIndividualMemory to unlock the block/sector */
       if (this->unlock_individual_memory(addr) != SPIDeviceStatus::ok) {
         return SPIDeviceStatus::write_error;
@@ -448,7 +447,7 @@ SPIDeviceStatus SPIFlash::erase_sector_4kb(uint32_t addr) {
     }
     /* Provide a delay of 400ms */
     static const uint32_t erase_delay = 400;
-    HAL::delay(erase_delay);
+    time_.delay(erase_delay);
     /* Invoke lockIndividualMemory to lock the block/sector */
     if (this->lock_individual_memory(addr) != SPIDeviceStatus::ok) {
       return SPIDeviceStatus::write_error;
@@ -472,13 +471,13 @@ SPIDeviceStatus SPIFlash::erase_block_32kb(uint32_t addr) {
   }
 
   /* If the status of busy bit is false then SPI flash is ready for further instructions */
-  if (status.busy != true) {
+  if (!status.busy) {
     /* Invoke readMemoryStatus to get the status of block/sector */
     if (this->read_memory_status(addr, status) != SPIDeviceStatus::ok) {
       return SPIDeviceStatus::read_error;
     }
 
-    if (status.lock != false) {
+    if (status.lock) {
       /* If block is locked then invoke unLockIndividualMemory to unlock the block/sector */
       if (this->unlock_individual_memory(addr) != SPIDeviceStatus::ok) {
         return SPIDeviceStatus::write_error;
@@ -502,7 +501,7 @@ SPIDeviceStatus SPIFlash::erase_block_32kb(uint32_t addr) {
     }
     /* Provide a delay of 1600ms */
     static const uint32_t erase_delay = 1600;
-    HAL::delay(erase_delay);
+    time_.delay(erase_delay);
     /* Invoke lockIndividualMemory to lock the block/sector */
     if (this->lock_individual_memory(addr) != SPIDeviceStatus::ok) {
       return SPIDeviceStatus::write_error;
@@ -526,13 +525,13 @@ SPIDeviceStatus SPIFlash::erase_block_64kb(uint32_t addr) {
   }
 
   /* If the status of busy bit is false then SPI flash is ready for further instructions */
-  if (status.busy != true) {
+  if (!status.busy) {
     /* Invoke readMemoryStatus to get the status of block/sector */
     if (this->read_memory_status(addr, status) != SPIDeviceStatus::ok) {
       return SPIDeviceStatus::read_error;
     }
 
-    if (status.lock != false) {
+    if (status.lock) {
       /* If block is locked then invoke unLockIndividualMemory to unlock the block/sector */
       if (this->unlock_individual_memory(addr) != SPIDeviceStatus::ok) {
         return SPIDeviceStatus::write_error;
@@ -556,7 +555,7 @@ SPIDeviceStatus SPIFlash::erase_block_64kb(uint32_t addr) {
     }
     /* Provide a delay of 2000ms */
     static const uint32_t erase_delay = 2000;
-    HAL::delay(erase_delay);
+    time_.delay(erase_delay);
     /* Invoke lockIndividualMemory to lock the block/sector */
     if (this->lock_individual_memory(addr) != SPIDeviceStatus::ok) {
       return SPIDeviceStatus::write_error;
@@ -584,7 +583,7 @@ SPIDeviceStatus SPIFlash::power_down() {
   }
   /* Provide a delay of 3microsec */
   static const uint8_t power_down_delay = 3;
-  HAL::delay_micros(power_down_delay);
+  time_.delay_micros(power_down_delay);
   /* Return ok */
   return SPIDeviceStatus::ok;
 }
@@ -606,7 +605,7 @@ SPIDeviceStatus SPIFlash::release_power_down() {
   }
   /* Provide a delay of 3microsec */
   static const uint8_t release_power_down_delay = 3;
-  HAL::delay_micros(release_power_down_delay);
+  time_.delay_micros(release_power_down_delay);
   /* Return ok */
   return SPIDeviceStatus::ok;
 }
@@ -622,7 +621,7 @@ SPIDeviceStatus SPIFlash::reset_device() {
   }
 
   /* If the status of busy bit is false then SPI flash is ready for further instructions */
-  if (status.busy != true) {
+  if (!status.busy) {
     /* Update the Byte0 of txBuf with  enable reset instruction */
     tx_buf[0] = static_cast<uint8_t>(SPIInstruction::reset_enable);
 
@@ -636,7 +635,7 @@ SPIDeviceStatus SPIFlash::reset_device() {
     }
     /* Provide a delay of 30 microsec */
     static const uint32_t reset_delay = 30;
-    HAL::delay_micros(reset_delay);
+    time_.delay_micros(reset_delay);
 
     /* Update the Byte0 of txBuf with reset device instruction */
     tx_buf[0] = static_cast<uint8_t>(SPIInstruction::reset_device);
@@ -701,7 +700,7 @@ SPIDeviceStatus SPIFlash::read_byte(uint32_t addr, uint8_t *data, uint16_t size)
   return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus SPIFlash::write_byte(uint32_t addr, uint8_t *data_buf, uint8_t length) {
+SPIDeviceStatus SPIFlash::write_byte(uint32_t addr, const uint8_t *data_buf, uint8_t length) {
   // FIXME: We will need to use a statically-allocated vector instead of a C
   // array. Also, it is an error to try to initialize a variable-sized array -
   // that relies on a GCC extension - so the array is left uninitialized.
@@ -715,13 +714,13 @@ SPIDeviceStatus SPIFlash::write_byte(uint32_t addr, uint8_t *data_buf, uint8_t l
   }
 
   /* If the status of busy bit is false then SPI flash is ready for further instructions */
-  if (status.busy != true) {
+  if (!status.busy) {
     /* Invoke readMemoryStatus to get the status of block/sector */
     if (this->read_memory_status(addr, status) != SPIDeviceStatus::ok) {
       return SPIDeviceStatus::read_error;
     }
 
-    if (status.lock != false) {
+    if (status.lock) {
       /* If block is locked then invoke unLockIndividualMemory to unlock the block/sector */
       if (this->unlock_individual_memory(addr) != SPIDeviceStatus::ok) {
         return SPIDeviceStatus::write_error;
@@ -749,7 +748,7 @@ SPIDeviceStatus SPIFlash::write_byte(uint32_t addr, uint8_t *data_buf, uint8_t l
     }
     /* Provide a delay of 3ms */
     static const uint8_t write_delay = 3;
-    HAL::delay(write_delay);
+    time_.delay(write_delay);
     /* Invoke lockIndividualMemory to lock the block/sector */
     if (this->lock_individual_memory(addr) != SPIDeviceStatus::ok) {
       return SPIDeviceStatus::write_error;
@@ -762,7 +761,7 @@ SPIDeviceStatus SPIFlash::write_byte(uint32_t addr, uint8_t *data_buf, uint8_t l
   }
 }
 
-SPIDeviceStatus SPIFlash::write_page(uint32_t addr, uint8_t *data_buf) {
+SPIDeviceStatus SPIFlash::write_page(uint32_t addr, const uint8_t *data_buf) {
   static const uint16_t length = page_size + 4;
   uint8_t tx_buf[length + 4];
   MemoryStatus status;
@@ -773,13 +772,13 @@ SPIDeviceStatus SPIFlash::write_page(uint32_t addr, uint8_t *data_buf) {
   }
 
   /* If the status of busy bit is false then SPI flash is ready for further instructions */
-  if (status.busy != true) {
+  if (!status.busy) {
     /* Invoke readMemoryStatus to get the status of block/sector */
     if (this->read_memory_status(addr, status) != SPIDeviceStatus::ok) {
       return SPIDeviceStatus::read_error;
     }
 
-    if (status.lock != false) {
+    if (status.lock) {
       /* If block is locked then invoke unLockIndividualMemory to unlock the block/sector */
       if (this->unlock_individual_memory(addr) != SPIDeviceStatus::ok) {
         return SPIDeviceStatus::write_error;
@@ -807,7 +806,7 @@ SPIDeviceStatus SPIFlash::write_page(uint32_t addr, uint8_t *data_buf) {
     }
     /* Provide a delay of 3ms */
     static const uint8_t write_delay = 3;
-    HAL::delay(write_delay);
+    time_.delay(write_delay);
     /* Invoke lockIndividualMemory to lock the block/sector */
     if (this->lock_individual_memory(addr) != SPIDeviceStatus::ok) {
       return SPIDeviceStatus::write_error;
@@ -820,10 +819,10 @@ SPIDeviceStatus SPIFlash::write_page(uint32_t addr, uint8_t *data_buf) {
   }
 }
 
-SPIDeviceStatus SPIFlash::write_sector(uint32_t addr, uint8_t *tx_buf, uint16_t length) {
+SPIDeviceStatus SPIFlash::write_sector(uint32_t addr, const uint8_t *tx_buf, uint16_t length) {
   uint32_t page_loop_count = ((addr % page_size) + length);
   uint16_t num_of_pages = (page_loop_count / page_size);
-  uint16_t index = 0;
+  uint32_t index = 0;
   SPIDeviceStatus ret;
   /* Calculate the number of bytes to be written in a page */
   uint16_t current_page_count = page_size - (addr % page_size);
@@ -858,7 +857,7 @@ SPIDeviceStatus SPIFlash::write_sector(uint32_t addr, uint8_t *tx_buf, uint16_t 
   return ret;
 }
 
-SPIDeviceStatus SPIFlash::write_to_memory(uint32_t addr, uint8_t *data_buf, uint16_t length) {
+SPIDeviceStatus SPIFlash::write_to_memory(uint32_t addr, const uint8_t *data_buf, uint16_t length) {
   uint16_t page_start_index = (addr % page_size);
   SPIDeviceStatus ret;
   MemoryStatus stat;
@@ -868,7 +867,7 @@ SPIDeviceStatus SPIFlash::write_to_memory(uint32_t addr, uint8_t *data_buf, uint
     return SPIDeviceStatus::read_error;
   }
 
-  if (stat.not_empty != true) {
+  if (!stat.not_empty) {
     /* Length < 256 */
     if (length == page_size && page_start_index == 0) {
       /* Invoke writeByte to write the data into page */
@@ -886,6 +885,8 @@ SPIDeviceStatus SPIFlash::write_to_memory(uint32_t addr, uint8_t *data_buf, uint
     ret = this->write_sector(addr, data_buf, length);
     return ret;
   }
+  /* Return write error on buffer is not empty */
+  return SPIDeviceStatus::write_error;
 }
 
 }  // namespace Pufferfish::Driver::SPI

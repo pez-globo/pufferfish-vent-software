@@ -20,7 +20,8 @@
 
 #pragma once
 
-#include "Pufferfish/HAL/HAL.h"
+#include "Pufferfish/HAL/Interfaces/SPIDevice.h"
+#include "Pufferfish/HAL/STM32/HALTime.h"
 
 namespace Pufferfish {
 namespace Driver {
@@ -76,7 +77,7 @@ class SPIFlash {
    * Constructor for SPI Flash memory
    * @param spi STM32 HAL handler for the SPI port
    */
-  explicit SPIFlash(HAL::SPIDevice &spi) : spi_(spi) {}
+  explicit SPIFlash(HAL::SPIDevice &spi, HAL::Time &time) : spi_(spi), time_(time) {}
 
   /**
    * It is used to read the data from device.
@@ -270,7 +271,7 @@ class SPIFlash {
    * @param length the number of bytes to write
    * @return ok on success, error code otherwise
    */
-  SPIDeviceStatus write_byte(uint32_t addr, uint8_t *data_buf, uint8_t length);
+  SPIDeviceStatus write_byte(uint32_t addr, const uint8_t *data_buf, uint8_t length);
 
   /**
    * WritePage - It is used to write the data in a page.
@@ -278,7 +279,7 @@ class SPIFlash {
    * @param dataBuf pointer to transmission data buffer
    * @return ok on success, error code otherwise
    */
-  SPIDeviceStatus write_page(uint32_t addr, uint8_t *data_buf);
+  SPIDeviceStatus write_page(uint32_t addr, const uint8_t *data_buf);
 
   /**
    * WriteSector - It is used to write the data in page by page.
@@ -287,7 +288,7 @@ class SPIFlash {
    * @param length the number of bytes to write
    * @return ok on success, error code otherwise
    */
-  SPIDeviceStatus write_sector(uint32_t addr, uint8_t *tx_buf, uint16_t length);
+  SPIDeviceStatus write_sector(uint32_t addr, const uint8_t *tx_buf, uint16_t length);
 
   /**
    * Write To Memory - It is used to write the data into a memory.
@@ -296,10 +297,11 @@ class SPIFlash {
    * @param length the number of bytes to write
    * @return ok on success, error code otherwise
    */
-  SPIDeviceStatus write_to_memory(uint32_t addr, uint8_t *data_buf, uint16_t length);
+  SPIDeviceStatus write_to_memory(uint32_t addr, const uint8_t *data_buf, uint16_t length);
 
  private:
   HAL::SPIDevice &spi_;
+  HAL::Time &time_;
   static const uint16_t page_size = 0x100;
 };
 
