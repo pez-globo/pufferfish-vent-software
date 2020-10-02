@@ -306,6 +306,7 @@ static void MX_TIM4_Init(void);
 static void MX_TIM5_Init(void);
 static void MX_TIM8_Init(void);
 static void MX_TIM12_Init(void);
+static void Bmp388_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -360,9 +361,10 @@ int main(void)
   /* Nonin TODO: Local variable to count packets of data received */
   uint32_t packet_count = 0;
   /* Nonin TODO */
-  bool dataReady = false;
+  bool data_ready = false;
   double temp;
   double pres;
+  PF::Driver::SPI::TrimValues values;
   uint32_t current_time = 0;
   /* Nonin TODO */
   std::array<uint32_t, 4> testcase_results = {0U};
@@ -504,18 +506,18 @@ int main(void)
 		
   }
     /* USER CODE BEGIN 3 */
-     barometric.getDataReadyInterrupt(dataReady);
-    if(dataReady)
+     barometric.get_data_ready_interrupt(data_ready);
+    if(data_ready)
     {
-      barometric.readCalibrationData(values);
-      barometric.readCompensateTemperature(temp);
+      barometric.read_calibration_data(values);
+      barometric.read_compensate_temperature(temp);
     }
     if ((temp < -45) && (temp > 85)) {
-      boardLed1.write(true);
+      board_led1.write(true);
     }
-    barometric.readCompensatePressure(pres);
+    barometric.read_compensate_pressure(pres);
     if (pres < 300 && pres > 1100) {
-      boardLed1.write(true);
+      board_led1.write(true);
     }
   }
   /* USER CODE END 3 */
@@ -527,21 +529,21 @@ int main(void)
  */
 static void Bmp388_Init(void){
 
-  uint8_t flashChipId;
+  uint8_t flash_chip_id;
   /* SPI Flash memory ID */
-  barometric.getChipId(flashChipId);
-  if (flashChipId != 0x50) {
-    boardLed1.write(true);
+  barometric.get_chip_id(flash_chip_id);
+  if (flash_chip_id != 0x50) {
+    board_led1.write(true);
   }
-  barometric.enableSPIcommunication(PF::Driver::SPI::SPIInterfaceType::spi4);
-  barometric.enablePressure(PF::Driver::SPI::RegisterSet::enable);
-  barometric.enableTemperature(PF::Driver::SPI::RegisterSet::enable);
-  barometric.selectPowerMode(PF::Driver::SPI::PowerModes::normal);
-  barometric.InterruptPinOutputType(PF::Driver::SPI::RegisterSet::disable);
-  barometric.pressureOverSampling(PF::Driver::SPI::Oversampling::standardResolution);
-  barometric.temperatureOverSampling(PF::Driver::SPI::Oversampling::standardResolution);
-  barometric.outputDataRate(PF::Driver::SPI::TimeStandby::time80ms);
-  barometric.setIIRFilter(PF::Driver::SPI::FilterCoefficient::coef0);
+  barometric.enable_spi_communication(PF::Driver::SPI::SPIInterfaceType::spi4);
+  barometric.enable_pressure(PF::Driver::SPI::RegisterSet::enable);
+  barometric.enable_temperature(PF::Driver::SPI::RegisterSet::enable);
+  barometric.select_power_mode(PF::Driver::SPI::PowerModes::normal);
+  barometric.interrupt_pin_output_type(PF::Driver::SPI::RegisterSet::disable);
+  barometric.pressure_over_sampling(PF::Driver::SPI::Oversampling::standard_resolution);
+  barometric.temperature_over_sampling(PF::Driver::SPI::Oversampling::standard_resolution);
+  barometric.output_data_rate(PF::Driver::SPI::TimeStandby::time80ms);
+  barometric.set_iiR_filter(PF::Driver::SPI::FilterCoefficient::coef0);
 }
 /**
   * @brief System Clock Configuration

@@ -22,11 +22,9 @@
 #pragma once
 
 #include "Pufferfish/HAL/Interfaces/SPIDevice.h"
-#include <math.h>
+#include <cmath>
 
-namespace Pufferfish {
-namespace Driver {
-namespace SPI {
+namespace Pufferfish::Driver::SPI {
 
 /**
  * Sensor Error conditions are reported in the ERR_REG register
@@ -148,41 +146,40 @@ enum class Oversampling : uint8_t {
  * Trimming coefficients from nvm to calculate compensated data
  */
 struct TrimValues {
-  uint16_t parT1;
-  uint16_t parT2;
-  uint16_t parP5;
-  uint16_t parP6;
-  int16_t parP1;
-  int16_t parP2;
-  int16_t parP9;
-  int8_t parT3;
-  int8_t parP3;
-  int8_t parP4;
-  int8_t parP7;
-  int8_t parP8;
-  int8_t parP10;
-  int8_t parP11;
+  uint16_t par_t1;
+  uint16_t par_t2;
+  uint16_t par_p5;
+  uint16_t par_p6;
+  int16_t par_p1;
+  int16_t par_p2;
+  int16_t par_p9;
+  int8_t par_t3;
+  int8_t par_p3;
+  int8_t par_p4;
+  int8_t par_p7;
+  int8_t par_p8;
+  int8_t par_p10;
+  int8_t par_p11;
 };
 
 /**
  * Calibration coefficients
  */
 struct CalibrationData {
-  double parT1;
-  double parT2;
-  double parT3;
-  double parP1;
-  double parP2;
-  double parP3;
-  double parP4;
-  double parP5;
-  double parP6;
-  double parP7;
-  double parP8;
-  double parP9;
-  double parP10;
-  double parP11;
-  double comp_temperature;
+  double par_t1;
+  double par_t2;
+  double par_t3;
+  double par_p1;
+  double par_p2;
+  double par_p3;
+  double par_p4;
+  double par_p5;
+  double par_p6;
+  double par_p7;
+  double par_p8;
+  double par_p9;
+  double par_p10;
+  double par_p11;
 };
 
 /**
@@ -295,7 +292,7 @@ class BMP388 {
    * Constructor for BMP388 to read spi device number
    * @param spi spiDevice
    */
-  BMP388(HAL::SPIDevice &spi) : spi_(spi) {}
+  explicit BMP388(HAL::SPIDevice &spi) : spi_(spi) {}
 
   /**
    * @brief  Get the chip id register address: 0x00
@@ -309,7 +306,7 @@ class BMP388 {
    * @param  fault fatal error or cmd error or config error
    * @return SPIDeviceStatus returns ok/readError
    */
-  SPIDeviceStatus get_errors(SensorError &fault);
+  SPIDeviceStatus get_errors(SensorError &faults);
 
   /**
    * @brief  read sensor status register address is 0x03
@@ -330,14 +327,14 @@ class BMP388 {
    * @param  RegisterSet enable or disable
    * @return SPIDeviceStatus returns ok/writeError
    */
-  SPIDeviceStatus enable_pressure(RegisterSet status);
+  SPIDeviceStatus enable_pressure(RegisterSet const status);
 
   /**
    * @brief  Enable temperature sensor
    * @param  RegisterSet enable or disable
    * @return SPIDeviceStatus returns ok/writeError
    */
-  SPIDeviceStatus enable_temperature(RegisterSet status);
+  SPIDeviceStatus enable_temperature(RegisterSet const status);
 
   /**
    * @brief  Select power mode
@@ -347,28 +344,28 @@ class BMP388 {
    * 11->normal
    * @return SPIDeviceStatus returns ok/writeError
    */
-  SPIDeviceStatus select_power_mode(PowerModes mode);
+  SPIDeviceStatus select_power_mode(PowerModes const mode);
 
   /**
    * @brief  data ready interrupt
    * @param  RegisterSet enable or disable
    * @return SPIDeviceStatus returns ok/writeError
    */
-  SPIDeviceStatus data_ready_interrupt(RegisterSet status);
+  SPIDeviceStatus data_ready_interrupt(RegisterSet const status);
 
   /**
    * @brief  interrupt pin output type
    * @param  ConfigureOutput push pull or open drain
    * @return SPIDeviceStatus returns ok/writeError
    */
-  SPIDeviceStatus interrupt_pin_output_type(RegisterSet type);
+  SPIDeviceStatus interrupt_pin_output_type(RegisterSet const status);
 
   /**
    * @brief  Level of Interrupt pin
    * @param  RegisterSet active low or active high
    * @return SPIDeviceStatus returns ok/writeError
    */
-  SPIDeviceStatus level_of_interrupt_pin(RegisterSet level);
+  SPIDeviceStatus level_of_interrupt_pin(RegisterSet const level);
 
   /**
    * @brief  Oversampling settings for pressure
@@ -396,7 +393,7 @@ class BMP388 {
    * @param  FilterCoefficient coefficients
    * @return SPIDeviceStatus returns ok/writeError
    */
-  SPIDeviceStatus set_IIR_filter(FilterCoefficient coefficient);
+  SPIDeviceStatus set_iiR_filter(const FilterCoefficient coefficient);
 
   /**
    * @brief  Trimming coefficients from Nvm
@@ -410,7 +407,7 @@ class BMP388 {
    * @param  RawSensorData pressure and temperature
    * @return SPIDeviceStatus returns ok/readError
    */
-  SPIDeviceStatus read_raw_data(RawSensorData &data);
+  SPIDeviceStatus read_raw_data(RawSensorData &samples);
 
   /**
    * @brief  Convert 3 bytes raw data to temperature
@@ -424,7 +421,7 @@ class BMP388 {
    * @param  uint32_t pressure
    * @return SPIDeviceStatus returns ok/readError
    */
-  SPIDeviceStatus raw_pressure(uint32_t &samples);
+  SPIDeviceStatus raw_pressure(uint32_t &pressure);
 
   /**
    * @brief  Compensated temperature
@@ -459,7 +456,7 @@ class BMP388 {
    * @param  CalibrationCoefficient Parameters
    * @return SPIDeviceStatus returns ok/readError
    */
-  SPIDeviceStatus calc_calibration_coefficient(CalibrationData &coefficient);
+  SPIDeviceStatus calc_calibration_coefficient(CalibrationData &cofficients);
 
   /**
    * @brief  Check power on reset detected or not
@@ -473,7 +470,7 @@ class BMP388 {
    * @param  type SPI or I2C
    * @return SPIDeviceStatus returns ok/writeError
    */
-  SPIDeviceStatus enable_spi_communication(SPIInterfaceType mode);
+  SPIDeviceStatus enable_spi_communication(SPIInterfaceType const mode);
 
   /**
    * @brief  Data ready interrupt status is asserted after a pressure and temperature
@@ -520,6 +517,4 @@ class BMP388 {
   HAL::SPIDevice &spi_;
 };
 
-}  // namespace SPI
-}  // namespace Driver
-}  // namespace Pufferfish
+}  // namespace Pufferfish::Driver::SPI
