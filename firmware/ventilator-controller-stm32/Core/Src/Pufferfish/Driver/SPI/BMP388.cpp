@@ -398,7 +398,7 @@ SPIDeviceStatus BMP388::read_compensate_pressure(double &compensated_pressure) {
   }
   /* Read calibration data */
   if (this->read_compensate_temperature(compensated_data) != SPIDeviceStatus::ok) {
-      return SPIDeviceStatus::read_error;
+    return SPIDeviceStatus::read_error;
   }
   /* Compensate the pressure using raw temperature, raw pressure and calibration data */
   double partial_data1 = calib_data.par_p6 * compensated_data;
