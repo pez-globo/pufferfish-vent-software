@@ -18,11 +18,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <catch2/catch.hpp>
-
-#include <Pufferfish/HAL/Mock/MockDigitalInput.h>
-#include <Pufferfish/HAL/Mock/MockTime.h>
-#include <Pufferfish/Driver/Button/Button.h>
+#include "catch2/catch.hpp"
+#include "Pufferfish/HAL/Mock/MockDigitalInput.h"
+#include "Pufferfish/HAL/Mock/MockTime.h"
+#include "Pufferfish/Driver/Button/Button.h"
 
 namespace PF = Pufferfish;
 
@@ -89,7 +88,7 @@ SCENARIO("TESTSCENARIO 1 : Valid debounce time", "[Button]") {
       }
       REQUIRE(button_status == PF::Driver::Button::ButtonStatus::ok);
       REQUIRE(output == true);
-      THEN("Switch state changed from active high to low and Integration time is less than max Time") {
+      THEN("Switch state from active high to low and integration time is less than max Time") {
         input = true;
         for (uint32_t currentTime = 150; currentTime < 200; currentTime++) {
           button_status = switch_input.transform(input, currentTime, output);
@@ -210,7 +209,7 @@ SCENARIO("TESTSCENARIO 4 : Validate read_state ", "[Button]") {
         REQUIRE(PrevEdgeState == testEdgeState);
       }
     }
-    WHEN("Current time is greater the last sample time and debounced_time is greater than max_integrator_samples on push") {
+    WHEN("Debounced_time is greater than max_integrator_samples on push") {
       buttonInput.set_read(false);
       for (uint32_t i = 1; i < 101; i++) {
         buttonInput.set_read(true);
@@ -222,7 +221,7 @@ SCENARIO("TESTSCENARIO 4 : Validate read_state ", "[Button]") {
         REQUIRE(testEdgeState == PF::Driver::Button::EdgeState::rising_edge);
       }
     }
-    WHEN("Current time is greater than the last sample Time and debounced time is greater than the max_integrator_samples on Release") {
+    WHEN("Debounced time is greater than the max_integrator_samples on Release") {
       buttonInput.set_read(false);
       for (uint32_t i = 1; i < 101; i++) {
         buttonInput.set_read(true);
