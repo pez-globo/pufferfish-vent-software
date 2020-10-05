@@ -23,9 +23,7 @@
 #include "Pufferfish/HAL/Interfaces/SPIDevice.h"
 #include "Pufferfish/HAL/STM32/HALTime.h"
 
-namespace Pufferfish {
-namespace Driver {
-namespace SPI {
+namespace Pufferfish::Driver::SPI {
 
 /**
  * SPI Instructions
@@ -305,6 +303,4 @@ class SPIFlash {
   static const uint16_t page_size = 0x100;
 };
 
-}  // namespace SPI
-}  // namespace Driver
-}  // namespace Pufferfish
+}  // namespace Pufferfish::Driver::SPI

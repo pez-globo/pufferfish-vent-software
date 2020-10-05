@@ -229,10 +229,9 @@ SPIDeviceStatus SPIFlash::unlock_individual_memory(uint32_t addr) {
     }
     /* Return ok */
     return SPIDeviceStatus::ok;
-  } else {
-    /* Return busy */
-    return SPIDeviceStatus::busy;
   }
+  /* Return busy */
+  return SPIDeviceStatus::busy;
 }
 
 SPIDeviceStatus SPIFlash::lock_individual_memory(uint32_t addr) {
@@ -303,10 +302,9 @@ SPIDeviceStatus SPIFlash::global_unlock_memory() {
     }
     /* Return ok */
     return SPIDeviceStatus::ok;
-  } else {
-    /* Return busy */
-    return SPIDeviceStatus::busy;
   }
+  /* Return busy */
+  return SPIDeviceStatus::busy;
 }
 
 SPIDeviceStatus SPIFlash::global_lock_memory() {
@@ -337,10 +335,9 @@ SPIDeviceStatus SPIFlash::global_lock_memory() {
     }
     /* Return ok */
     return SPIDeviceStatus::ok;
-  } else {
-    /* Return busy */
-    return SPIDeviceStatus::busy;
   }
+  /* Return busy */
+  return SPIDeviceStatus::busy;
 }
 
 SPIDeviceStatus SPIFlash::read_memory_status(uint32_t addr, MemoryStatus &status) {
@@ -400,10 +397,9 @@ SPIDeviceStatus SPIFlash::erase_chip() {
     }
     /* Return ok */
     return SPIDeviceStatus::ok;
-  } else {
-    /* Return busy */
-    return SPIDeviceStatus::busy;
   }
+  /* Return busy */
+  return SPIDeviceStatus::busy;
 }
 
 SPIDeviceStatus SPIFlash::erase_sector_4kb(uint32_t addr) {
@@ -454,16 +450,15 @@ SPIDeviceStatus SPIFlash::erase_sector_4kb(uint32_t addr) {
     }
     /* Return ok */
     return SPIDeviceStatus::ok;
-  } else {
-    /* Return busy */
-    return SPIDeviceStatus::busy;
   }
+  /* Return busy */
+  return SPIDeviceStatus::busy;
 }
 
 SPIDeviceStatus SPIFlash::erase_block_32kb(uint32_t addr) {
   static const size_t size = 4;
   std::array<uint8_t, size> tx_buf = {0};
-  MemoryStatus status;
+  MemoryStatus status{};
 
   /* Invoke readBusyStatus to read the busy bit status  */
   if (this->read_busy_status(status) != SPIDeviceStatus::ok) {
@@ -508,16 +503,15 @@ SPIDeviceStatus SPIFlash::erase_block_32kb(uint32_t addr) {
     }
     /* Return ok */
     return SPIDeviceStatus::ok;
-  } else {
-    /* Return busy */
-    return SPIDeviceStatus::busy;
   }
+  /* Return busy */
+  return SPIDeviceStatus::busy;
 }
 
 SPIDeviceStatus SPIFlash::erase_block_64kb(uint32_t addr) {
   static const size_t size = 4;
   std::array<uint8_t, size> tx_buf = {0};
-  MemoryStatus status;
+  MemoryStatus status{};
 
   /* Invoke readBusyStatus to read the busy bit status  */
   if (this->read_busy_status(status) != SPIDeviceStatus::ok) {
@@ -562,10 +556,9 @@ SPIDeviceStatus SPIFlash::erase_block_64kb(uint32_t addr) {
     }
     /* Return ok */
     return SPIDeviceStatus::ok;
-  } else {
-    /* Return busy */
-    return SPIDeviceStatus::busy;
   }
+  /* Return busy */
+  return SPIDeviceStatus::busy;
 }
 
 SPIDeviceStatus SPIFlash::power_down() {
@@ -613,7 +606,7 @@ SPIDeviceStatus SPIFlash::release_power_down() {
 SPIDeviceStatus SPIFlash::reset_device() {
   static const uint8_t length = 1;
   std::array<uint8_t, length> tx_buf = {0};
-  MemoryStatus status;
+  MemoryStatus status{};
 
   /* Invoke readStatusRegister1 to get the status of device */
   if (this->read_busy_status(status) != SPIDeviceStatus::ok) {
@@ -646,10 +639,9 @@ SPIDeviceStatus SPIFlash::reset_device() {
     }
     /* Return ok */
     return SPIDeviceStatus::ok;
-  } else {
-    /* Return busy */
-    return SPIDeviceStatus::busy;
   }
+  /* Return busy */
+  return SPIDeviceStatus::busy;
 }
 
 SPIDeviceStatus SPIFlash::is_empty(uint32_t addr, uint16_t size, MemoryStatus &status) {
@@ -706,7 +698,7 @@ SPIDeviceStatus SPIFlash::write_byte(uint32_t addr, const uint8_t *data_buf, uin
   // that relies on a GCC extension - so the array is left uninitialized.
   // NOLINTNEXTLINE(modernize-avoid-c-arrays)
   uint8_t tx_buf[length + 4];
-  MemoryStatus status;
+  MemoryStatus status{};
 
   /* Invoke readBusyStatus to read the busy bit status  */
   if (this->read_busy_status(status) != SPIDeviceStatus::ok) {
@@ -755,16 +747,15 @@ SPIDeviceStatus SPIFlash::write_byte(uint32_t addr, const uint8_t *data_buf, uin
     }
     /* Return ok */
     return SPIDeviceStatus::ok;
-  } else {
-    /* Return busy */
-    return SPIDeviceStatus::busy;
   }
+  /* Return busy */
+  return SPIDeviceStatus::busy;
 }
 
 SPIDeviceStatus SPIFlash::write_page(uint32_t addr, const uint8_t *data_buf) {
   static const uint16_t length = page_size + 4;
   uint8_t tx_buf[length + 4];
-  MemoryStatus status;
+  MemoryStatus status{};
 
   /* Invoke readStatusRegister1 to get the status of device */
   if (this->read_busy_status(status) != SPIDeviceStatus::ok) {
@@ -813,10 +804,9 @@ SPIDeviceStatus SPIFlash::write_page(uint32_t addr, const uint8_t *data_buf) {
     }
     /* Return ok */
     return SPIDeviceStatus::ok;
-  } else {
-    /* Return busy */
-    return SPIDeviceStatus::busy;
   }
+  /* Return busy */
+  return SPIDeviceStatus::busy;
 }
 
 SPIDeviceStatus SPIFlash::write_sector(uint32_t addr, const uint8_t *tx_buf, uint16_t length) {
@@ -860,7 +850,7 @@ SPIDeviceStatus SPIFlash::write_sector(uint32_t addr, const uint8_t *tx_buf, uin
 SPIDeviceStatus SPIFlash::write_to_memory(uint32_t addr, const uint8_t *data_buf, uint16_t length) {
   uint16_t page_start_index = (addr % page_size);
   SPIDeviceStatus ret;
-  MemoryStatus stat;
+  MemoryStatus stat{};
 
   /* Invoke isEmpty to check the page/sector/block is empty or not */
   if (this->is_empty(addr, length, stat) != SPIDeviceStatus::ok) {
