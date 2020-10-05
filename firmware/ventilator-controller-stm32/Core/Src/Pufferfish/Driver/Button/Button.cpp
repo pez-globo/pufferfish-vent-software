@@ -23,9 +23,7 @@
 
 #include <Pufferfish/Driver/Button/Button.h>
 
-namespace Pufferfish {
-namespace Driver {
-namespace Button {
+namespace Pufferfish::Driver::Button {
 
 ButtonStatus Debouncer::transform(bool input, uint32_t current_time, bool &output) {
   if (Pufferfish::Driver::Button::Debouncer::time_valid_check(
@@ -87,8 +85,8 @@ void EdgeDetector::transform(bool input, EdgeState &output) {
 
 ButtonStatus Button::read_state(bool &debouned_output, EdgeState &switch_state_changed) {
   bool input = button_input_.read();
-  uint32_t ms_time = time_.millis();
-
+  uint32_t ms_time = 0;
+  ms_time = Pufferfish::HAL::millis();
   ButtonStatus status = debounce_.transform(input, ms_time, debouned_output);
 
   /* Debounce is not success */
@@ -107,6 +105,4 @@ bool Debouncer::time_valid_check(uint32_t now_time, uint32_t last_time, uint32_t
   return now_time - last_time < add_factor;
 }
 
-}  // namespace Button
-}  // namespace Driver
-}  // namespace Pufferfish
+}  // namespace Pufferfish::Driver::Button
