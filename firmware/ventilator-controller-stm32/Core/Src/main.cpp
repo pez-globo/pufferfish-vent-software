@@ -489,7 +489,7 @@ int main(void) {
     }
     /* USER CODE END WHILE */
 
-    /* 
+    /**
      * FIXME: Added for testing 
      * Read the Analog data of ADC3 and validate the return value
      */
@@ -505,9 +505,8 @@ int main(void) {
 		
   }
     /* USER CODE BEGIN 3 */
-     barometric.get_data_ready_interrupt(data_ready);
-    if(data_ready)
-    {
+    barometric.get_data_ready_interrupt(data_ready);
+    if (data_ready) {
       barometric.read_calibration_data(values);
       barometric.read_compensate_temperature(temp);
     }
@@ -526,8 +525,7 @@ int main(void) {
  * @brief BMP388 device configuration
  * @retval None
  */
-static void Bmp388_Init(void){
-
+static void Bmp388_Init(void) {
   uint8_t flash_chip_id;
   /* SPI Flash memory ID */
   barometric.get_chip_id(flash_chip_id);
@@ -548,8 +546,7 @@ static void Bmp388_Init(void){
   * @brief System Clock Configuration
   * @retval None
   */
-void SystemClock_Config(void)
-{
+void SystemClock_Config(void) {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
   RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
@@ -581,8 +578,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLRGE = RCC_PLL1VCIRANGE_3;
   RCC_OscInitStruct.PLL.PLLVCOSEL = RCC_PLL1VCOWIDE;
   RCC_OscInitStruct.PLL.PLLFRACN = 0;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
     Error_Handler();
   }
   /** Initializes the CPU, AHB and APB busses clocks 

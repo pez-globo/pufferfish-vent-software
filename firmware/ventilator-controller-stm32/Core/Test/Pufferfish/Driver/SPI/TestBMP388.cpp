@@ -165,11 +165,11 @@ SCENARIO("Read calibration data ", "[BMP388]") {
   GIVEN("Calibration data") {
     const uint8_t tx_buf[23] = {0x01};
     PF::Driver::SPI::TrimValues data;
-    uint16_t temp1 = static_cast<uint16_t>(tx_buf[3]) << 8;
-    uint16_t temp2 = static_cast<uint16_t>(tx_buf[5]) << 8;
-    uint16_t pres1 = static_cast<uint16_t>(tx_buf[8] << 8;
-    uint16_t pres2 = static_cast<uint16_t>(tx_buf[10] << 8;
-    uint16_t pres9 = static_cast<uint16_t>(tx_buf[20] << 8;
+    uint16_t temp1 = static_cast<uint16_t>(tx_buf[3] << 8);
+    uint16_t temp2 = static_cast<uint16_t>(tx_buf[5] << 8);
+    uint16_t pres1 = static_cast<uint16_t>(tx_buf[8] << 8);
+    uint16_t pres2 = static_cast<uint16_t>(tx_buf[10] << 8);
+    uint16_t pres9 = static_cast<uint16_t>(tx_buf[20] << 8);
 
     uint16_t temperature1 = temp1 | static_cast<uint16_t>(tx_buf[2]);
     uint16_t temperature2 = temp2 | static_cast<uint16_t>(tx_buf[4]);
@@ -238,25 +238,25 @@ SCENARIO("Read calculated calibration coefficients ", "[BMP388]") {
   GIVEN("Calibration coefficients") {
     const uint8_t tx_buf[23] = {0x02};
     PF::Driver::SPI::CalibrationData data;
-    uint16_t temp1 = static_cast<uint16_t>(tx_buf[3]) << 8;
-    uint16_t temp2 = static_cast<uint16_t>(tx_buf[5]) << 8;
-    uint16_t pres1 = static_cast<uint16_t>(tx_buf[8] << 8;
-    uint16_t pres2 = static_cast<uint16_t>(tx_buf[10] << 8;
-    uint16_t pres9 = static_cast<uint16_t>(tx_buf[20] << 8;
+    uint16_t temp1 = static_cast<uint16_t>(tx_buf[3] << 8);
+    uint16_t temp2 = static_cast<uint16_t>(tx_buf[5] << 8);
+    uint16_t pres1 = static_cast<uint16_t>(tx_buf[8] << 8);
+    uint16_t pres2 = static_cast<uint16_t>(tx_buf[10] << 8);
+    uint16_t pres9 = static_cast<uint16_t>(tx_buf[20] << 8);
 
-    double temperature1 = static_cast<double>(temp1) | static_cast<uint16_t>(tx_buf[2]) / pow(2, -8);
-    double temperature2 = static_cast<double>(temp2) | static_cast<uint16_t>(tx_buf[4]) / pow(2, 30);
+    double temperature1 = static_cast<double>((temp1) | static_cast<uint16_t>(tx_buf[2])) / pow(2, -8);
+    double temperature2 = static_cast<double>((temp2) | static_cast<uint16_t>(tx_buf[4])) / pow(2, 30);
     double temperature3 = static_cast<double>(static_cast<int8_t>(tx_buf[6])) / pow(2, 48);
 
-    double pressure1 = static_cast<double>(static_cast<int16_t>(pres1) | static_cast<uint16_t>(tx_buf[7])) - pow(2, 14) / powf(2, 20);
-    double pressure2 = static_cast<double>(static_cast<int16_t>(pres2) | static_cast<uint16_t>(tx_buf[9])) - pow(2, 14) / powf(2, 29);
+    double pressure1 = static_cast<double>(static_cast<int16_t>((pres1) | static_cast<uint16_t>(tx_buf[7])) - pow(2, 14)) / powf(2, 20);
+    double pressure2 = static_cast<double>(static_cast<int16_t>((pres2) | static_cast<uint16_t>(tx_buf[9])) - pow(2, 14)) / powf(2, 29);
     double pressure3 = static_cast<double>(static_cast<int8_t>(tx_buf[11])) / pow(2, 32);
     double pressure4 = static_cast<double>(static_cast<int8_t>(tx_buf[12])) / pow(2, 37);
     double pressure5 = static_cast<double>(static_cast<uint16_t>(tx_buf[14] << 8) | static_cast<uint16_t>(tx_buf[13])) / pow(2, -3);
     double pressure6 = static_cast<double>(static_cast<uint16_t>(tx_buf[16] << 8) | static_cast<uint16_t>(tx_buf[15])) / pow(2, 6);
     double pressure7 = static_cast<double>(static_cast<int8_t>(tx_buf[17])) / pow(2, 8);
     double pressure8 = static_cast<double>(static_cast<int8_t>(tx_buf[18])) / pow(2, 15);
-    double pressure9 = static_cast<double>(static_cast<int16_t>(pres9) | static_cast<uint16_t>(tx_buf[19])) / pow(2, 48);
+    double pressure9 = static_cast<double>(static_cast<int16_t>((pres9) | static_cast<uint16_t>(tx_buf[19])) / pow(2, 48));
     double pressure10 = static_cast<double>(static_cast<int8_t>(tx_buf[21])) / pow(2, 48);
     double pressure11 = static_cast<double>(static_cast<int8_t>(tx_buf[22])) / pow(2, 65);
 
@@ -319,11 +319,11 @@ SCENARIO("Read compensate temperature ", "[BMP388]") {
     buf[2] = static_cast<uint32_t>(tx_buf[7] << 16);
     uint32_t temperature = (buf[0] | buf[1] | buf[2]);
 
-    uint16_t temp1 = static_cast<uint16_t>(tx_buf[3]) << 8;
-    uint16_t temp2 = static_cast<uint16_t>(tx_buf[5]) << 8;
+    uint16_t temp1 = static_cast<uint16_t>(tx_buf[3] << 8);
+    uint16_t temp2 = static_cast<uint16_t>(tx_buf[5] << 8);
 
-    double part1 = static_cast<double>(temp1) | static_cast<uint16_t>(tx_buf[2]) / pow(2, -8);
-    double part2 = static_cast<double>(temp2) | static_cast<uint16_t>(tx_buf[4]) / pow(2, 30);
+    double part1 = static_cast<double>((temp1) | static_cast<uint16_t>(tx_buf[2])) / pow(2, -8);
+    double part2 = static_cast<double>((temp2) | static_cast<uint16_t>(tx_buf[4])) / pow(2, 30);
     double part3 = static_cast<double>(static_cast<int8_t>(tx_buf[6])) / pow(2, 48);
     double const data1 = static_cast<double>(temperature - part1);
     double const data2 = static_cast<double>(data1 * part2);
@@ -379,28 +379,28 @@ SCENARIO("Read compensate pressure ", "[BMP388]") {
     buf[5] = static_cast<uint32_t>(tx_buf[7] << 16);
     uint32_t temperature = buf[3] | buf[4] | buf[5];
 
-    uint16_t temp1 = static_cast<uint16_t>(tx_buf[3]) << 8;
-    uint16_t temp2 = static_cast<uint16_t>(tx_buf[5]) << 8;
-    uint16_t pres1 = static_cast<uint16_t>(tx_buf[8] << 8;
-    uint16_t pres2 = static_cast<uint16_t>(tx_buf[10] << 8;
-    uint16_t pres9 = static_cast<uint16_t>(tx_buf[20] << 8;
+    uint16_t temp1 = static_cast<uint16_t>(tx_buf[3] << 8);
+    uint16_t temp2 = static_cast<uint16_t>(tx_buf[5] << 8);
+    uint16_t pres1 = static_cast<uint16_t>(tx_buf[8] << 8);
+    uint16_t pres2 = static_cast<uint16_t>(tx_buf[10] << 8);
+    uint16_t pres9 = static_cast<uint16_t>(tx_buf[20] << 8);
 
-    double part1 = static_cast<double>(temp1) | static_cast<uint16_t>(tx_buf[2]) / pow(2, -8);
-    double part2 = static_cast<double>(temp2) | static_cast<uint16_t>(tx_buf[4]) / pow(2, 30);
+    double part1 = static_cast<double>((temp1) | static_cast<uint16_t>(tx_buf[2])) / pow(2, -8);
+    double part2 = static_cast<double>((temp2) | static_cast<uint16_t>(tx_buf[4])) / pow(2, 30);
     double part3 = static_cast<double>(static_cast<int8_t>(tx_buf[6])) / pow(2, 48);
     double data1 = static_cast<double>(temperature - part1);
     double data2 = static_cast<double>(data1 * part2);
     double const compensated_temperature = (data2 + (data1 * data1) * part3);
 
-    part1 = static_cast<double>(static_cast<int16_t>(pres1) | static_cast<uint16_t>(tx_buf[7])) - pow(2, 14) / powf(2, 20);
-    part2 = static_cast<double>(static_cast<int16_t>(pres2) | static_cast<uint16_t>(tx_buf[9])) - pow(2, 14) / powf(2, 29);
+    part1 = static_cast<double>(static_cast<int16_t>((pres1) | static_cast<uint16_t>(tx_buf[7])) - pow(2, 14)) / powf(2, 20);
+    part2 = static_cast<double>(static_cast<int16_t>((pres2) | static_cast<uint16_t>(tx_buf[9])) - pow(2, 14)) / powf(2, 29);
     part3 = static_cast<double>(static_cast<int8_t>(tx_buf[11])) / pow(2, 32);
     double part4 = static_cast<double>(static_cast<int8_t>(tx_buf[12])) / pow(2, 37);
     double part5 = static_cast<double>(static_cast<uint16_t>(tx_buf[14] << 8) | static_cast<uint16_t>(tx_buf[13])) / pow(2, -3);
     double part6 = static_cast<double>(static_cast<uint16_t>(tx_buf[16] << 8) | static_cast<uint16_t>(tx_buf[15])) / pow(2, 6);
     double part7 = static_cast<double>(static_cast<int8_t>(tx_buf[17])) / pow(2, 8);
     double part8 = static_cast<double>(static_cast<int8_t>(tx_buf[18])) / pow(2, 15);
-    double part9 = static_cast<double>(static_cast<int16_t>(pres9) | static_cast<uint16_t>(tx_buf[19])) / pow(2, 48);
+    double part9 = static_cast<double>(static_cast<int16_t>((pres9) | static_cast<uint16_t>(tx_buf[19]))) / pow(2, 48);
     double part10 = static_cast<double>(static_cast<int8_t>(tx_buf[21])) / pow(2, 48);
     double part11 = static_cast<double>(static_cast<int8_t>(tx_buf[22])) / pow(2, 65);
 
