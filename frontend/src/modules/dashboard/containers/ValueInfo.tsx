@@ -129,23 +129,22 @@ export interface Props {
 }
 
 export const ClickHandler = (
-  singleClickAction: Function,
-  doubleClickAction: Function,
-  delay = 100,
-) => {
+  singleClickAction: () => void,
+  doubleClickAction: () => void,
+): (() => void) => {
   const [click, setClick] = useState(0);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       if (click === 1) singleClickAction();
       setClick(0);
-    }, 300);
+    }, 100);
     if (click === 2) doubleClickAction();
 
     return () => {
       clearTimeout(timer);
     };
-  }, [click]);
+  }, [click, singleClickAction, doubleClickAction]);
 
   return () => {
     setClick((prev) => prev + 1);
