@@ -128,25 +128,29 @@ export interface Props {
   isMain?: boolean;
 }
 
-export const ClickHandler = (singleClickAction: Function, doubleClickAction: Function, delay = 100) => {
-    const [click, setClick] = useState(0);
+export const ClickHandler = (
+  singleClickAction: Function,
+  doubleClickAction: Function,
+  delay = 100,
+) => {
+  const [click, setClick] = useState(0);
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            if (click === 1) singleClickAction();
-            setClick(0);
-        }, 300);
-        if (click === 2) doubleClickAction();
-
-        return () => {
-            clearTimeout(timer);
-        }
-    }, [click]);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (click === 1) singleClickAction();
+      setClick(0);
+    }, 300);
+    if (click === 2) doubleClickAction();
 
     return () => {
-        setClick(prev => prev + 1);
+      clearTimeout(timer);
     };
-}
+  }, [click]);
+
+  return () => {
+    setClick((prev) => prev + 1);
+  };
+};
 
 const ControlValuesDisplay = ({
   value,
@@ -162,7 +166,9 @@ const ControlValuesDisplay = ({
   const onClick = () => {
     setOpen(true);
   };
-  const handleClick = ClickHandler(onClick, () => { return false });
+  const handleClick = ClickHandler(onClick, () => {
+    return false;
+  });
   const updateModalStatus = (status: boolean) => {
     setOpen(status);
   };
@@ -250,6 +256,9 @@ const GridControlValuesDisplay = ({
   const onClick = () => {
     setOpen(true);
   };
+  const handleClick = ClickHandler(onClick, () => {
+    return false;
+  });
   const updateModalStatus = (status: boolean) => {
     setOpen(status);
   };
@@ -258,7 +267,7 @@ const GridControlValuesDisplay = ({
       style={{ outline: 'none', height: '100%' }}
       role="button"
       onKeyDown={() => null}
-      onClick={onClick}
+      onClick={handleClick}
       tabIndex={0}
     >
       <Grid container direction="column" className={classes.rootParent}>

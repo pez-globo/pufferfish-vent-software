@@ -134,7 +134,9 @@ const ControlInfo = (props: Props): JSX.Element => {
   const onClick = () => {
     setOpen(true);
   };
-  const handleClick = ClickHandler(onClick, () => { return false });
+  const handleClick = ClickHandler(onClick, () => {
+    return false;
+  });
   const updateModalStatus = (status: boolean) => {
     setOpen(status);
   };
