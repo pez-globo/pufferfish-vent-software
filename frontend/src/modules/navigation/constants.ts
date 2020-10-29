@@ -20,3 +20,4 @@ export const SCREENSAVER_ROUTE = {
   icon: PufferfishIcon,
 };
 export const SETTINGS_ROUTE = { key: 8, label: 'Settings', path: '/settings', icon: GearIcon };
+export const DASHBOARD2_ROUTE = { key: 9, label: 'New Dashboard', path: '/dashboard2', icon: null };

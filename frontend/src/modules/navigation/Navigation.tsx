@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { PropsWithChildren, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import { Tabs, Tab, Typography } from '@material-ui/core';
@@ -20,7 +20,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     zIndex: 1,
     height: '100%',
     '&;selected': {
-      backgroundColor: 'red',
+      backgroundColor: 'white',
     },
     '& .MuiTabs-fixed': {
       height: '100%',
@@ -31,18 +31,36 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
   tab: {
     minWidth: 0,
-    minHeight: 80,
+    // minHeight: 80,
     color: theme.palette.text.primary,
     fontSize: theme.typography.subtitle2.fontSize,
     zIndex: 1,
   },
   indicator: {
     color: 'theme.palette.text.primary',
-    backgroundColor: theme.palette.primary.light,
-    borderLeft: `4px solid ${theme.palette.primary.main}`,
+    backgroundColor: 'transparent',
+    borderLeft: 'transparent',
     opacity: '1',
     width: '100%',
     zIndex: 0,
+  },
+
+  sidebarIcon: {
+    border: '2px solid #0056b3b0',
+    // opacity: '.5',
+    padding: '5px',
+    width: '40px',
+    height: '40px',
+    borderRadius: '8px',
+
+    '&:hover': {
+      border: '2px solid #0056B3',
+      opacity: '1',
+    },
+    '&;selected': {
+      border: '2px solid #0056B3',
+      opacity: '1',
+    },
   },
 }));
 /**
@@ -50,7 +68,7 @@ const useStyles = makeStyles((theme: Theme) => ({
  *
  * The main interface for router/page-based navigation.
  */
-export const Navigation = (): JSX.Element => {
+export const Navigation = ({ fullPage }: { fullPage?: boolean }): JSX.Element => {
   const classes = useStyles();
   const location = useLocation();
 
@@ -78,6 +96,33 @@ export const Navigation = (): JSX.Element => {
     setRoute(newRoute);
   };
 
+  const RouteLabel = (
+    props: PropsWithChildren<{ fullPage?: boolean; label: string }>,
+  ): JSX.Element => {
+    const { fullPage, label, children } = props;
+    if (fullPage) {
+      return (
+        <React.Fragment>
+          {children}
+          <br />
+          <Typography variant="subtitle2" align="center">
+            {label}
+          </Typography>
+        </React.Fragment>
+      );
+    }
+    return (
+      <React.Fragment>
+        <div className={classes.sidebarIcon}>{children}</div>
+        <div>
+          <Typography variant="subtitle2" align="center">
+            {label}
+          </Typography>
+        </div>
+      </React.Fragment>
+    );
+  };
+
   return (
     <div className={classes.root}>
       <Tabs
@@ -94,13 +139,9 @@ export const Navigation = (): JSX.Element => {
             <Tab
               value={route.key}
               label={
-                <div>
+                <RouteLabel fullPage={fullPage} label={route.label}>
                   <route.icon style={{ width: '100%' }} />
-                  <br />
-                  <Typography variant="subtitle2" align="center">
-                    {route.label}
-                  </Typography>
-                </div>
+                </RouteLabel>
               }
               component={Link}
               to={route.path}

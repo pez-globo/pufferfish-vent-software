@@ -11,6 +11,7 @@ import ScreensaverPage from '../screensaver/ScreensaverPage';
 import {
   DASHBOARD_ROUTE,
   QUICKSTART_ROUTE,
+  DASHBOARD2_ROUTE,
   MODES_ROUTE,
   ALARMS_ROUTE,
   SETTINGS_ROUTE,
@@ -21,10 +22,11 @@ import {
 import LandingPage from '../landing-page/LandingPage';
 import NoLayoutRoute from '../app/layouts/NoLayoutRoute';
 import SidebarRoute from '../app/layouts/SidebarRoute';
+import DashboardRoute from '../app/layouts/DashboardRoute';
 
 const Routes = (): JSX.Element => (
   <Switch>
-    <SidebarRoute exact path={DASHBOARD_ROUTE.path} component={DashboardPage} />
+    <DashboardRoute exact path={DASHBOARD_ROUTE.path} component={DashboardPage} />
     <SidebarRoute path={QUICKSTART_ROUTE.path} component={QuickStartPage} />
     <SidebarRoute path={MODES_ROUTE.path} component={ModesPage} />
     <SidebarRoute path={ALARMS_ROUTE.path} component={AlarmsPage} />

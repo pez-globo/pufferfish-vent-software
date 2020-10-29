@@ -11,7 +11,8 @@ const useStyles = makeStyles((theme: Theme) => ({
   root: {
     width: 90,
     height: '100%',
-    backgroundColor: theme.palette.background.paper,
+    backgroundColor: 'transparent',
+    padding: '15px',
   },
   shutdownButton: {
     '&:hover': { background: theme.palette.error.dark },
@@ -22,10 +23,11 @@ const useStyles = makeStyles((theme: Theme) => ({
     borderRadius: 0,
   },
   screensaverButton: {
-    height: 80,
-    width: '100%',
     minWidth: 0,
-    borderRadius: 0,
+    borderRadius: 8,
+    marginRight: '0px',
+    padding: '6px 10px',
+    lineHeight: 'normal',
   },
   navMenu: {
     height: '100%',
@@ -50,7 +52,7 @@ const Sidebar = (): JSX.Element => {
       className={classes.root}
       wrap="nowrap"
     >
-      <Grid item>
+      <Grid item style={{ margin: '0 auto' }}>
         <Button
           component={Link}
           to={parameterRequest.ventilating ? DASHBOARD_ROUTE.path : QUICKSTART_ROUTE.path}
@@ -60,27 +62,12 @@ const Sidebar = (): JSX.Element => {
           disableElevation
         >
           <div>
-            <SCREENSAVER_ROUTE.icon style={{ fontSize: '1.5rem', width: '100%' }} />
-            <br />
-            <Typography variant="subtitle2" align="center">
-              {SCREENSAVER_ROUTE.label}
-            </Typography>
+            <SCREENSAVER_ROUTE.icon style={{ fontSize: '1.5rem' }} />
           </div>
         </Button>
       </Grid>
       <Grid item className={classes.navMenu}>
         <Navigation />
-      </Grid>
-      <Grid item>
-        <Button variant="contained" className={classes.shutdownButton} disableElevation>
-          <div>
-            <ShutdownIcon style={{ fontSize: '1.5rem' }} />
-            <br />
-            <Typography variant="subtitle2" style={{ color: 'white' }} align="center">
-              Shutdown
-            </Typography>
-          </div>
-        </Button>
       </Grid>
     </Grid>
   );
