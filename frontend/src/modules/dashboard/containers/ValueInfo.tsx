@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Grid, makeStyles, Theme, Typography } from '@material-ui/core';
 import { useSelector } from 'react-redux';
 import { AlarmModal } from '../../controllers';
@@ -128,6 +128,26 @@ export interface Props {
   isMain?: boolean;
 }
 
+export const ClickHandler = (singleClickAction: Function, doubleClickAction: Function, delay = 100) => {
+    const [click, setClick] = useState(0);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (click === 1) singleClickAction();
+            setClick(0);
+        }, 300);
+        if (click === 2) doubleClickAction();
+
+        return () => {
+            clearTimeout(timer);
+        }
+    }, [click]);
+
+    return () => {
+        setClick(prev => prev + 1);
+    };
+}
+
 const ControlValuesDisplay = ({
   value,
   label,
@@ -142,6 +162,7 @@ const ControlValuesDisplay = ({
   const onClick = () => {
     setOpen(true);
   };
+  const handleClick = ClickHandler(onClick, () => { return false });
   const updateModalStatus = (status: boolean) => {
     setOpen(status);
   };
@@ -150,7 +171,7 @@ const ControlValuesDisplay = ({
       style={{ outline: 'none', height: '100%' }}
       role="button"
       onKeyDown={() => null}
-      onClick={onClick}
+      onClick={handleClick}
       tabIndex={0}
     >
       <Grid container direction="column" className={classes.rootParent}>

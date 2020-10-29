@@ -4,6 +4,7 @@ import { Grid, makeStyles, Theme, Typography } from '@material-ui/core';
 import { updateCommittedParameter, updateCommittedState } from '../../../store/controller/actions';
 import { PARAMETER_STANDBY } from '../../../store/controller/types';
 import { ValueModal, AlarmModal } from '../../controllers';
+import { ClickHandler } from './ValueInfo';
 
 interface Props {
   value: number;
@@ -133,6 +134,7 @@ const ControlInfo = (props: Props): JSX.Element => {
   const onClick = () => {
     setOpen(true);
   };
+  const handleClick = ClickHandler(onClick, () => { return false });
   const updateModalStatus = (status: boolean) => {
     setOpen(status);
   };
@@ -141,7 +143,7 @@ const ControlInfo = (props: Props): JSX.Element => {
       style={{ outline: 'none' }}
       role="button"
       onKeyDown={() => null}
-      onClick={onClick}
+      onClick={handleClick}
       tabIndex={0}
     >
       <ValueControl value={value} label={label} units={units || ''} />
