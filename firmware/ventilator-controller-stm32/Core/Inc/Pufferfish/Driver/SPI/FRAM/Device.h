@@ -22,21 +22,30 @@ enum class Block {
 namespace Pufferfish::Driver::SPI::FRAM {
   class Device {
    public:
+    explicit Device(HAL::SPIDevice &spi) : fram_spi_(spi) {}
     /**
      * Writes to the FRAM chip
+     * Order of Operations: CS Low, Write WREN Opcode, Write WRITE Opcode,
+     *                      Write Address, Write Buffer, CS High
+     *
      * @return ok on success, error code otherwise
      */
-    SPIDeviceStatus write(uint16_t addr, uint8_t *buffer, size_t buffer_len);
+    SPIDeviceStatus write(uint8_t *addr, uint8_t *buffer, size_t buffer_len);
 
     /**
      * Reads from the FRAM chip
+     * Order of Operations: CS Low, Write READ Opcode, Write read address,
+     *                      Read buffer for buffer_len
      * @return ok on success, error code otherwise
      */
-    SPIDeviceStatus read(uint16_t addr, uint8_t *buffer, size_t buffer_len);
+    SPIDeviceStatus read(uint8_t *addr, uint8_t *buffer, size_t buffer_len);
 
     /**
      * Protects a portion of the FRAM chip. Options are enumerated in
      * Pufferfish::Driver::SPI::FRAM::Block
+     * Order of Operations: CS_Low, Read RDSR to get Status Reg value,
+     * Mask in block value, Write WREN, Write WRSR to enable writing
+     * to Status Reg, Write new status register value
      *
      * @return ok on success, error code otherwise
      */
@@ -45,21 +54,33 @@ namespace Pufferfish::Driver::SPI::FRAM {
     /**
      * Get the protect status of the FRAM chip
      *
+     * Order of Operations: CS_Low, Write RDSR, Read in to a buffer,
+     *                      Determine Protect Status
      * @return ok on success, error code otherwise
      */
-    SPIDeviceStatus protect_status(Block block);
+    SPIDeviceStatus protect_status(Block &block);
+
+    /**
+     * Put the FRAM chip in sleep mode
+     * Device automatically goes out of sleep
+     * mode when the CS Pin goes low again.
+     *
+     * @return ok on success, error code otherwise
+     */
+    SPIDeviceStatus sleep_mode();
 
    private:
+    HAL::SPIDevice &fram_spi_;
     struct opcode {
-      int8_t WREN  = 0b0000110;
-      int8_t WRDI  = 0b00000100;
-      int8_t RDSR  = 0b00000101;
-      int8_t WRSR  = 0b00000001;
-      int8_t READ  = 0b00000011;
-      int8_t FSTRD = 0b00001011;
-      int8_t WRITE = 0b00000010;
-      int8_t SLEEP = 0b10111001;
-      int8_t RDID  = 0b10011111;
+      uint8_t *WREN  = 0b00000110;
+      uint8_t *WRDI  = 0b00000100;
+      uint8_t *RDSR  = 0b00000101;
+      uint8_t *WRSR  = 0b00000001;
+      uint8_t *READ  = 0b00000011;
+      uint8_t *FSTRD = 0b00001011;
+      uint8_t *WRITE = 0b00000010;
+      uint8_t *SLEEP = 0b10111001;
+      uint8_t *RDID  = 0b10011111;
     };
   };
 }
