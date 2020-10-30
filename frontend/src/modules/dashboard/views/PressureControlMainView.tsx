@@ -111,7 +111,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   buttonPosition: {
     position: 'absolute',
     right: '35px',
-    zIndex: 9999,
+    zIndex: 2,
   },
   moreValues: {
     backgroundColor: '#06172e',

@@ -75,7 +75,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   bottomPanel: {
     // marginTop: theme.spacing(2),
     display: 'grid',
-    gridTemplateColumns: '1fr 100px',
+    // gridTemplateColumns: '1fr 100px',
   },
   bottomLeftPanel: {
     minWidth: '500px',
@@ -111,7 +111,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   buttonPosition: {
     position: 'absolute',
     right: '35px',
-    zIndex: 9999,
+    zIndex: 2,
   },
   moreValues: {
     backgroundColor: '#06172e',
@@ -166,9 +166,6 @@ const HFNCMainView = (): JSX.Element => {
                 stateKey: '',
               }}
             />
-          </Grid>
-          <Grid item xs={12} className={classes.moreValues}>
-            More Values
           </Grid>
         </Grid>
         <Grid container item xs direction="column" className={classes.graphMainPanel} wrap="nowrap">
@@ -270,19 +267,6 @@ const HFNCMainView = (): JSX.Element => {
                   committedSetting={useSelector(getParametersFlow)}
                 />
               </Grid>
-              <Grid item xs className={classes.rightBorder} />
-              <Grid item xs className={classes.rightBorder} />
-            </Grid>
-
-            <Grid
-              container
-              item
-              xs
-              justify="center"
-              alignItems="stretch"
-              className={classes.bottomRightPanel}
-            >
-              More Controls
             </Grid>
           </Grid>
         </Grid>

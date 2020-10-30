@@ -111,6 +111,9 @@ const useStyles = makeStyles((theme: Theme) => ({
     fontSize: '12px',
     // border: '1px solid red'
   },
+  whiteFont: {
+    color: '#fff',
+  },
 }));
 
 export interface ValueInfoProps {
@@ -196,12 +199,18 @@ const ControlValuesDisplay = ({
               wrap="nowrap"
             >
               <Grid item xs style={{ width: '100%' }}>
-                <Typography style={{ fontSize: '16px' }}>{label}</Typography>
+                <Typography className={classes.whiteFont} style={{ fontSize: '16px' }}>
+                  {label}
+                </Typography>
               </Grid>
               {stateKey && (
                 <Grid container item xs={3} className={classes.liveContainer}>
-                  <Typography>{alarmLimits[`${stateKey}Min`]}</Typography>
-                  <Typography>{alarmLimits[`${stateKey}Max`]}</Typography>
+                  <Typography className={classes.whiteFont}>
+                    {alarmLimits[`${stateKey}Min`]}
+                  </Typography>
+                  <Typography className={classes.whiteFont}>
+                    {alarmLimits[`${stateKey}Max`]}
+                  </Typography>
                 </Grid>
               )}
             </Grid>
@@ -214,11 +223,19 @@ const ControlValuesDisplay = ({
               wrap="nowrap"
             >
               <Grid>
-                <Typography align="center" variant="h2" className={classes.valueLabel}>
+                <Typography
+                  align="center"
+                  variant="h2"
+                  className={`${classes.valueLabel} ${classes.whiteFont}`}
+                >
                   {value !== undefined ? value.toFixed(0) : '--'}
                 </Typography>
                 {units !== '' && (
-                  <Typography align="center" variant="body1" className={classes.unitsLabel}>
+                  <Typography
+                    align="center"
+                    variant="body1"
+                    className={`${classes.unitsLabel} ${classes.whiteFont}`}
+                  >
                     {units}
                   </Typography>
                 )}
@@ -274,16 +291,24 @@ const GridControlValuesDisplay = ({
           <Grid container direction="column" className={classes.gridRoot}>
             <Grid container item style={{ height: '100%' }}>
               <Grid item xs>
-                <Typography>{label}</Typography>
+                <Typography className={classes.whiteFont}>{label}</Typography>
               </Grid>
 
               <Grid container item xs justify="flex-start" alignItems="center" wrap="nowrap">
                 <Grid className={classes.displayContainer}>
-                  <Typography align="center" variant="h5" className={classes.gridValueLabel}>
+                  <Typography
+                    align="center"
+                    variant="h5"
+                    className={`${classes.gridValueLabel} ${classes.whiteFont}`}
+                  >
                     {value !== undefined ? value.toFixed(0) : '--'}
                   </Typography>
                   {units !== '' && (
-                    <Typography align="center" variant="body1" className={classes.gridUnitsLabel}>
+                    <Typography
+                      align="center"
+                      variant="body1"
+                      className={`${classes.gridUnitsLabel} ${classes.whiteFont}`}
+                    >
                       {units}
                     </Typography>
                   )}
@@ -291,8 +316,12 @@ const GridControlValuesDisplay = ({
               </Grid>
               {stateKey && (
                 <Grid item xs className={classes.gridLiveContainer}>
-                  <Typography>{alarmLimits[`${stateKey}Min`]}</Typography>
-                  <Typography>{alarmLimits[`${stateKey}Max`]}</Typography>
+                  <Typography className={classes.whiteFont}>
+                    {alarmLimits[`${stateKey}Min`]}
+                  </Typography>
+                  <Typography className={classes.whiteFont}>
+                    {alarmLimits[`${stateKey}Max`]}
+                  </Typography>
                 </Grid>
               )}
             </Grid>
