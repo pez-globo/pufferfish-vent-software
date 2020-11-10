@@ -13,21 +13,19 @@
 namespace Pufferfish::Driver::SPI::FRAM {
   // FRAM
 
-SPIDeviceStatus Device::write(uint8_t *addr, uint8_t *buffer, size_t buffer_len) {
+SPIDeviceStatus Device::write(uint8_t addr, uint8_t *buffer, size_t buffer_len) {
   opcode op;
   fram_spi_.chip_select(false);
-  size_t count_1 = 1;
-  size_t count_2 = 2;
-  if(fram_spi_.write(op.WREN, count_1) != SPIDeviceStatus::ok){
+  if(fram_spi_.write(&op.WREN, sizeof(size_t)) != SPIDeviceStatus::ok){
     fram_spi_.chip_select(true);
     return SPIDeviceStatus::write_error;
   }
-  if(fram_spi_.write(op.WRITE, count_1) != SPIDeviceStatus::ok){
+  if(fram_spi_.write(&op.WRITE, sizeof(size_t)) != SPIDeviceStatus::ok){
     fram_spi_.chip_select(true);
     return SPIDeviceStatus::write_error;
   }
 
-  if(fram_spi_.write(addr, count_2) != SPIDeviceStatus::ok){
+  if(fram_spi_.write(&addr, 2*sizeof(size_t)) != SPIDeviceStatus::ok){
     fram_spi_.chip_select(true);
     return SPIDeviceStatus::write_error;
   }
@@ -41,17 +39,15 @@ SPIDeviceStatus Device::write(uint8_t *addr, uint8_t *buffer, size_t buffer_len)
   return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus Device::read(uint8_t *addr, uint8_t *buffer, size_t buffer_len){
+SPIDeviceStatus Device::read(uint8_t addr, uint8_t *buffer, size_t buffer_len){
   opcode op;
-  size_t count_1 = 1;
-  size_t count_2 = 2;
   fram_spi_.chip_select(false);
 
-  if(fram_spi_.write(op.READ, count_1) != SPIDeviceStatus::ok){
+  if(fram_spi_.write(&op.READ, sizeof(size_t)) != SPIDeviceStatus::ok){
     fram_spi_.chip_select(true);
     return SPIDeviceStatus::write_error;
   }
-  if(fram_spi_.write(addr, count_2) != SPIDeviceStatus::ok){
+  if(fram_spi_.write(&addr, 2*sizeof(size_t)) != SPIDeviceStatus::ok){
     fram_spi_.chip_select(true);
     return SPIDeviceStatus::write_error;
   }
@@ -66,32 +62,30 @@ SPIDeviceStatus Device::read(uint8_t *addr, uint8_t *buffer, size_t buffer_len){
 SPIDeviceStatus Device::protect_block(bool protect, Block block){
   //WRITE PROTECT PIN NEEDS TO BE HIGH - ASK ETHAN
   opcode op;
-  size_t count_1 = 1;
-  size_t count_2 = 2;
-  uint8_t *rx_buf;
+  uint8_t rx_buf;
   fram_spi_.chip_select(false);
-  if(fram_spi_.write(op.RDSR, count_1) != SPIDeviceStatus::ok){
+  if(fram_spi_.write(&op.RDSR, sizeof(size_t)) != SPIDeviceStatus::ok){
     fram_spi_.chip_select(true);
     return SPIDeviceStatus::write_error;
   }
-  if(fram_spi_.read(rx_buf, count_1) != SPIDeviceStatus::ok){
+  if(fram_spi_.read(&rx_buf, sizeof(size_t)) != SPIDeviceStatus::ok){
     fram_spi_.chip_select(true);
     return SPIDeviceStatus::read_error;
   }
   // Creating Value for new Status Register while retaining
   // WPEN
   //And-ing a mask of 0b11110011 and Or-ing in the Block
-  uint8_t *status_reg_val = (rx_buf & 0xF3) | block;
+  uint8_t status_reg_val = (rx_buf & 0xF3) | static_cast<uint8_t>(block);
 
-  if(fram_spi_.write(op.WREN, count_1) != SPIDeviceStatus::ok){
+  if(fram_spi_.write(&op.WREN, sizeof(size_t)) != SPIDeviceStatus::ok){
     fram_spi_.chip_select(true);
     return SPIDeviceStatus::write_error;
   }
-  if(fram_spi_.write(op.WRSR, count_1) != SPIDeviceStatus::ok){
+  if(fram_spi_.write(& op.WRSR, sizeof(size_t)) != SPIDeviceStatus::ok){
     fram_spi_.chip_select(true);
     return SPIDeviceStatus::write_error;
   }
-  if(fram_spi_.write(status_reg_val, count_1) != SPIDeviceStatus::ok){
+  if(fram_spi_.write(&status_reg_val, sizeof(size_t)) != SPIDeviceStatus::ok){
     fram_spi_.chip_select(true);
     return SPIDeviceStatus::write_error;
   }
@@ -101,16 +95,14 @@ SPIDeviceStatus Device::protect_block(bool protect, Block block){
 
 SPIDeviceStatus Device::protect_status(Block &block){
   opcode op;
-  Block bl;
   fram_spi_.chip_select(false);
-  size_t count_1 = 1;
-  uint8_t *rx_buf;
+  uint8_t rx_buf;
 
-  if(fram_spi_.write(op.RDSR, count_1) != SPIDeviceStatus::ok){
+  if(fram_spi_.write(&op.RDSR, sizeof(size_t)) != SPIDeviceStatus::ok){
     fram_spi_.chip_select(true);
     return SPIDeviceStatus::write_error;
   }
-  if(fram_spi_.read(rx_buf, count_1) != SPIDeviceStatus::ok){
+  if(fram_spi_.read(&rx_buf, sizeof(size_t)) != SPIDeviceStatus::ok){
     fram_spi_.chip_select(true);
     return SPIDeviceStatus::read_error;
   }
@@ -120,16 +112,16 @@ SPIDeviceStatus Device::protect_status(Block &block){
   //And-ing a mask of 0b00001100
   uint8_t protect_status = rx_buf & 0xC;
   switch(protect_status){
-    case Block::NONE:
+    case static_cast<uint8_t>(Block::NONE):
       block = Block::NONE;
       break;
-    case Block::UPPER_1_4:
+    case static_cast<uint8_t>(Block::UPPER_1_4):
       block = Block::UPPER_1_4;
       break;
-    case Block::UPPER_1_2:
+    case static_cast<uint8_t>(Block::UPPER_1_2):
       block = Block::UPPER_1_2;
       break;
-    case Block::ALL:
+    case static_cast<uint8_t>(Block::ALL):
       block = Block::ALL;
       break;
     default:
@@ -140,10 +132,9 @@ SPIDeviceStatus Device::protect_status(Block &block){
 
 SPIDeviceStatus Device::sleep_mode(){
   opcode op;
-  size_t count_1 = 1;
   fram_spi_.chip_select(false);
 
-  if(fram_spi_.write(op.SLEEP, count_1) != SPIDeviceStatus::ok){
+  if(fram_spi_.write(&op.SLEEP, sizeof(size_t)) != SPIDeviceStatus::ok){
     fram_spi_.chip_select(true);
     return SPIDeviceStatus::write_error;
   }

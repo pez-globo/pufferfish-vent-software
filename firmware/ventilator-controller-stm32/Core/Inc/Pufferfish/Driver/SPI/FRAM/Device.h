@@ -12,7 +12,7 @@
 
 #include "Pufferfish/HAL/Interfaces/SPIDevice.h"
 
-enum class Block {
+enum class Block : uint8_t {
   NONE       = 0b00000000,
   UPPER_1_4  = 0b00000100,
   UPPER_1_2  = 0b00001000,
@@ -30,7 +30,7 @@ namespace Pufferfish::Driver::SPI::FRAM {
      *
      * @return ok on success, error code otherwise
      */
-    SPIDeviceStatus write(uint8_t *addr, uint8_t *buffer, size_t buffer_len);
+    SPIDeviceStatus write(uint8_t addr, uint8_t *buffer, size_t buffer_len);
 
     /**
      * Reads from the FRAM chip
@@ -38,7 +38,7 @@ namespace Pufferfish::Driver::SPI::FRAM {
      *                      Read buffer for buffer_len
      * @return ok on success, error code otherwise
      */
-    SPIDeviceStatus read(uint8_t *addr, uint8_t *buffer, size_t buffer_len);
+    SPIDeviceStatus read(uint8_t addr, uint8_t *buffer, size_t buffer_len);
 
     /**
      * Protects a portion of the FRAM chip. Options are enumerated in
@@ -72,15 +72,26 @@ namespace Pufferfish::Driver::SPI::FRAM {
    private:
     HAL::SPIDevice &fram_spi_;
     struct opcode {
-      uint8_t *WREN  = 0b00000110;
-      uint8_t *WRDI  = 0b00000100;
-      uint8_t *RDSR  = 0b00000101;
-      uint8_t *WRSR  = 0b00000001;
-      uint8_t *READ  = 0b00000011;
-      uint8_t *FSTRD = 0b00001011;
-      uint8_t *WRITE = 0b00000010;
-      uint8_t *SLEEP = 0b10111001;
-      uint8_t *RDID  = 0b10011111;
+      uint8_t WREN  = 0b00000110;
+      uint8_t WRDI  = 0b00000100;
+      uint8_t RDSR  = 0b00000101;
+      uint8_t WRSR  = 0b00000001;
+      uint8_t READ  = 0b00000011;
+      uint8_t FSTRD = 0b00001011;
+      uint8_t WRITE = 0b00000010;
+      uint8_t SLEEP = 0b10111001;
+      uint8_t RDID  = 0b10011111;
     };
+//    enum class opcode : uint8_t {
+//      WREN  = 0b00000110,
+//      WRDI  = 0b00000100,
+//      RDSR  = 0b00000101,
+//      WRSR  = 0b00000001,
+//      READ  = 0b00000011,
+//      FSTRD = 0b00001011,
+//      WRITE = 0b00000010,
+//      SLEEP = 0b10111001,
+//      RDID  = 0b10011111
+//    };
   };
 }
