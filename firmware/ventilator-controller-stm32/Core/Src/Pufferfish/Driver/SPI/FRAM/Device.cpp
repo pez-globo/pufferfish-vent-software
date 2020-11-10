@@ -94,11 +94,11 @@ SPIDeviceStatus Device::protect_block(bool protect, Block block){
 }
 
 SPIDeviceStatus Device::protect_status(Block &block){
-  opcode op;
+  uint8_t op = static_cast<uint8_t>(opcode::RDSR);
   fram_spi_.chip_select(false);
   uint8_t rx_buf;
 
-  if(fram_spi_.write(&op.RDSR, sizeof(size_t)) != SPIDeviceStatus::ok){
+  if(fram_spi_.write(&op, sizeof(uint8_t)) != SPIDeviceStatus::ok){
     fram_spi_.chip_select(true);
     return SPIDeviceStatus::write_error;
   }

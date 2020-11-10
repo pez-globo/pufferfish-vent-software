@@ -71,27 +71,27 @@ namespace Pufferfish::Driver::SPI::FRAM {
 
    private:
     HAL::SPIDevice &fram_spi_;
-    struct opcode {
-      uint8_t WREN  = 0b00000110;
-      uint8_t WRDI  = 0b00000100;
-      uint8_t RDSR  = 0b00000101;
-      uint8_t WRSR  = 0b00000001;
-      uint8_t READ  = 0b00000011;
-      uint8_t FSTRD = 0b00001011;
-      uint8_t WRITE = 0b00000010;
-      uint8_t SLEEP = 0b10111001;
-      uint8_t RDID  = 0b10011111;
-    };
-//    enum class opcode : uint8_t {
-//      WREN  = 0b00000110,
-//      WRDI  = 0b00000100,
-//      RDSR  = 0b00000101,
-//      WRSR  = 0b00000001,
-//      READ  = 0b00000011,
-//      FSTRD = 0b00001011,
-//      WRITE = 0b00000010,
-//      SLEEP = 0b10111001,
-//      RDID  = 0b10011111
+//    struct opcode {
+//      uint8_t WREN  = 0b00000110;
+//      uint8_t WRDI  = 0b00000100;
+//      uint8_t RDSR  = 0b00000101;
+//      uint8_t WRSR  = 0b00000001;
+//      uint8_t READ  = 0b00000011;
+//      uint8_t FSTRD = 0b00001011;
+//      uint8_t WRITE = 0b00000010;
+//      uint8_t SLEEP = 0b10111001;
+//      uint8_t RDID  = 0b10011111;
 //    };
+    enum class opcode : uint8_t {
+      WREN  = 0b00000110,
+      WRDI  = 0b00000100,
+      RDSR  = 0b00000101,
+      WRSR  = 0b00000001,
+      READ  = 0b00000011,
+      FSTRD = 0b00001011,
+      WRITE = 0b00000010,
+      SLEEP = 0b10111001,
+      RDID  = 0b10011111
+    };
   };
 }
