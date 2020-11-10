@@ -26,8 +26,6 @@ StateMachine::Action StateMachine::update(uint32_t current_time_us) {
     case Action::wait_warmup:
       if (finished_waiting(warming_up_duration_us)) {
         next_action_ = Action::check_range;
-      } else {
-        next_action_ = Action::wait_warmup;
       }
       break;
     case Action::check_range:
@@ -38,8 +36,6 @@ StateMachine::Action StateMachine::update(uint32_t current_time_us) {
     case Action::wait_measurement:
       if (finished_waiting(measuring_duration_us)) {
         next_action_ = Action::measure;
-      } else {
-        next_action_ = Action::wait_measurement;
       }
       break;
   }
@@ -57,11 +53,6 @@ bool StateMachine::finished_waiting(uint32_t timeout_us) const {
 // Sensor
 
 InitializableState Sensor::setup() {
-  float flow = NAN;
-  return output(flow);
-}
-
-InitializableState Sensor::output(float &flow) {
   switch (next_action_) {
     case Action::initialize:
       return initialize(time_.micros());
@@ -70,6 +61,15 @@ InitializableState Sensor::output(float &flow) {
       return InitializableState::setup;
     case Action::check_range:
       return check_range(time_.micros());
+    case Action::measure:
+    case Action::wait_measurement:
+      return InitializableState::ok;
+  }
+  return InitializableState::failed;
+}
+
+InitializableState Sensor::output(float &flow) {
+  switch (next_action_) {
     case Action::measure:
       return measure(time_.micros(), flow);
     case Action::wait_measurement:
@@ -98,20 +98,44 @@ InitializableState Sensor::initialize(uint32_t current_time_us) {
   }
 
   // Wait for power-up
-  time_.delay(2);
+  time_.delay(power_up_delay);
 
   // Read product number
-  while (device_.serial_number(pn_) != I2CDeviceStatus::ok || pn_ != product_number) {
+  while (device_.read_product_id(pn_) != I2CDeviceStatus::ok || pn_ != product_number) {
     ++retry_count_;
     if (retry_count_ > max_retries_setup) {
       return InitializableState::failed;
     }
   }
 
-  // TODO(lietk12): implement the conversion retrieval
+  // Request conversion factors
+  while (device_.request_conversion_factors() != I2CDeviceStatus::ok) {
+    ++retry_count_;
+    if (retry_count_ > max_retries_setup) {
+      return InitializableState::failed;
+    }
+  }
 
-  // TODO(lietk12): implement the configuring averaging
+  // Read conversion factors
+  time_.delay_micros(read_conv_delay_us);
+  while (device_.read_conversion_factors(conversion_) != I2CDeviceStatus::ok ||
+         conversion_.scale_factor != scale_factor || conversion_.offset != offset ||
+         conversion_.flow_unit != flow_unit) {
+    ++retry_count_;
+    if (retry_count_ > max_retries_setup) {
+      return InitializableState::failed;
+    }
+  }
 
+  // Set the averaging window size
+  while (device_.set_averaging(averaging_window) != I2CDeviceStatus::ok) {
+    ++retry_count_;
+    if (retry_count_ > max_retries_setup) {
+      return InitializableState::failed;
+    }
+  }
+
+  // Start continuous measurement
   while (device_.start_measure() != I2CDeviceStatus::ok) {
     ++retry_count_;
     if (retry_count_ > max_retries_setup) {
@@ -137,7 +161,7 @@ InitializableState Sensor::check_range(uint32_t current_time_us) {
     return InitializableState::failed;
   }
 
-  return InitializableState::ok;
+  return InitializableState::setup;
 }
 
 InitializableState Sensor::measure(uint32_t current_time_us, float &flow) {

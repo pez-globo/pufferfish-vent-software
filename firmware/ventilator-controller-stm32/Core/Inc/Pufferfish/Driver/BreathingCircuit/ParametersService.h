@@ -35,6 +35,9 @@ class HFNCParameters : public ParametersService {
  public:
   void transform(const ParametersRequest &parameters_request, Parameters &parameters) override;
   [[nodiscard]] bool mode_active(const Parameters &parameters) const override;
+
+ private:
+  static constexpr float max_flow = 80;  // L/min
 };
 
 class ParametersServices {

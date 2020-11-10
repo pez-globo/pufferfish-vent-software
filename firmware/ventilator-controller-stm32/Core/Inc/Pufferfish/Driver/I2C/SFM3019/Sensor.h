@@ -55,7 +55,14 @@ class Sensor : public Initializable {
  private:
   using Action = StateMachine::Action;
 
+  static const uint32_t power_up_delay = 2;  // ms
   static const uint32_t product_number = 0x04020611;
+  static const uint32_t read_conv_delay_us = 20;  // us
+  static const int16_t scale_factor = 170;
+  static const int16_t offset = -24576;
+  static const uint16_t flow_unit =
+      make_flow_unit(UnitPrefix::none, TimeBase::per_min, Unit::standard_liter_20deg);
+  static const uint32_t averaging_window = 0;
   static constexpr float flow_min = -200;       // L/min
   static constexpr float flow_max = 200;        // L/min
   static const size_t max_retries_setup = 8;    // max retries for all setup steps combined

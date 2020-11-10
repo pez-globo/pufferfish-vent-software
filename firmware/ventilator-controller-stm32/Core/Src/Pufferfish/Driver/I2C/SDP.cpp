@@ -38,6 +38,7 @@
 // "Pufferfish/HAL/HAL.h"
 #include "Pufferfish/HAL/Interfaces/Time.h"
 #include "Pufferfish/HAL/STM32/Endian.h"
+#include "Pufferfish/Util/Bytes.h"
 #include "Pufferfish/Util/Parse.h"
 
 namespace Pufferfish::Driver::I2C {
@@ -46,25 +47,22 @@ I2CDeviceStatus SDPSensor::serial_number(uint32_t &pn, uint64_t &sn) {
   measuring_ = false;
 
   // try to read product id
-  static const uint8_t cmd1_high = 0x36;
-  static const uint8_t cmd1_low = 0x7c;
-  static const uint8_t cmd2_high = 0xe1;
-  static const uint8_t cmd2_low = 0x02;
-  std::array<uint8_t, 2> cmd1{{cmd1_high, cmd1_low}};
-  std::array<uint8_t, 2> cmd2{{cmd2_high, cmd2_low}};
-  I2CDeviceStatus ret = sensirion_.write(cmd1.data(), cmd1.size());
+  static const uint16_t cmd1 = 0x367c;
+  static const uint16_t cmd2 = 0xe102;
+
+  I2CDeviceStatus ret = sensirion_.write(cmd1);
   if (ret != I2CDeviceStatus::ok) {
     return ret;
   }
 
-  ret = sensirion_.write(cmd2.data(), cmd2.size());
+  ret = sensirion_.write(cmd2);
   if (ret != I2CDeviceStatus::ok) {
     return ret;
   }
 
   static const size_t pn_data_size = 12;
   std::array<uint8_t, pn_data_size> data{};
-  I2CDeviceStatus ret2 = sensirion_.read_with_crc(data.data(), data.size(), crc_poly, crc_init);
+  I2CDeviceStatus ret2 = sensirion_.read(data, crc_poly, crc_init);
   if (ret2 != I2CDeviceStatus::ok) {
     return ret2;
   }
@@ -83,8 +81,14 @@ I2CDeviceStatus SDPSensor::start_continuous(bool averaging) {
   static const uint8_t command_prefix = 0x36;
   static const uint8_t command_dp_average = 0x15;
   static const uint8_t command_dp_none = 0x1e;
-  std::array<uint8_t, 2> cmd{{command_prefix, (averaging) ? command_dp_average : command_dp_none}};
-  I2CDeviceStatus ret = sensirion_.write(cmd.data(), cmd.size());
+
+  uint16_t command = Util::set_byte<1, uint16_t>(command_prefix);
+  if (averaging) {
+    command += command_dp_average;
+  } else {
+    command += command_dp_none;
+  }
+  I2CDeviceStatus ret = sensirion_.write(command);
   if (ret != I2CDeviceStatus::ok) {
     return ret;
   }
@@ -112,7 +116,7 @@ I2CDeviceStatus SDPSensor::read_full_sample(SDPSample &sample) {
 
   std::array<uint8_t, full_reading_size> data{};
 
-  I2CDeviceStatus ret = sensirion_.read_with_crc(data.data(), data.size(), crc_poly, crc_init);
+  I2CDeviceStatus ret = sensirion_.read(data, crc_poly, crc_init);
   if (ret == I2CDeviceStatus::read_error) {
     /// get NACK, no new data is available
     return I2CDeviceStatus::no_new_data;
@@ -131,17 +135,10 @@ I2CDeviceStatus SDPSensor::read_full_sample(SDPSample &sample) {
 }
 
 I2CDeviceStatus SDPSensor::stop_continuous() {
-  static const uint8_t stop_high = 0x3f;
-  static const uint8_t stop_low = 0xf9;
-  std::array<uint8_t, 2> cmd{{stop_high, stop_low}};
+  static const uint16_t command = 0x3ff9;
 
   measuring_ = false;
-  I2CDeviceStatus ret = sensirion_.write(cmd.data(), cmd.size());
-  if (ret != I2CDeviceStatus::ok) {
-    return ret;
-  }
-
-  return I2CDeviceStatus::ok;
+  return sensirion_.write(command);
 }
 
 void SDPSensor::parse_reading(
@@ -165,16 +162,9 @@ void SDPSensor::parse_reading(
 }
 
 I2CDeviceStatus SDPSensor::reset() {
-  static const uint8_t reset_byte = 0x06;
-  std::array<uint8_t, 1> reset_cmd{{reset_byte}};
+  static const uint8_t command = 0x06;
   measuring_ = false;
-
-  I2CDeviceStatus ret = sensirion_.write(reset_cmd.data(), reset_cmd.size());
-  if (ret != I2CDeviceStatus::ok) {
-    return ret;
-  }
-
-  return I2CDeviceStatus::ok;
+  return sensirion_.write(command);
 }
 
 I2CDeviceStatus SDPSensor::test() {
@@ -269,7 +259,7 @@ I2CDeviceStatus SDPSensor::read_pressure_sample(
   static const uint8_t data_len = 2;
   std::array<uint8_t, data_len> data{{0}};
 
-  I2CDeviceStatus ret = sensirion_.read_with_crc(data.data(), data.size(), crc_poly, crc_init);
+  I2CDeviceStatus ret = sensirion_.read(data, crc_poly, crc_init);
   if (ret == I2CDeviceStatus::read_error) {
     // get NACK, no new data is available
     return I2CDeviceStatus::no_new_data;

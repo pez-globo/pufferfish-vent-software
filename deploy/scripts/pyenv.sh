@@ -3,27 +3,23 @@
 # Installs pyenv and sets up an environment named ventserver
 # with python 3.7.7 for backend
 
-# Message colours
-ERROR='\033[1;31mERROR:'
-SUCCESS='\033[1;32m'
-WARNING='\033[1;33mWARNING:'
-NC='\033[0m'
+# Importing logging colours, absolute paths and exit function
+script_dir=$(dirname $(realpath $0))
+. $script_dir/helper.sh
 
 echo -e "\n${SUCCESS}********** Installing pyenv **********\n${NC}"
 
-# Getting absolute path of backend and config files
-script_dir=$(dirname $(realpath $0))
-backend_dir=$script_dir/../../backend
-config_dir=$script_dir/../configs
+# Getting absolute path of backend files
+backend_path=$script_dir/../../backend
 
 # Installing pyenv and required dependencies
 if ! command -v pyenv &> /dev/null
 then
-    sudo apt update
-    sudo apt install libffi-dev curl wget gcc make zlib1g-dev libsqlite3-dev -y
-    sudo apt install build-essential libssl-dev libbz2-dev libreadline-dev -y
-    sudo apt install libncurses5-dev libncursesw5-dev xz-utils libffi-dev liblzma-dev python-openssl -y
-    curl https://pyenv.run | bash
+    sudo apt update || exit_script "Apt Update failed"
+    sudo apt install libffi-dev curl wget gcc make zlib1g-dev libsqlite3-dev -y || exit_script "Could not install required packages"
+    sudo apt install build-essential libssl-dev libbz2-dev libreadline-dev -y || exit_script "Could not install required packages"
+    sudo apt install libncurses5-dev libncursesw5-dev xz-utils libffi-dev liblzma-dev python-openssl -y || exit_script "Could not install required packages"
+    curl https://pyenv.run | bash || exit_script "Could not install pyenv"
 else
     echo -e "${WARNING} pyenv is already installed, skipping installation${NC}"
 fi
@@ -58,7 +54,7 @@ else
     echo -e "${WARNING} ventserver environment already exists!${NC}"
 fi
 
-cd $backend_dir
+cd $backend_path
 $pyenv local ventserver
 
 echo -e "\n${SUCCESS}Pyenv setup complete\n${NC}"

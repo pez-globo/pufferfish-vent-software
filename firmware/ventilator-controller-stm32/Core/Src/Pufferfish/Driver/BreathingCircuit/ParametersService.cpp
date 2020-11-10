@@ -26,6 +26,7 @@ void PCACParameters::transform(
     return;
   }
 
+  parameters.ventilating = parameters_request.ventilating;
   if (parameters_request.rr > 0) {
     parameters.rr = parameters_request.rr;
   }
@@ -52,7 +53,8 @@ void HFNCParameters::transform(
     return;
   }
 
-  if (parameters_request.flow >= 0) {
+  parameters.ventilating = parameters_request.ventilating;
+  if (parameters_request.flow >= 0 && parameters_request.flow <= max_flow) {
     parameters.flow = parameters_request.flow;
   }
   transform_fio2(parameters_request.fio2, parameters.fio2);

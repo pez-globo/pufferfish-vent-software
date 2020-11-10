@@ -61,9 +61,6 @@ class Device {
 
   static const uint16_t broadcast_interval = 100;  // ms
 
-  static constexpr Responses::Bcst expected_bcst{broadcast_interval};
-  static constexpr Responses::Vers expected_vers{8, 1, 341, 15};
-
   explicit Device(volatile HAL::BufferedUART &uart) : uart_(uart) {}
 
   /**

@@ -1,5 +1,6 @@
 import { Route, Switch } from 'react-router-dom';
 import React from 'react';
+import { useSelector } from 'react-redux';
 import QuickStartPage from '../quickstart/QuickStartPage';
 import AlarmsPage from '../alarms/AlarmsPage';
 import ValuesPage from '../values/ValuesPage';
@@ -11,6 +12,7 @@ import ScreensaverPage from '../screensaver/ScreensaverPage';
 import {
   DASHBOARD_ROUTE,
   QUICKSTART_ROUTE,
+  DASHBOARD2_ROUTE,
   MODES_ROUTE,
   ALARMS_ROUTE,
   SETTINGS_ROUTE,
@@ -18,19 +20,28 @@ import {
   LOGS_ROUTE,
   SCREENSAVER_ROUTE,
 } from './constants';
+import LandingPage from '../landing-page/LandingPage';
+import NoLayoutRoute from '../app/layouts/NoLayoutRoute';
+import SidebarRoute from '../app/layouts/SidebarRoute';
+import { getParameters, getParametersRequest } from '../../store/controller/selectors';
+import SidebarSlideRoute from '../app/layouts/SidebarSlideRoute';
 
-const Routes = (): JSX.Element => (
-  <Switch>
-    <Route exact path={DASHBOARD_ROUTE.path} component={DashboardPage} />
-    <Route path={QUICKSTART_ROUTE.path} component={QuickStartPage} />
-    <Route path={MODES_ROUTE.path} component={ModesPage} />
-    <Route path={ALARMS_ROUTE.path} component={AlarmsPage} />
-    <Route path={VALUES_ROUTE.path} component={ValuesPage} />
-    <Route path={SETTINGS_ROUTE.path} component={SettingsPage} />
-    <Route path={LOGS_ROUTE.path} component={LogsPage} />
-    <Route path={SCREENSAVER_ROUTE.path} component={ScreensaverPage} />
-    <Route component={QuickStartPage} />
-  </Switch>
-);
+const Routes = (): JSX.Element => {
+  const paramters = useSelector(getParametersRequest);
+  const RouteLayout = paramters.ventilating ? SidebarSlideRoute : SidebarRoute;
+  return (
+    <Switch>
+      <RouteLayout exact path={DASHBOARD_ROUTE.path} component={DashboardPage} />
+      <RouteLayout path={QUICKSTART_ROUTE.path} component={QuickStartPage} />
+      <RouteLayout path={MODES_ROUTE.path} component={ModesPage} />
+      <RouteLayout path={ALARMS_ROUTE.path} component={AlarmsPage} />
+      <RouteLayout path={VALUES_ROUTE.path} component={ValuesPage} />
+      <RouteLayout path={SETTINGS_ROUTE.path} component={SettingsPage} />
+      <RouteLayout path={LOGS_ROUTE.path} component={LogsPage} />
+      <RouteLayout path={SCREENSAVER_ROUTE.path} component={ScreensaverPage} />
+      <NoLayoutRoute component={LandingPage} />
+    </Switch>
+  );
+};
 
 export default Routes;

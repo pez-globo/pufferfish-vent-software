@@ -3,17 +3,11 @@
 # Modifies log locations from backend, kiosk and nginx services to syslog
 # Redirects these syslogs to USB Device
 
-# Message colours
-ERROR='\033[1;31mERROR:'
-SUCCESS='\033[1;32m'
-WARNING='\033[1;33mWARNING:'
-NC='\033[0m'
+# Importing logging colours, absolute paths and exit function
+script_dir=$(dirname $(realpath $0))
+. $script_dir/helper.sh
 
 echo -e "\n${SUCCESS}********** Setting up USB Logging Device **********\n$NC"
-
-# Getting absolute path of config files
-script_dir=$(dirname $(realpath $0))
-config_dir=$script_dir/../configs
 
 media_boot="\nLABEL=LOGS      /media/pi/LOGS       auto    rw,nosuid,nodev,x-systemd.device-timeout=5,noauto,nofail          0       0"
 fstab_file="/etc/fstab"

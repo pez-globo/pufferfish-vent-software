@@ -79,7 +79,7 @@ STM32Cube IDE at
 `/opt/st/stm32cubeide_1.3.0/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.linux64_1.0.0.201904181610/tools/bin/`
 in which case you can save it into the `TOOLCHAIN_PATH` variable:
 ```
-TOOLCHAIN_PATH="/opt/st/stm32cubeide_1.3.0/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.linux64_1.0.0.201904181610/tools/bin/:$PATH"
+TOOLCHAIN_PATH="/opt/st/stm32cubeide_1.3.0/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.linux64_1.0.0.201904181610/tools"
 ```
 
 To build the project in debug mode with four build threads (and to generate a

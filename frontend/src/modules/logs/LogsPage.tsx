@@ -12,9 +12,9 @@ import SimpleTable, {
 import ModalPopup from '../controllers/ModalPopup';
 import EventlogDetails from './container/EventlogDetails';
 import {
-  getActiveLoggedEventIds,
+  getActiveLogEventIds,
   getLogEvent,
-  getNextLoggedEvents,
+  getNextLogEvents,
 } from '../../store/controller/selectors';
 import { LogEvent } from '../../store/controller/proto/mcu_pb';
 import { getEventType } from '../app/EventAlerts';
@@ -93,8 +93,8 @@ export const LogsPage = (): JSX.Element => {
   const [currentRow, setCurrentRow] = React.useState<Data>();
   const isSelected = (name: string) => selected.indexOf(name) !== -1;
   const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
-  const loggedEvents = useSelector(getNextLoggedEvents);
-  const activeLogEventIds = useSelector(getActiveLoggedEventIds);
+  const loggedEvents = useSelector(getNextLogEvents);
+  const activeLogEventIds = useSelector(getActiveLogEventIds);
 
   const updateLogEvent = useCallback(
     (maxId) => {

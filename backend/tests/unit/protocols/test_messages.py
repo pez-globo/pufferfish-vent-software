@@ -18,8 +18,8 @@ example_messages_good = [
     (3, pb.CycleMeasurements(ve=300)),
     (4, pb.Parameters(fio2=80)),
     (5, pb.ParametersRequest(fio2=60)),
-    (6, pb.Ping(id=256)),
-    (7, pb.Announcement(announcement=b'hello!')),
+    (254, pb.Ping(id=256)),
+    (255, pb.Announcement(announcement=b'hello!')),
 ]
 
 

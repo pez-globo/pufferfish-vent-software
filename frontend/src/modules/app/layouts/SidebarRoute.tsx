@@ -1,12 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { Component, PropsWithChildren, useEffect, useState } from 'react';
+import { Route, RouteProps, useLocation } from 'react-router-dom';
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import { Grid } from '@material-ui/core';
+
 import { useSelector } from 'react-redux';
-import Routes from '../navigation/Routes';
-import ToolBar from './ToolBar';
-import Sidebar from './Sidebar';
-import { getScreenStatus } from '../../store/controller/selectors';
-import UserActivity from './UserActivity';
+import Routes from '../../navigation/Routes';
+import Sidebar from '../Sidebar';
+import ToolBar from '../ToolBar';
+import UserActivity from '../UserActivity';
+import { getScreenStatus } from '../../../store/controller/selectors';
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -46,7 +48,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }));
 
-const Layout = (): JSX.Element => {
+const SidebarLayout = ({ children, ...rest }: PropsWithChildren<unknown>): JSX.Element => {
   const classes = useStyles();
   const screenStatus = useSelector(getScreenStatus);
   const [overlay, setOverlay] = useState(screenStatus || false);
@@ -67,7 +69,7 @@ const Layout = (): JSX.Element => {
             <ToolBar />
           </Grid>
           <Grid container item className={classes.mainContainer}>
-            <Routes />
+            {children}
           </Grid>
         </Grid>
       </Grid>
@@ -76,4 +78,18 @@ const Layout = (): JSX.Element => {
   );
 };
 
-export default Layout;
+const SidebarRoute = ({ component: Component, ...rest }: RouteProps): JSX.Element | null => {
+  if (!Component) return null;
+  return (
+    <Route
+      {...rest}
+      render={(matchProps) => (
+        <SidebarLayout>
+          <Component {...matchProps} />
+        </SidebarLayout>
+      )}
+    />
+  );
+};
+
+export default SidebarRoute;

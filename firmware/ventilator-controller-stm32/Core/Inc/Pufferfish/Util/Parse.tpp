@@ -9,6 +9,7 @@
 
 #include <climits>
 
+#include "Bytes.h"
 #include "Parse.h"
 
 namespace Pufferfish::Util {
@@ -26,7 +27,7 @@ T parse_network_order(
     typename std::enable_if<std::is_arithmetic<T>::value, std::nullptr_t>::type /*unused*/) {
   T value = 0;
   for (size_t i = 0; i < size; ++i) {
-    value += buffer[i] << (i * CHAR_BIT);
+    value += set_byte<T>(buffer[i], i);
   }
   return value;
 }

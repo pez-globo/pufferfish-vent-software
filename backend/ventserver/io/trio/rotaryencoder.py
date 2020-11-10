@@ -4,12 +4,7 @@ import logging
 from typing import Optional, Tuple
 
 import attr
-
-try:
-    import pigpio     # type: ignore
-except RuntimeError:
-    logging.getLogger().warning('Running without pigpio!')
-
+import pigpio     # type: ignore
 import trio
 
 from ventserver.io import rotaryencoder

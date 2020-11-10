@@ -77,7 +77,7 @@ export const Axes = ({
         {title}
       </text>
       <text
-        x={margin.left / 3 + 80}
+        x={margin.left / 3 + (title.length * 15 + 20)}
         y={margin.top / 2}
         fill={theme.typography.body1.color}
         opacity={0.8}

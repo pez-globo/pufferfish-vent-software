@@ -2,19 +2,13 @@
 
 # Custom Pufferfish boot screen and its service
 
-# Message colours
-ERROR='\033[1;31mERROR:'
-SUCCESS='\033[1;32m'
-WARNING='\033[1;33mWARNING:'
-NC='\033[0m'
+# Importing logging colours, absolute paths and exit function
+script_dir=$(dirname $(realpath $0))
+. $script_dir/helper.sh
 
 echo -e "\n${SUCCESS}********** Setting up custom boot screen **********\n${NC}"
 
-sudo apt-get update
-
-# Getting absolute path of config files
-script_dir=$(dirname $(realpath $0))
-config_dir=$script_dir/../configs
+sudo apt update || exit_script "Apt Update failed"
 
 # Copy splash image to home directory
 cp $config_dir/splash.png ~/splash.png
@@ -31,7 +25,7 @@ fi
 sudo systemctl mask getty@tty1
 
 # fim package to read the image buffer
-sudo apt install fim -y
+sudo apt install fim -y || exit_script "Could not install fim"
 
 # Create service file
 if [ 1 -eq $( ls $config_dir | grep -c "splashscreen.service" ) ]
@@ -51,7 +45,7 @@ else
     exit 1
 fi
 
-sudo apt-get update
+sudo apt update || exit_script "Apt Update failed"
 
 # Masking plymouth service to deny any other service from starting it
 sudo systemctl mask plymouth-start.service

@@ -48,7 +48,7 @@ const useStyles = makeStyles((theme: Theme) => ({
  * A container for displaying buttons that handle system changes based on
  * various states and conditions such as ventilator state and current page route.
  */
-export const ToolBar = (): JSX.Element => {
+export const ToolBar = ({ children }: { children?: React.ReactNode }): JSX.Element => {
   const classes = useStyles();
   // Store the route location so we can change button/breadcrumb displays
   // depending on the current route.
@@ -144,6 +144,7 @@ export const ToolBar = (): JSX.Element => {
         className={classes.root}
         wrap="nowrap"
       >
+        {children}
         <Grid
           container
           item

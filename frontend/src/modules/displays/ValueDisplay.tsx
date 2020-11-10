@@ -93,7 +93,7 @@ export const ValueDisplay = ({ value, label, units = '', isLive = false }: Props
           {value !== undefined ? value.toFixed(0) : '--'}
         </Typography>
         {units !== '' && (
-          <Typography align="center" variant="body1" className={classes.unitsLabel}>
+          <Typography align="center" variant="h5" className={classes.unitsLabel}>
             {units}
           </Typography>
         )}

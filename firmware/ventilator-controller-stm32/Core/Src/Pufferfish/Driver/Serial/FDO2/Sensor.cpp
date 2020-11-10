@@ -24,36 +24,81 @@
 
 namespace Pufferfish::Driver::Serial::FDO2 {
 
+// StateMachine
+
+StateMachine::Action StateMachine::update(uint32_t current_time, bool passed_check) {
+  current_time_ = current_time;
+  switch (next_action_) {
+    case Action::request_version:
+      start_request();
+      next_action_ = Action::check_version;
+      break;
+    case Action::check_version:
+      if (passed_check) {
+        next_action_ = Action::start_broadcast;
+      } else if (timed_out()) {
+        next_action_ = Action::request_version;
+      }
+      break;
+    case Action::start_broadcast:
+      start_request();
+      next_action_ = Action::check_broadcast;
+      break;
+    case Action::check_broadcast:
+      if (passed_check) {
+        next_action_ = Action::wait_measurement;
+      } else if (timed_out()) {
+        next_action_ = Action::start_broadcast;
+      }
+    case Action::wait_measurement:
+      break;
+  }
+  return next_action_;
+}
+
+void StateMachine::start_request() {
+  request_time_ = current_time_;
+}
+
+bool StateMachine::timed_out() const {
+  return !Util::within_timeout(request_time_, response_timeout, current_time_);
+}
+
 RESPONSE_TAGGED_COMPARISON(Responses::Vers, vers)
 RESPONSE_TAGGED_COMPARISON(Responses::Bcst, bcst)
 
 // Sensor
 
 InitializableState Sensor::setup() {
-  if (setup_completed_) {
-    return InitializableState::ok;
-  }
-
-  if (setup_start_time_ == 0) {
-    setup_start_time_ = time_.millis();
-  }
-  if (!Util::within_timeout(setup_start_time_, setup_timeout, time_.millis())) {
+  if (retry_count_ > max_retries_setup) {
     return InitializableState::failed;
   }
 
-  if (!check_version()) {
-    return InitializableState::setup;
+  switch (next_action_) {
+    case Action::request_version:
+      device_.request_version();
+      next_action_ = fsm_.update(time_.millis());
+      return InitializableState::setup;
+    case Action::check_version:
+      return check_version(time_.millis());
+    case Action::start_broadcast:
+      device_.start_broadcast();
+      next_action_ = fsm_.update(time_.millis());
+      return InitializableState::setup;
+    case Action::check_broadcast:
+      return check_broadcast(time_.millis());
+    case Action::wait_measurement:
+      next_action_ = fsm_.update(time_.millis());
+      return InitializableState::ok;
   }
-
-  if (!start_broadcast()) {
-    return InitializableState::setup;
-  }
-
-  setup_completed_ = true;
-  return InitializableState::ok;
+  return InitializableState::failed;
 }
 
 InitializableState Sensor::output(uint32_t &po2) {
+  if (next_action_ != Action::wait_measurement) {
+    return InitializableState::failed;
+  }
+
   Response response;
   device_.receive(response);
   // This is a tagged union access
@@ -63,28 +108,54 @@ InitializableState Sensor::output(uint32_t &po2) {
   return InitializableState::ok;
 }
 
-bool Sensor::check_version() {
-  device_.request_version();
-  request_time_ = time_.millis();
-  while (Util::within_timeout(request_time_, setup_request_timeout, time_.millis())) {
-    Response response;
-    if (device_.receive(response) == Device::Status::ok && response.tag == CommandTypes::vers) {
-      return response == Device::expected_vers;
+bool Sensor::get_response(CommandTypes type, Response &response) {
+  while (true) {
+    if (device_.receive(response) != Device::Status::ok) {
+      return false;
+    }
+
+    if (response.tag == type) {
+      return true;
     }
   }
-  return false;
 }
 
-bool Sensor::start_broadcast() {
-  device_.start_broadcast();
-  request_time_ = time_.millis();
-  while (Util::within_timeout(request_time_, setup_request_timeout, time_.millis())) {
-    Response response;
-    if (device_.receive(response) == Device::Status::ok && response.tag == CommandTypes::bcst) {
-      return response == Device::expected_bcst;
+InitializableState Sensor::check_version(uint32_t current_time) {
+  Response response;
+  if (!get_response(CommandTypes::vers, response)) {
+    next_action_ = fsm_.update(current_time);
+    if (next_action_ != Action::check_version) {
+      ++retry_count_;
     }
+    return InitializableState::setup;
   }
-  return false;
+
+  if (response == expected_vers) {
+    next_action_ = fsm_.update(current_time, true);
+  } else {
+    next_action_ = fsm_.update(current_time);
+    ++retry_count_;
+  }
+  return InitializableState::setup;
+}
+
+InitializableState Sensor::check_broadcast(uint32_t current_time) {
+  Response response;
+  if (!get_response(CommandTypes::bcst, response)) {
+    next_action_ = fsm_.update(current_time);
+    if (next_action_ != Action::check_broadcast) {
+      ++retry_count_;
+    }
+    return InitializableState::setup;
+  }
+
+  if (response == expected_bcst) {
+    next_action_ = fsm_.update(current_time, true);
+  } else {
+    next_action_ = fsm_.update(current_time);
+    ++retry_count_;
+  }
+  return InitializableState::setup;
 }
 
 }  // namespace Pufferfish::Driver::Serial::FDO2

@@ -46,7 +46,7 @@ void PCACSimulator::transform(
     return;
   }
 
-  if (parameters.mode != VentilationMode_pc_ac) {
+  if (!parameters.ventilating || parameters.mode != VentilationMode_pc_ac) {
     return;
   }
 
@@ -114,7 +114,7 @@ void HFNCSimulator::transform(
     return;
   }
 
-  if (parameters.mode != VentilationMode_hfnc) {
+  if (!parameters.ventilating || parameters.mode != VentilationMode_hfnc) {
     return;
   }
 

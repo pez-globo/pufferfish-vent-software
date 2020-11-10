@@ -11,6 +11,7 @@ import betterproto
 from ventserver.io.trio import channels as triochannels
 from ventserver.io.trio import endpoints
 from ventserver.io.trio import fileio
+from ventserver.io.trio import websocket as websocket_io
 from ventserver.protocols import server
 from ventserver.protocols import file
 from ventserver.protocols import exceptions
@@ -45,7 +46,7 @@ async def send_all_serial(
         return
 
     if not serial.is_open:
-        logger.warning(
+        logger.debug(
             'Discarding because serial I/O endpoint is not open: %s', send_bytes
         )
         return
@@ -67,7 +68,7 @@ async def send_all_websocket(
     """
     for send_event in send_channel.output_all():
         if not websocket.is_open:
-            logger.warning(
+            logger.debug(
                 'Discarding because websocket I/O endpoint is not open: %s',
                 send_event
             )
@@ -85,6 +86,7 @@ async def send_all_websocket(
                 'Illegal data type: %s', err
             )
 
+
 async def send_all_file(
         filehandler: fileio.Handler,
         write_channel:protocols.Filter[_InputEvent, file.StateData]
@@ -97,8 +99,8 @@ async def send_all_file(
             await filehandler.open()
             async with filehandler:
                 await filehandler.send(message.data)
-        except OSError:
-            logger.error("Handler: ")
+        except OSError as err:
+            logger.error("Handler: %s", err)
 
 
 async def process_protocol_send_output(
@@ -155,6 +157,22 @@ async def process_protocol_send(
         return
     protocol.send.input(send_event)
     await process_protocol_send_output(protocol, serial, websocket, filehandler)
+
+# Receive frontend connection event
+
+
+def receive_frontend_connection(
+        protocol: server.Protocol,
+        websocket: websocket_io.Driver
+) -> None:
+    """Process frontend connection status."""
+    protocol.receive.input(
+        server.FrontendConnectionEvent(
+            last_connection_time=websocket.connection_time,
+            is_frontend_connected=websocket.is_open
+        )
+    )
+
 
 # Protocol Receive Outputs
 
@@ -227,7 +245,6 @@ async def process_io_receive(
 
 # Overall integration
 
-
 async def process_io_persistently(
         io_endpoint: endpoints.IOEndpoint[
             _ReceiveInputType, _ReceiveOutputType
@@ -255,6 +272,11 @@ async def process_io_persistently(
     async with push_endpoint:
         while True:
             await io_endpoint.persistently_open(nursery=nursery)
+            if isinstance(io_endpoint, websocket_io.Driver):
+                receive_frontend_connection(
+                    protocol, io_endpoint
+                )
+
             try:
                 async with io_endpoint:
                     await process_io_receive(
@@ -265,6 +287,11 @@ async def process_io_persistently(
                 logger.warning(
                     'Lost I/O endpoint, reconnecting: %s', io_endpoint
                 )
+                if isinstance(io_endpoint, websocket_io.Driver):
+                    receive_frontend_connection(
+                        protocol, io_endpoint
+                    )
+
                 await trio.sleep(reconnect_interval)
 
 
@@ -350,6 +377,7 @@ async def load_file_states(
             await filehandler.open()
             async with  filehandler:
                 message = await filehandler.receive()
+                logger.info("State initialized from file: %s", state.__name__)
                 protocol.receive.input(
                     server.ReceiveEvent(
                         file_receive=file.StateData(

@@ -7,10 +7,10 @@ import { MuiThemeProvider } from '@material-ui/core/styles';
 import { StoreState } from '../../store/types';
 import { initialize } from '../../store/app/actions';
 import { getLocale, getMessages } from '../../store/app/selectors';
-import Layout from './Layout';
 import { darkTheme, lightTheme } from '../../styles/customTheme';
 import { getFrontendDisplaySetting } from '../../store/controller/selectors';
 import { FrontendDisplaySetting, ThemeVariant } from '../../store/controller/proto/frontend_pb';
+import Routes from '../navigation/Routes';
 
 const RIGHT_CLICK_BUTTON_KEY = 2;
 const TOUCH_SCREEN_BUTTON_KEY = 0;
@@ -44,7 +44,7 @@ class App extends Component<Props> {
       <IntlProvider key={locale} locale={locale} messages={messages}>
         <MuiThemeProvider theme={theme}>
           <CssBaseline />
-          <Layout />
+          <Routes />
         </MuiThemeProvider>
       </IntlProvider>
     );

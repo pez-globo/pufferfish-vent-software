@@ -44,7 +44,7 @@ const IdleTimer = ({ timeout, onTimeOut }: { timeout: number; onTimeOut(): void 
 };
 
 export const UserActivity = (): JSX.Element => {
-  const [idleTimeout] = useState(10 * 1000); // 10 seconds just for testing
+  const [idleTimeout] = useState(10 * 60 * 1000);
   const history = useHistory();
   const onTimeOut = () => {
     history.push('/screensaver');

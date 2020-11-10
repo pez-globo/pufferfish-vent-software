@@ -38,10 +38,12 @@ export interface SettingAdjustProps {
 
 interface Props {
   label: string;
-  units: string;
+  units?: string;
   committedSetting: number;
   disableSetNewButton?: boolean;
   requestCommitSetting(setting: number): void;
+  updateModalStatus?(status: boolean): void;
+  openModal?: boolean;
 }
 
 export const ValueModal = ({
@@ -49,6 +51,8 @@ export const ValueModal = ({
   units,
   committedSetting,
   disableSetNewButton = false,
+  openModal = false,
+  updateModalStatus,
   requestCommitSetting,
 }: Props): JSX.Element => {
   const classes = useStyles();
@@ -58,11 +62,19 @@ export const ValueModal = ({
 
   const initSetValue = useCallback(() => {
     setValue(committedSetting);
-  }, [committedSetting]);
+    setOpen(openModal);
+  }, [committedSetting, openModal]);
 
   useEffect(() => {
     initSetValue();
   }, [initSetValue]);
+
+  useEffect(() => {
+    if (updateModalStatus) {
+      updateModalStatus(open);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const handleOpen = () => {
     setOpen(true);

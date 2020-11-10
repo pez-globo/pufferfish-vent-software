@@ -25,7 +25,7 @@ def find_port(device_filter: str) -> str:
 class SerialProps:
     """Defines driver properties for serial devices."""
 
-    port: str = ''
+    port: str ='/dev/ttyACM0'
     port_filter: str = ''
     baud_rate: int = 115200
     message_length: int = 4096

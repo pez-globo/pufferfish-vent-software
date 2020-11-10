@@ -1,0 +1,4 @@
+[Unit]
+Description=Pufferfish Target
+Requires=graphical.target
+After=graphical.target

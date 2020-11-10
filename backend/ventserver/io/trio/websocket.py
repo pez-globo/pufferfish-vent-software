@@ -3,6 +3,7 @@
 import functools
 import logging
 from typing import Awaitable, Callable, Optional
+import time
 
 import attr
 
@@ -136,6 +137,7 @@ class Driver(endpoints.IOEndpoint[bytes, bytes]):
     props: websocket.WebSocketProps = attr.ib(
         factory=websocket.WebSocketProps, repr=False
     )
+    connection_time: float = attr.ib(default=0)
     _server: SingleConnectionService = attr.ib()
     _connection: Optional[trio_websocket.WebSocketConnection] = attr.ib(
         default=None, init=False, repr=False
@@ -176,6 +178,7 @@ class Driver(endpoints.IOEndpoint[bytes, bytes]):
         """Handle a new connection."""
         self._connection = connection
         self._connected.set()
+        self.connection_time = time.time()
         while True:
             try:
                 await self._connection.ping()

@@ -1,7 +1,7 @@
 [Unit]
 Description=Pufferfish Kiosk Service
-Requires=nginx.service media-pi-LOGS.mount
-After=nginx.service media-pi-LOGS.mount graphical.target pufferfish_backend.service
+Requires=nginx.service media-pi-LOGS.mount tampering.service
+After=nginx.service media-pi-LOGS.mount tampering.service pufferfish_backend.service
 
 [Service]
 Type=simple
@@ -9,7 +9,7 @@ User=pi
 Group=pi
 Environment=DISPLAY=:0.0
 Environment=XAUTHORITY=/home/pi/.Xauthority
-ExecStartPre=/opt/clean_kiosk.sh
+ExecStartPre=/opt/pufferfish/clean_kiosk.sh
 ExecStart=chromium-browser --no-default-browser-check --check-for-update-interval=31536000 --no-first-run --disable-translate --disable-infobars --disable-suggestions-service --disable-save-password-bubble --disable-session-crashed-bubble --noerrdialogs -disable-pinch --no-context-menu --kiosk http://localhost
 Restart=always
 RestartSec=3
@@ -18,4 +18,4 @@ StandardError=syslog
 SyslogIdentifier=pufferfish_kiosk
 
 [Install]
-WantedBy=graphical.target
+WantedBy=pufferfish.target

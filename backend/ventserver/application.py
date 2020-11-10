@@ -7,17 +7,13 @@ import functools
 import trio
 import betterproto
 
-try:
-    from ventserver.io.trio import rotaryencoder
-except RuntimeError:
-    logging.getLogger().warning('Running without pigpio!')
-
 from ventserver.integration import _trio
 from ventserver.io.trio import _serial
 from ventserver.io.trio import channels
 from ventserver.io.trio import websocket
 from ventserver.io.trio import fileio
 from ventserver.io.trio import rotaryencoder
+from ventserver.io.subprocess import frozen_frontend
 from ventserver.protocols import server
 from ventserver.protocols import exceptions
 from ventserver.protocols.protobuf import mcu_pb
@@ -52,7 +48,7 @@ async def main() -> None:
         except exceptions.ProtocolError as err:
             exception = (
                 "Unable to connect the rotary encoder, please check the "
-                "serial connection. Check if the pigpiod service is running: "
+                "serial connection. Check if the pigpiod service is running: %s"
             )
             rotary_encoder = None
             logger.error(exception, err)
@@ -65,16 +61,18 @@ async def main() -> None:
         server.ReceiveOutputEvent
     ] = channels.TrioChannel()
 
-    # Initialize State
+    # Initialize state with defaults
     all_states = protocol.receive.backend.all_states
     for state in all_states:
         if state is mcu_pb.ParametersRequest:
             all_states[state] = mcu_pb.ParametersRequest(
-                mode=mcu_pb.VentilationMode.hfnc, rr=30, fio2=60, flow=6
+                mode=mcu_pb.VentilationMode.hfnc, ventilating=False,
+                rr=30, fio2=60, flow=6
             )
         else:
             all_states[state] = state()
 
+    # Load state from file
     states: List[Type[betterproto.Message]] = [
         mcu_pb.Parameters, mcu_pb.CycleMeasurements,
         mcu_pb.SensorMeasurements, mcu_pb.ParametersRequest
@@ -82,6 +80,11 @@ async def main() -> None:
     await _trio.load_file_states(
         states, protocol, filehandler
     )
+
+    # Turn off ventilation
+    parameters_request = all_states[mcu_pb.ParametersRequest]
+    if parameters_request is not None:
+        parameters_request.ventilating = False
 
     try:
         async with channel.push_endpoint:
@@ -102,6 +105,11 @@ async def main() -> None:
                         serial_endpoint, websocket_endpoint,
                         filehandler
                     )
+
+                    if receive_output.frontend_delayed:
+                        nursery.start_soon(
+                            frozen_frontend.kill_frozen_frontend
+                        )
                 nursery.cancel_scope.cancel()
     except trio.EndOfChannel:
         logger.info('Finished, quitting!')

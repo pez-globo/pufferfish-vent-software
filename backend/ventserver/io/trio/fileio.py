@@ -46,18 +46,22 @@ class Handler(endpoints.IOEndpoint[bytes, bytes]):
                                "Please close the old file instance."
                               )
 
-        _filepath = os.path.join(
-            self.rootdir, self.props.filedir, self.props.filename
-        )
+        _filepath = os.path.join(self.rootdir, self.props.filedir)
+        if not os.path.exists(_filepath):
+            self._logger.info("No such directory: %s", _filepath)
+            os.mkdir(_filepath)
+            self._logger.info("Created directory: %s", _filepath)
+
         try:
             # raises OSError
             self._fileobject = await trio.open_file(    # type: ignore
-                _filepath, str(self.props.mode)
+                os.path.join(_filepath, self.props.filename),
+                str(self.props.mode)
             )
         except OSError as err:
             raise OSError("Handler: {}".format(err)) from err
 
-        self._logger.info('File %s opened.', self.props.filename)
+        self._logger.debug('File %s opened.', self.props.filename)
         self._connected.set()
 
     @property
@@ -73,7 +77,7 @@ class Handler(endpoints.IOEndpoint[bytes, bytes]):
         assert self._fileobject is not None
         await self._fileobject.aclose()
         self._fileobject = None
-        self._logger.info('File %s closed.', self.props.filename)
+        self._logger.debug('File %s closed.', self.props.filename)
         self._connected = trio.Event()
 
     async def receive(self) -> bytes:

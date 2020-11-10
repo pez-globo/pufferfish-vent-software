@@ -3,19 +3,13 @@
 # Disables screen blanking and screen savers
 # Hides mouse cursor on idle
 
-# Message colours
-ERROR='\033[1;31mERROR:'
-SUCCESS='\033[1;32m'
-WARNING='\033[1;33mWARNING:'
-NC='\033[0m'
+# Importing logging colours, absolute paths and exit function
+script_dir=$(dirname $(realpath $0))
+. $script_dir/helper.sh
 
 echo -e "\n${SUCCESS}********** Setting up window manager configuration **********\n${NC}"
 
-sudo apt install unclutter -y
-
-# Getting absolute path of config files
-script_dir=$(dirname $(realpath $0))
-config_dir=$script_dir/../configs
+sudo apt install unclutter -y || exit_script "Could not install unclutter"
 
 # Set up autostart
 mkdir -p $HOME/.config/lxsession/LXDE-pi

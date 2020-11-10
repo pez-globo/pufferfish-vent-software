@@ -9,6 +9,9 @@
 PB_BIND(Alarms, Alarms, AUTO)
 
 
+PB_BIND(AlarmLimits, AlarmLimits, AUTO)
+
+
 PB_BIND(AlarmLimitsRequest, AlarmLimitsRequest, AUTO)
 
 
@@ -28,6 +31,25 @@ PB_BIND(Ping, Ping, AUTO)
 
 
 PB_BIND(Announcement, Announcement, AUTO)
+
+
+PB_BIND(LogEvent, LogEvent, AUTO)
+
+
+PB_BIND(ExpectedLogEvent, ExpectedLogEvent, AUTO)
+
+
+PB_BIND(NextLogEvents, NextLogEvents, AUTO)
+
+
+PB_BIND(ActiveLogEvents, ActiveLogEvents, AUTO)
+
+
+PB_BIND(BatteryPower, BatteryPower, AUTO)
+
+
+PB_BIND(ScreenStatus, ScreenStatus, AUTO)
+
 
 
 
