@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import { BellIcon } from '../icons';
 import { LogEventCode } from '../../store/controller/proto/mcu_pb';
 import { BMIN, PERCENT } from '../info/units';
-import { getActiveLoggedEventIds, getPopupEventLog } from '../../store/controller/selectors';
+import { getActiveLogEventIds, getPopupEventLog } from '../../store/controller/selectors';
 
 export const ALARM_EVENT_PATIENT = 'Patient';
 export const ALARM_EVENT_SYSTEM = 'System';

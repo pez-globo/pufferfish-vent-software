@@ -1,15 +1,13 @@
 #!/bin/bash
 
-# Message colours
-ERROR='\033[1;31mERROR:'
-SUCCESS='\033[1;32m'
-WARNING='\033[1;33mWARNING:'
-NC='\033[0m'
+# Importing logging colours, absolute paths and exit function
+script_dir=$(dirname $(realpath $0))
+. $script_dir/helper.sh
 
 echo -e "\n${SUCCESS}********** Installing pigpio **********\n${NC}"
 
-sudo apt update
-sudo apt install pigpio -y
+sudo apt update || exit_script "Apt Update failed"
+sudo apt install pigpio -y || exit_script "Could not install pigpio"
 
 sudo systemctl enable pigpiod
 sudo systemctl daemon-reload

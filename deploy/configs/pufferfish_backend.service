@@ -1,7 +1,7 @@
 [Unit]
 Description=Pufferfish Backend Service
-Requires=nginx.service media-pi-LOGS.mount pigpiod.service
-After=nginx.service media-pi-LOGS.mount pigpiod.service
+Requires=nginx.service media-pi-LOGS.mount pigpiod.service tampering.service
+After=nginx.service media-pi-LOGS.mount pigpiod.service tampering.service
 
 [Service]
 Type=simple
@@ -14,4 +14,4 @@ StandardError=syslog
 SyslogIdentifier=pufferfish_backend
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=pufferfish.target

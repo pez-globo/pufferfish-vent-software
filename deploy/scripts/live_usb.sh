@@ -2,17 +2,11 @@
 
 # Modifies eeprom configuration for changing boot order to boot from USB as default
 
-# Message colours
-ERROR='\033[1;31mERROR:'
-SUCCESS='\033[1;32m'
-WARNING='\033[1;33mWARNING:'
-NC='\033[0m'
+# Importing logging colours, absolute paths and exit function
+script_dir=$(dirname $(realpath $0))
+. $script_dir/helper.sh
 
 echo -e "\n${SUCCESS}********** Setting up Live USB Boot **********\n${NC}"
-
-# Getting absolute path of config files
-script_dir=$(dirname $(realpath $0))
-config_dir=$script_dir/../configs
 
 # Copying latest eeprom configuration
 cp /lib/firmware/raspberrypi/bootloader/stable/pieeprom-2020-09-03.bin pieeprom.bin

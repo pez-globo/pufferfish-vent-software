@@ -4,11 +4,9 @@
 # Services include bluetooth, bluetooth helpers
 # Daily update and upgrade services, printer and smartcard
 
-# Message colours
-ERROR='\033[1;31mERROR:'
-SUCCESS='\033[1;32m'
-WARNING='\033[1;33mWARNING:'
-NC='\033[0m'
+# Importing logging colours, absolute paths and exit function
+script_dir=$(dirname $(realpath $0))
+. $script_dir/helper.sh
 
 echo -e "\n${SUCCESS}********** Disabling unnecessary services **********\n${NC}"
 

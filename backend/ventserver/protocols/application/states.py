@@ -1,4 +1,4 @@
-"""Application-specific logic."""
+"""Appication sub-layer for state synchronization."""
 
 import collections
 import logging

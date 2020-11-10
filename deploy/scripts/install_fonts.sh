@@ -2,11 +2,9 @@
 
 # Installs Roboto font
 
-# Message colours
-ERROR='\033[1;31mERROR:'
-SUCCESS='\033[1;32m'
-WARNING='\033[1;33mWARNING:'
-NC='\033[0m'
+# Importing logging colours, absolute paths and exit function
+script_dir=$(dirname $(realpath $0))
+. $script_dir/helper.sh
 
 cd ~/
 
@@ -24,7 +22,7 @@ else
     wget -O roboto.zip "https://fonts.google.com/download?family=Roboto"
 fi
 
-sudo apt install unzip -y
+sudo apt install unzip -y || exit_script "Could not install unzip"
 
 # Extracting downloaded fonts zip file
 if [ 1 -eq $( ls | grep -c "roboto.zip" ) ]

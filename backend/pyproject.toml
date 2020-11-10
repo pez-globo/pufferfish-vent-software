@@ -11,8 +11,10 @@ packages = [
 # Language
 python = "^3.7"
 attrs = { version = "^19.3.0" }
+typing_extensions = "^3.7.4"
 # Protocols
 cobs = { version = "^1.1.4" }
+crcmod = { version = "^1.7" }
 betterproto = { version = "^1.2.5" }
 # I/O: Flow Control
 trio = { version = "^0.16.0" }
@@ -20,7 +22,6 @@ trio-typing = { version = "^0.5.0" }
 # I/O: Devices
 pyserial = { version = "^3.4" }
 trio-websocket = { version = "^0.8.0" }
-crcmod = { version = "^1.7" }
 pigpio = { version = "^1.78" }
 
 [tool.poetry.dev-dependencies]

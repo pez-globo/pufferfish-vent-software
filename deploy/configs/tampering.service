@@ -1,0 +1,14 @@
+[Unit]
+Description=Data Tampering Check
+After=graphical.target
+
+[Service]
+Type=oneshot
+Environment=DISPLAY=:0.0
+Environment=XAUTHORITY=/home/pi/.Xauthority
+RemainAfterExit=yes
+ExecStartPre=sleep 3
+ExecStart=/opt/pufferfish/compare_hash.sh
+
+[Install]
+WantedBy=pufferfish.target

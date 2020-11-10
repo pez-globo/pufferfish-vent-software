@@ -256,6 +256,7 @@ const HFNCMainView = (): JSX.Element => {
                   stateKey="fio2"
                   units={PERCENT}
                   committedSetting={useSelector(getParametersFiO2)}
+                  min={21}
                 />
               </Grid>
               <Grid item xs className={classes.rightBorder}>
@@ -265,6 +266,7 @@ const HFNCMainView = (): JSX.Element => {
                   stateKey="flow"
                   units={LMIN}
                   committedSetting={useSelector(getParametersFlow)}
+                  max={80}
                 />
               </Grid>
             </Grid>

@@ -291,9 +291,11 @@ PF::Driver::I2C::SDPSensor i2c_press18(i2c_ext_press18);
 
 // SFM3019
 
-PF::Driver::I2C::SFM3019::Device sfm3019_dev_air(i2c_hal_sfm3019_air, i2c2_hal_global);
+PF::Driver::I2C::SFM3019::Device sfm3019_dev_air(
+    i2c_hal_sfm3019_air, i2c2_hal_global, PF::Driver::I2C::SFM3019::GasType::air);
 PF::Driver::I2C::SFM3019::Sensor sfm3019_air(sfm3019_dev_air, true, time);
-PF::Driver::I2C::SFM3019::Device sfm3019_dev_o2(i2c_hal_sfm3019_o2, i2c4_hal_global);
+PF::Driver::I2C::SFM3019::Device sfm3019_dev_o2(
+    i2c_hal_sfm3019_o2, i2c4_hal_global, PF::Driver::I2C::SFM3019::GasType::o2);
 PF::Driver::I2C::SFM3019::Sensor sfm3019_o2(sfm3019_dev_o2, true, time);
 
 // FDO2
@@ -476,7 +478,9 @@ int main(void)
 
   // Hardware PWMs
   drive1_ch1.start();
+  drive1_ch1.set_duty_cycle_raw(0);
   drive1_ch2.start();
+  drive1_ch2.set_duty_cycle_raw(0);
 
   // Software PWMs
   blinker.start(time.millis());
@@ -553,20 +557,21 @@ int main(void)
 
     // Breathing Circuit Control Loop
     hfnc.update(current_time);
+
     // Indicators for debugging
-    /*static constexpr float valve_opening_indicator_threshold = 0.5;
+    static constexpr float valve_opening_indicator_threshold = 0.00001;
     if (hfnc.actuator_vars().valve_air_opening > valve_opening_indicator_threshold) {
-      board_led1.write(true);
-    } else {
       board_led1.write(dimmer.output());
-    }*/
-    if (hfnc.sensor_vars().flow_o2 > 1 || hfnc.sensor_vars().flow_air > 1) {
+    } else {
+      board_led1.write(false);
+    }
+    /*if (hfnc.sensor_vars().flow_o2 > 1 || hfnc.sensor_vars().flow_air > 1) {
       board_led1.write(true);
     } else if (hfnc.sensor_vars().flow_o2 < -1 || hfnc.sensor_vars().flow_air < -1) {
       board_led1.write(dimmer.output());
     } else {
       board_led1.write(false);
-    }
+    }*/
 
     // Backend Communication Protocol
     backend.receive();

@@ -8,6 +8,35 @@ export interface Alarms {
   alarmTwo: boolean;
 }
 
+export interface AlarmLimits {
+  rrMin: number;
+  rrMax: number;
+  pipMin: number;
+  pipMax: number;
+  peepMin: number;
+  peepMax: number;
+  ipAbovePeepMin: number;
+  ipAbovePeepMax: number;
+  inspTimeMin: number;
+  inspTimeMax: number;
+  fio2Min: number;
+  fio2Max: number;
+  pawMin: number;
+  pawMax: number;
+  mveMin: number;
+  mveMax: number;
+  tvMin: number;
+  tvMax: number;
+  etco2Min: number;
+  etco2Max: number;
+  flowMin: number;
+  flowMax: number;
+  apneaMin: number;
+  apneaMax: number;
+  spo2Min: number;
+  spo2Max: number;
+}
+
 export interface AlarmLimitsRequest {
   rrMin: number;
   rrMax: number;
@@ -106,7 +135,10 @@ export interface ExpectedLogEvent {
 }
 
 export interface NextLogEvents {
-  logEvents: LogEvent[];
+  nextExpected: number;
+  total: number;
+  remaining: number;
+  elements: LogEvent[];
 }
 
 export interface ActiveLogEvents {
@@ -125,6 +157,35 @@ const baseAlarms: object = {
   time: 0,
   alarmOne: false,
   alarmTwo: false,
+};
+
+const baseAlarmLimits: object = {
+  rrMin: 0,
+  rrMax: 0,
+  pipMin: 0,
+  pipMax: 0,
+  peepMin: 0,
+  peepMax: 0,
+  ipAbovePeepMin: 0,
+  ipAbovePeepMax: 0,
+  inspTimeMin: 0,
+  inspTimeMax: 0,
+  fio2Min: 0,
+  fio2Max: 0,
+  pawMin: 0,
+  pawMax: 0,
+  mveMin: 0,
+  mveMax: 0,
+  tvMin: 0,
+  tvMax: 0,
+  etco2Min: 0,
+  etco2Max: 0,
+  flowMin: 0,
+  flowMax: 0,
+  apneaMin: 0,
+  apneaMax: 0,
+  spo2Min: 0,
+  spo2Max: 0,
 };
 
 const baseAlarmLimitsRequest: object = {
@@ -224,6 +285,9 @@ const baseExpectedLogEvent: object = {
 };
 
 const baseNextLogEvents: object = {
+  nextExpected: 0,
+  total: 0,
+  remaining: 0,
 };
 
 const baseActiveLogEvents: object = {
@@ -302,6 +366,8 @@ export function ventilationModeToJSON(object: VentilationMode): string {
   }
 }
 
+/**  Log Events
+ */
 export enum LogEventCode {
   fio2_too_low = 0,
   fio2_too_high = 1,
@@ -443,6 +509,428 @@ export const Alarms = {
     message.time !== undefined && (obj.time = message.time);
     message.alarmOne !== undefined && (obj.alarmOne = message.alarmOne);
     message.alarmTwo !== undefined && (obj.alarmTwo = message.alarmTwo);
+    return obj;
+  },
+};
+
+export const AlarmLimits = {
+  encode(message: AlarmLimits, writer: Writer = Writer.create()): Writer {
+    writer.uint32(8).uint32(message.rrMin);
+    writer.uint32(16).uint32(message.rrMax);
+    writer.uint32(24).uint32(message.pipMin);
+    writer.uint32(32).uint32(message.pipMax);
+    writer.uint32(40).uint32(message.peepMin);
+    writer.uint32(48).uint32(message.peepMax);
+    writer.uint32(56).uint32(message.ipAbovePeepMin);
+    writer.uint32(64).uint32(message.ipAbovePeepMax);
+    writer.uint32(72).uint32(message.inspTimeMin);
+    writer.uint32(80).uint32(message.inspTimeMax);
+    writer.uint32(88).uint32(message.fio2Min);
+    writer.uint32(96).uint32(message.fio2Max);
+    writer.uint32(104).uint32(message.pawMin);
+    writer.uint32(112).uint32(message.pawMax);
+    writer.uint32(120).uint32(message.mveMin);
+    writer.uint32(128).uint32(message.mveMax);
+    writer.uint32(136).uint32(message.tvMin);
+    writer.uint32(144).uint32(message.tvMax);
+    writer.uint32(152).uint32(message.etco2Min);
+    writer.uint32(160).uint32(message.etco2Max);
+    writer.uint32(168).uint32(message.flowMin);
+    writer.uint32(176).uint32(message.flowMax);
+    writer.uint32(184).uint32(message.apneaMin);
+    writer.uint32(192).uint32(message.apneaMax);
+    writer.uint32(200).uint32(message.spo2Min);
+    writer.uint32(208).uint32(message.spo2Max);
+    return writer;
+  },
+  decode(input: Uint8Array | Reader, length?: number): AlarmLimits {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseAlarmLimits } as AlarmLimits;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.rrMin = reader.uint32();
+          break;
+        case 2:
+          message.rrMax = reader.uint32();
+          break;
+        case 3:
+          message.pipMin = reader.uint32();
+          break;
+        case 4:
+          message.pipMax = reader.uint32();
+          break;
+        case 5:
+          message.peepMin = reader.uint32();
+          break;
+        case 6:
+          message.peepMax = reader.uint32();
+          break;
+        case 7:
+          message.ipAbovePeepMin = reader.uint32();
+          break;
+        case 8:
+          message.ipAbovePeepMax = reader.uint32();
+          break;
+        case 9:
+          message.inspTimeMin = reader.uint32();
+          break;
+        case 10:
+          message.inspTimeMax = reader.uint32();
+          break;
+        case 11:
+          message.fio2Min = reader.uint32();
+          break;
+        case 12:
+          message.fio2Max = reader.uint32();
+          break;
+        case 13:
+          message.pawMin = reader.uint32();
+          break;
+        case 14:
+          message.pawMax = reader.uint32();
+          break;
+        case 15:
+          message.mveMin = reader.uint32();
+          break;
+        case 16:
+          message.mveMax = reader.uint32();
+          break;
+        case 17:
+          message.tvMin = reader.uint32();
+          break;
+        case 18:
+          message.tvMax = reader.uint32();
+          break;
+        case 19:
+          message.etco2Min = reader.uint32();
+          break;
+        case 20:
+          message.etco2Max = reader.uint32();
+          break;
+        case 21:
+          message.flowMin = reader.uint32();
+          break;
+        case 22:
+          message.flowMax = reader.uint32();
+          break;
+        case 23:
+          message.apneaMin = reader.uint32();
+          break;
+        case 24:
+          message.apneaMax = reader.uint32();
+          break;
+        case 25:
+          message.spo2Min = reader.uint32();
+          break;
+        case 26:
+          message.spo2Max = reader.uint32();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+  fromJSON(object: any): AlarmLimits {
+    const message = { ...baseAlarmLimits } as AlarmLimits;
+    if (object.rrMin !== undefined && object.rrMin !== null) {
+      message.rrMin = Number(object.rrMin);
+    } else {
+      message.rrMin = 0;
+    }
+    if (object.rrMax !== undefined && object.rrMax !== null) {
+      message.rrMax = Number(object.rrMax);
+    } else {
+      message.rrMax = 0;
+    }
+    if (object.pipMin !== undefined && object.pipMin !== null) {
+      message.pipMin = Number(object.pipMin);
+    } else {
+      message.pipMin = 0;
+    }
+    if (object.pipMax !== undefined && object.pipMax !== null) {
+      message.pipMax = Number(object.pipMax);
+    } else {
+      message.pipMax = 0;
+    }
+    if (object.peepMin !== undefined && object.peepMin !== null) {
+      message.peepMin = Number(object.peepMin);
+    } else {
+      message.peepMin = 0;
+    }
+    if (object.peepMax !== undefined && object.peepMax !== null) {
+      message.peepMax = Number(object.peepMax);
+    } else {
+      message.peepMax = 0;
+    }
+    if (object.ipAbovePeepMin !== undefined && object.ipAbovePeepMin !== null) {
+      message.ipAbovePeepMin = Number(object.ipAbovePeepMin);
+    } else {
+      message.ipAbovePeepMin = 0;
+    }
+    if (object.ipAbovePeepMax !== undefined && object.ipAbovePeepMax !== null) {
+      message.ipAbovePeepMax = Number(object.ipAbovePeepMax);
+    } else {
+      message.ipAbovePeepMax = 0;
+    }
+    if (object.inspTimeMin !== undefined && object.inspTimeMin !== null) {
+      message.inspTimeMin = Number(object.inspTimeMin);
+    } else {
+      message.inspTimeMin = 0;
+    }
+    if (object.inspTimeMax !== undefined && object.inspTimeMax !== null) {
+      message.inspTimeMax = Number(object.inspTimeMax);
+    } else {
+      message.inspTimeMax = 0;
+    }
+    if (object.fio2Min !== undefined && object.fio2Min !== null) {
+      message.fio2Min = Number(object.fio2Min);
+    } else {
+      message.fio2Min = 0;
+    }
+    if (object.fio2Max !== undefined && object.fio2Max !== null) {
+      message.fio2Max = Number(object.fio2Max);
+    } else {
+      message.fio2Max = 0;
+    }
+    if (object.pawMin !== undefined && object.pawMin !== null) {
+      message.pawMin = Number(object.pawMin);
+    } else {
+      message.pawMin = 0;
+    }
+    if (object.pawMax !== undefined && object.pawMax !== null) {
+      message.pawMax = Number(object.pawMax);
+    } else {
+      message.pawMax = 0;
+    }
+    if (object.mveMin !== undefined && object.mveMin !== null) {
+      message.mveMin = Number(object.mveMin);
+    } else {
+      message.mveMin = 0;
+    }
+    if (object.mveMax !== undefined && object.mveMax !== null) {
+      message.mveMax = Number(object.mveMax);
+    } else {
+      message.mveMax = 0;
+    }
+    if (object.tvMin !== undefined && object.tvMin !== null) {
+      message.tvMin = Number(object.tvMin);
+    } else {
+      message.tvMin = 0;
+    }
+    if (object.tvMax !== undefined && object.tvMax !== null) {
+      message.tvMax = Number(object.tvMax);
+    } else {
+      message.tvMax = 0;
+    }
+    if (object.etco2Min !== undefined && object.etco2Min !== null) {
+      message.etco2Min = Number(object.etco2Min);
+    } else {
+      message.etco2Min = 0;
+    }
+    if (object.etco2Max !== undefined && object.etco2Max !== null) {
+      message.etco2Max = Number(object.etco2Max);
+    } else {
+      message.etco2Max = 0;
+    }
+    if (object.flowMin !== undefined && object.flowMin !== null) {
+      message.flowMin = Number(object.flowMin);
+    } else {
+      message.flowMin = 0;
+    }
+    if (object.flowMax !== undefined && object.flowMax !== null) {
+      message.flowMax = Number(object.flowMax);
+    } else {
+      message.flowMax = 0;
+    }
+    if (object.apneaMin !== undefined && object.apneaMin !== null) {
+      message.apneaMin = Number(object.apneaMin);
+    } else {
+      message.apneaMin = 0;
+    }
+    if (object.apneaMax !== undefined && object.apneaMax !== null) {
+      message.apneaMax = Number(object.apneaMax);
+    } else {
+      message.apneaMax = 0;
+    }
+    if (object.spo2Min !== undefined && object.spo2Min !== null) {
+      message.spo2Min = Number(object.spo2Min);
+    } else {
+      message.spo2Min = 0;
+    }
+    if (object.spo2Max !== undefined && object.spo2Max !== null) {
+      message.spo2Max = Number(object.spo2Max);
+    } else {
+      message.spo2Max = 0;
+    }
+    return message;
+  },
+  fromPartial(object: DeepPartial<AlarmLimits>): AlarmLimits {
+    const message = { ...baseAlarmLimits } as AlarmLimits;
+    if (object.rrMin !== undefined && object.rrMin !== null) {
+      message.rrMin = object.rrMin;
+    } else {
+      message.rrMin = 0;
+    }
+    if (object.rrMax !== undefined && object.rrMax !== null) {
+      message.rrMax = object.rrMax;
+    } else {
+      message.rrMax = 0;
+    }
+    if (object.pipMin !== undefined && object.pipMin !== null) {
+      message.pipMin = object.pipMin;
+    } else {
+      message.pipMin = 0;
+    }
+    if (object.pipMax !== undefined && object.pipMax !== null) {
+      message.pipMax = object.pipMax;
+    } else {
+      message.pipMax = 0;
+    }
+    if (object.peepMin !== undefined && object.peepMin !== null) {
+      message.peepMin = object.peepMin;
+    } else {
+      message.peepMin = 0;
+    }
+    if (object.peepMax !== undefined && object.peepMax !== null) {
+      message.peepMax = object.peepMax;
+    } else {
+      message.peepMax = 0;
+    }
+    if (object.ipAbovePeepMin !== undefined && object.ipAbovePeepMin !== null) {
+      message.ipAbovePeepMin = object.ipAbovePeepMin;
+    } else {
+      message.ipAbovePeepMin = 0;
+    }
+    if (object.ipAbovePeepMax !== undefined && object.ipAbovePeepMax !== null) {
+      message.ipAbovePeepMax = object.ipAbovePeepMax;
+    } else {
+      message.ipAbovePeepMax = 0;
+    }
+    if (object.inspTimeMin !== undefined && object.inspTimeMin !== null) {
+      message.inspTimeMin = object.inspTimeMin;
+    } else {
+      message.inspTimeMin = 0;
+    }
+    if (object.inspTimeMax !== undefined && object.inspTimeMax !== null) {
+      message.inspTimeMax = object.inspTimeMax;
+    } else {
+      message.inspTimeMax = 0;
+    }
+    if (object.fio2Min !== undefined && object.fio2Min !== null) {
+      message.fio2Min = object.fio2Min;
+    } else {
+      message.fio2Min = 0;
+    }
+    if (object.fio2Max !== undefined && object.fio2Max !== null) {
+      message.fio2Max = object.fio2Max;
+    } else {
+      message.fio2Max = 0;
+    }
+    if (object.pawMin !== undefined && object.pawMin !== null) {
+      message.pawMin = object.pawMin;
+    } else {
+      message.pawMin = 0;
+    }
+    if (object.pawMax !== undefined && object.pawMax !== null) {
+      message.pawMax = object.pawMax;
+    } else {
+      message.pawMax = 0;
+    }
+    if (object.mveMin !== undefined && object.mveMin !== null) {
+      message.mveMin = object.mveMin;
+    } else {
+      message.mveMin = 0;
+    }
+    if (object.mveMax !== undefined && object.mveMax !== null) {
+      message.mveMax = object.mveMax;
+    } else {
+      message.mveMax = 0;
+    }
+    if (object.tvMin !== undefined && object.tvMin !== null) {
+      message.tvMin = object.tvMin;
+    } else {
+      message.tvMin = 0;
+    }
+    if (object.tvMax !== undefined && object.tvMax !== null) {
+      message.tvMax = object.tvMax;
+    } else {
+      message.tvMax = 0;
+    }
+    if (object.etco2Min !== undefined && object.etco2Min !== null) {
+      message.etco2Min = object.etco2Min;
+    } else {
+      message.etco2Min = 0;
+    }
+    if (object.etco2Max !== undefined && object.etco2Max !== null) {
+      message.etco2Max = object.etco2Max;
+    } else {
+      message.etco2Max = 0;
+    }
+    if (object.flowMin !== undefined && object.flowMin !== null) {
+      message.flowMin = object.flowMin;
+    } else {
+      message.flowMin = 0;
+    }
+    if (object.flowMax !== undefined && object.flowMax !== null) {
+      message.flowMax = object.flowMax;
+    } else {
+      message.flowMax = 0;
+    }
+    if (object.apneaMin !== undefined && object.apneaMin !== null) {
+      message.apneaMin = object.apneaMin;
+    } else {
+      message.apneaMin = 0;
+    }
+    if (object.apneaMax !== undefined && object.apneaMax !== null) {
+      message.apneaMax = object.apneaMax;
+    } else {
+      message.apneaMax = 0;
+    }
+    if (object.spo2Min !== undefined && object.spo2Min !== null) {
+      message.spo2Min = object.spo2Min;
+    } else {
+      message.spo2Min = 0;
+    }
+    if (object.spo2Max !== undefined && object.spo2Max !== null) {
+      message.spo2Max = object.spo2Max;
+    } else {
+      message.spo2Max = 0;
+    }
+    return message;
+  },
+  toJSON(message: AlarmLimits): unknown {
+    const obj: any = {};
+    message.rrMin !== undefined && (obj.rrMin = message.rrMin);
+    message.rrMax !== undefined && (obj.rrMax = message.rrMax);
+    message.pipMin !== undefined && (obj.pipMin = message.pipMin);
+    message.pipMax !== undefined && (obj.pipMax = message.pipMax);
+    message.peepMin !== undefined && (obj.peepMin = message.peepMin);
+    message.peepMax !== undefined && (obj.peepMax = message.peepMax);
+    message.ipAbovePeepMin !== undefined && (obj.ipAbovePeepMin = message.ipAbovePeepMin);
+    message.ipAbovePeepMax !== undefined && (obj.ipAbovePeepMax = message.ipAbovePeepMax);
+    message.inspTimeMin !== undefined && (obj.inspTimeMin = message.inspTimeMin);
+    message.inspTimeMax !== undefined && (obj.inspTimeMax = message.inspTimeMax);
+    message.fio2Min !== undefined && (obj.fio2Min = message.fio2Min);
+    message.fio2Max !== undefined && (obj.fio2Max = message.fio2Max);
+    message.pawMin !== undefined && (obj.pawMin = message.pawMin);
+    message.pawMax !== undefined && (obj.pawMax = message.pawMax);
+    message.mveMin !== undefined && (obj.mveMin = message.mveMin);
+    message.mveMax !== undefined && (obj.mveMax = message.mveMax);
+    message.tvMin !== undefined && (obj.tvMin = message.tvMin);
+    message.tvMax !== undefined && (obj.tvMax = message.tvMax);
+    message.etco2Min !== undefined && (obj.etco2Min = message.etco2Min);
+    message.etco2Max !== undefined && (obj.etco2Max = message.etco2Max);
+    message.flowMin !== undefined && (obj.flowMin = message.flowMin);
+    message.flowMax !== undefined && (obj.flowMax = message.flowMax);
+    message.apneaMin !== undefined && (obj.apneaMin = message.apneaMin);
+    message.apneaMax !== undefined && (obj.apneaMax = message.apneaMax);
+    message.spo2Min !== undefined && (obj.spo2Min = message.spo2Min);
+    message.spo2Max !== undefined && (obj.spo2Max = message.spo2Max);
     return obj;
   },
 };
@@ -1785,8 +2273,11 @@ export const ExpectedLogEvent = {
 
 export const NextLogEvents = {
   encode(message: NextLogEvents, writer: Writer = Writer.create()): Writer {
-    for (const v of message.logEvents) {
-      LogEvent.encode(v!, writer.uint32(10).fork()).ldelim();
+    writer.uint32(8).uint32(message.nextExpected);
+    writer.uint32(16).uint32(message.total);
+    writer.uint32(24).uint32(message.remaining);
+    for (const v of message.elements) {
+      LogEvent.encode(v!, writer.uint32(34).fork()).ldelim();
     }
     return writer;
   },
@@ -1794,12 +2285,21 @@ export const NextLogEvents = {
     const reader = input instanceof Uint8Array ? new Reader(input) : input;
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = { ...baseNextLogEvents } as NextLogEvents;
-    message.logEvents = [];
+    message.elements = [];
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.logEvents.push(LogEvent.decode(reader, reader.uint32()));
+          message.nextExpected = reader.uint32();
+          break;
+        case 2:
+          message.total = reader.uint32();
+          break;
+        case 3:
+          message.remaining = reader.uint32();
+          break;
+        case 4:
+          message.elements.push(LogEvent.decode(reader, reader.uint32()));
           break;
         default:
           reader.skipType(tag & 7);
@@ -1810,30 +2310,63 @@ export const NextLogEvents = {
   },
   fromJSON(object: any): NextLogEvents {
     const message = { ...baseNextLogEvents } as NextLogEvents;
-    message.logEvents = [];
-    if (object.logEvents !== undefined && object.logEvents !== null) {
-      for (const e of object.logEvents) {
-        message.logEvents.push(LogEvent.fromJSON(e));
+    message.elements = [];
+    if (object.nextExpected !== undefined && object.nextExpected !== null) {
+      message.nextExpected = Number(object.nextExpected);
+    } else {
+      message.nextExpected = 0;
+    }
+    if (object.total !== undefined && object.total !== null) {
+      message.total = Number(object.total);
+    } else {
+      message.total = 0;
+    }
+    if (object.remaining !== undefined && object.remaining !== null) {
+      message.remaining = Number(object.remaining);
+    } else {
+      message.remaining = 0;
+    }
+    if (object.elements !== undefined && object.elements !== null) {
+      for (const e of object.elements) {
+        message.elements.push(LogEvent.fromJSON(e));
       }
     }
     return message;
   },
   fromPartial(object: DeepPartial<NextLogEvents>): NextLogEvents {
     const message = { ...baseNextLogEvents } as NextLogEvents;
-    message.logEvents = [];
-    if (object.logEvents !== undefined && object.logEvents !== null) {
-      for (const e of object.logEvents) {
-        message.logEvents.push(LogEvent.fromPartial(e));
+    message.elements = [];
+    if (object.nextExpected !== undefined && object.nextExpected !== null) {
+      message.nextExpected = object.nextExpected;
+    } else {
+      message.nextExpected = 0;
+    }
+    if (object.total !== undefined && object.total !== null) {
+      message.total = object.total;
+    } else {
+      message.total = 0;
+    }
+    if (object.remaining !== undefined && object.remaining !== null) {
+      message.remaining = object.remaining;
+    } else {
+      message.remaining = 0;
+    }
+    if (object.elements !== undefined && object.elements !== null) {
+      for (const e of object.elements) {
+        message.elements.push(LogEvent.fromPartial(e));
       }
     }
     return message;
   },
   toJSON(message: NextLogEvents): unknown {
     const obj: any = {};
-    if (message.logEvents) {
-      obj.logEvents = message.logEvents.map(e => e ? LogEvent.toJSON(e) : undefined);
+    message.nextExpected !== undefined && (obj.nextExpected = message.nextExpected);
+    message.total !== undefined && (obj.total = message.total);
+    message.remaining !== undefined && (obj.remaining = message.remaining);
+    if (message.elements) {
+      obj.elements = message.elements.map(e => e ? LogEvent.toJSON(e) : undefined);
     } else {
-      obj.logEvents = [];
+      obj.elements = [];
     }
     return obj;
   },

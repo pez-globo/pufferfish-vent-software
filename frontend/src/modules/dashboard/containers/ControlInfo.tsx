@@ -12,6 +12,8 @@ interface Props {
   label: string;
   stateKey: string;
   units?: string;
+  min?: number;
+  max?: number;
 }
 
 interface ValueProps {
@@ -124,7 +126,7 @@ export const ValueControl = ({ value, label, units }: ValueProps): JSX.Element =
  *
  */
 const ControlInfo = (props: Props): JSX.Element => {
-  const { value, label, units, stateKey, committedSetting } = props;
+  const { value, label, units, stateKey, committedSetting, min, max } = props;
   const [open, setOpen] = useState(false);
   const dispatch = useDispatch();
   const doSetValue = (setting: number) => {
@@ -157,6 +159,8 @@ const ControlInfo = (props: Props): JSX.Element => {
         label={label}
         units={units}
         requestCommitSetting={doSetValue}
+        {...(min && { min })}
+        {...(max && { max })}
       />
     </div>
   );

@@ -37,7 +37,7 @@
 
 #include "Pufferfish/Driver/Testable.h"
 #include "Pufferfish/HAL/HAL.h"
-#include "SensirionSensor.h"
+#include "SensirionDevice.h"
 
 namespace Pufferfish {
 namespace Driver {
@@ -60,7 +60,7 @@ class SDPSensor : public Testable {
   static constexpr uint16_t sdp3x_i2c_addr = 0x21;
   static constexpr uint16_t sdp8xx_i2c_addr = 0x25;
 
-  // Cppcheck false positive, dev cannot be given to SensirionSensor ctor as
+  // Cppcheck false positive, dev cannot be given to SensirionDevice ctor as
   // const ref cppcheck-suppress constParameter
   SDPSensor(HAL::I2CDevice &dev, HAL::Time &time) : sensirion_(dev), time_(time) {}
 
@@ -116,7 +116,7 @@ class SDPSensor : public Testable {
 
   static const size_t full_reading_size = 6;
 
-  SensirionSensor sensirion_;
+  SensirionDevice sensirion_;
   HAL::Time &time_;
   bool measuring_ = false;
 

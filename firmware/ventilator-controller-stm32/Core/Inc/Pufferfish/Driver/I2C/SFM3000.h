@@ -12,7 +12,7 @@
 
 #include "Pufferfish/Driver/Testable.h"
 #include "Pufferfish/HAL/Interfaces/Time.h"
-#include "SensirionSensor.h"
+#include "SensirionDevice.h"
 
 namespace Pufferfish {
 namespace Driver {
@@ -67,7 +67,7 @@ class SFM3000 : public Testable {
   static const uint8_t crc_poly = 0x31;
   static const uint8_t crc_init = 0x00;
 
-  SensirionSensor sensirion_;
+  SensirionDevice sensirion_;
   bool measuring_ = false;
   HAL::Time &time_;
   float scale_factor_;

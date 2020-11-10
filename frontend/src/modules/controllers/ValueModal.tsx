@@ -44,6 +44,8 @@ interface Props {
   requestCommitSetting(setting: number): void;
   updateModalStatus?(status: boolean): void;
   openModal?: boolean;
+  min?: number;
+  max?: number;
 }
 
 export const ValueModal = ({
@@ -54,6 +56,8 @@ export const ValueModal = ({
   openModal = false,
   updateModalStatus,
   requestCommitSetting,
+  min = 0,
+  max = 100,
 }: Props): JSX.Element => {
   const classes = useStyles();
   const rotaryEncoder = useSelector(getRotaryEncoder);
@@ -61,9 +65,9 @@ export const ValueModal = ({
   const [value, setValue] = React.useState(committedSetting);
 
   const initSetValue = useCallback(() => {
-    setValue(committedSetting);
+    setValue(committedSetting >= min ? committedSetting : min);
     setOpen(openModal);
-  }, [committedSetting, openModal]);
+  }, [committedSetting, openModal, min]);
 
   useEffect(() => {
     initSetValue();
@@ -93,13 +97,12 @@ export const ValueModal = ({
     () => {
       if (open) {
         const stepDiff = rotaryEncoder.stepDiff || 0;
-        const valueClone = value >= 0 ? value : 0;
+        const valueClone = value >= min ? value : min;
         const newValue = valueClone + stepDiff;
-        // TODO: Replace 0/100 with respective min/max value
-        if (newValue < 0) {
-          setValue(0);
-        } else if (newValue > 100) {
-          setValue(100);
+        if (newValue < min) {
+          setValue(min);
+        } else if (newValue > max) {
+          setValue(max);
         } else {
           setValue(newValue);
         }
@@ -109,7 +112,7 @@ export const ValueModal = ({
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [rotaryEncoder.step, rotaryEncoder.buttonPressed],
+    [rotaryEncoder.step, rotaryEncoder.buttonPressed, min, max],
   );
 
   useEffect(() => {
@@ -164,7 +167,7 @@ export const ValueModal = ({
             </Grid>
           </Grid>
           <Grid item>
-            <ValueClicker value={value} min={0} max={100} onClick={setValue} />
+            <ValueClicker value={value} min={min} max={max} onClick={setValue} />
           </Grid>
         </Grid>
       </ModalPopup>

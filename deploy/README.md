@@ -76,7 +76,9 @@ This will setup required components for pufferfish-vent-software in the given or
 - Internal Watchdog
 - Read-only filesystem (Overlayfs)
 - Disables unnecessary background services
-- User and Network security
+- Network Security
+- Data Tampering Security
+- User Security
 
 ---
 

@@ -17,16 +17,16 @@ void PI::transform(float measurement, float setpoint, float &actuation) {
   if (error_integral_ < i_min) {
     error_integral_ = i_min;
   }
-  if (error_integral_ < i_max) {
+  if (error_integral_ > i_max) {
     error_integral_ = i_max;
   }
 
   actuation = error_ * p_gain + error_integral_ * i_gain;
-  if (actuation < 0) {
-    actuation = 0;
+  if (actuation < out_min) {
+    actuation = out_min;
   }
-  if (actuation > 1) {
-    actuation = 1;
+  if (actuation > out_max) {
+    actuation = out_max;
   }
 }
 

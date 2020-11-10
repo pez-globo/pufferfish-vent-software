@@ -43,7 +43,9 @@ const FlowInfo = (): JSX.Element => {
   return (
     <Knob
       valueDisplay={<FlowDisplay label={label} units={units} isLive={true} />}
-      valueModal={<FlowValueModal label={label} units={units} requestCommitSetting={doSetFlow} />}
+      valueModal={
+        <FlowValueModal label={label} units={units} requestCommitSetting={doSetFlow} max={80} />
+      }
       alarmModal={
         <AlarmModal
           label={label}
