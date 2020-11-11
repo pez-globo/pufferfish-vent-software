@@ -138,7 +138,7 @@ SCENARIO("Validate the valid first Packet", "[NoninOem3]") {
     PF::Driver::Serial::Nonin::PacketMeasurements sensor_measurements{};
     WHEN("Receiving first frame of data from FrameReceiver") {
       packet_input_status = packet_receiver.input(test_packet[0]);
-      REQUIRE(0x01 == ((test_packet[0][1]) & 0x01));
+      REQUIRE(0x01 == ((test_packet[0][1]) & 0x01U));
       THEN("Packet Input status shall return waiting status") {
         REQUIRE(packet_input_status == input_status_waiting);
       }
@@ -149,7 +149,7 @@ SCENARIO("Validate the valid first Packet", "[NoninOem3]") {
       THEN("For the frames 2 to 24 Packet Input status shall return waiting status") {
         for (index = 1; index < (PF::Driver::Serial::Nonin::packet_size - 1); index++) {
           packet_input_status = packet_receiver.input(test_packet[index]);
-          REQUIRE((test_packet[index][1] & 0x01) == 0x00);
+          REQUIRE((test_packet[index][1] & 0x01U) == 0x00);
           REQUIRE(packet_input_status == input_status_waiting);
         }
       }
@@ -161,7 +161,7 @@ SCENARIO("Validate the valid first Packet", "[NoninOem3]") {
       }
       THEN("For the 25th frame Packet Input status shall return available status") {
         packet_input_status = packet_receiver.input(test_packet[24]);
-        REQUIRE((test_packet[index][1] & 0x01) == 0x00);
+        REQUIRE((test_packet[index][1] & 0x01U) == 0x00);
         REQUIRE(packet_input_status == input_status_available);
       }
     }
@@ -223,7 +223,7 @@ SCENARIO("Validate the valid first Packet", "[NoninOem3]") {
     PF::Driver::Serial::Nonin::PacketMeasurements sensor_measurements{};
     WHEN("Receiving first frame of data from FrameReceiver") {
       packet_input_status = packet_receiver.input(test_packet[0]);
-      REQUIRE(0x01 == ((test_packet[0][1]) & 0x01));
+      REQUIRE(0x01 == ((test_packet[0][1]) & 0x01U));
       THEN("Packet Input status shall return waiting status") {
         REQUIRE(packet_input_status == input_status_waiting);
       }
@@ -234,7 +234,7 @@ SCENARIO("Validate the valid first Packet", "[NoninOem3]") {
       THEN("For the frames 2 to 24 Packet Input status shall return waiting status") {
         for (index = 1; index < (PF::Driver::Serial::Nonin::packet_size - 1); index++) {
           packet_input_status = packet_receiver.input(test_packet[index]);
-          REQUIRE((test_packet[index][1] & 0x01) != 0x01);
+          REQUIRE((test_packet[index][1] & 0x01U) != 0x01);
           REQUIRE(packet_input_status == input_status_waiting);
         }
       }
@@ -246,7 +246,7 @@ SCENARIO("Validate the valid first Packet", "[NoninOem3]") {
       }
       THEN("For the 25th frame Packet Input status shall return available status") {
         packet_input_status = packet_receiver.input(test_packet[24]);
-        REQUIRE((test_packet[index][1] & 0x01) != 0x01);
+        REQUIRE((test_packet[index][1] & 0x01U) != 0x01);
         REQUIRE(packet_input_status == input_status_available);
       }
     }
@@ -316,7 +316,7 @@ SCENARIO("Validate the packets data with invalid data") {
 
     WHEN("Receiving first frame of data from FrameReceiver") {
       packet_input_status = packet_receiver.input(test_frames[0]);
-      REQUIRE(0x01 == ((test_frames[0][1]) & 0x01));
+      REQUIRE(0x01 == ((test_frames[0][1]) & 0x01U));
       THEN("Packet Input status shall return waiting status") {
         REQUIRE(packet_input_status == input_status_waiting);
       }
@@ -326,14 +326,14 @@ SCENARIO("Validate the packets data with invalid data") {
       THEN("For the frames 2 to 24 Packet Input status shall return waiting status") {
         for (index = 1; index < 24; index++) {
           packet_input_status = packet_receiver.input(test_frames[index]);
-          REQUIRE((test_frames[index][1] & 0x01) != 0x01);
+          REQUIRE((test_frames[index][1] & 0x01U) != 0x01);
           REQUIRE(packet_input_status == input_status_waiting);
         }
       }
     }
     AND_WHEN("Valid 25th frame is received") {
       for (index = 0; index < 24; index++) {
-        packet_input_status = packet_receiver.input(test_frames[index]);
+        packet_receiver.input(test_frames[index]);
       }
       packet_input_status = packet_receiver.input(test_frames[index]);
       THEN("packet_input_status shall return available") {
@@ -445,7 +445,7 @@ SCENARIO("Validate the packets data with invalid data") {
 
     WHEN("Receiving first frame of data from FrameReceiver") {
       packet_input_status = packet_receiver.input(test_frames[0]);
-      REQUIRE(0x01 == ((test_frames[0][1]) & 0x01));
+      REQUIRE(0x01 == ((test_frames[0][1]) & 0x01U));
       THEN("Packet Input status shall return waiting status") {
         REQUIRE(packet_input_status == input_status_waiting);
       }
@@ -455,7 +455,7 @@ SCENARIO("Validate the packets data with invalid data") {
       THEN("For the frames 2 to 23 Packet Input status shall return waiting status") {
         for (index = 1; index < 23; index++) {
           packet_input_status = packet_receiver.input(test_frames[index]);
-          REQUIRE((test_frames[index][1] & 0x01) != 0x01);
+          REQUIRE((test_frames[index][1] & 0x01U) != 0x01);
           REQUIRE(packet_input_status == input_status_waiting);
         }
       }
@@ -467,7 +467,7 @@ SCENARIO("Validate the packets data with invalid data") {
       }
       THEN("packet Input Status shall be missed_data") {
         packet_input_status = packet_receiver.input(test_frames[23]);
-        REQUIRE((test_frames[index][1] & 0x01) == 0x01);
+        REQUIRE((test_frames[index][1] & 0x01U) == 0x01);
         REQUIRE(23 != PF::Driver::Serial::Nonin::packet_size);
         REQUIRE(packet_input_status == input_status_missed_data);
       }
@@ -479,7 +479,7 @@ SCENARIO("Validate the packets data with invalid data") {
       THEN("on 24th frame packet Input Status shall be missed_data")
       for (index = 24; index < 47; index++) {
         packet_input_status = packet_receiver.input(test_frames[index]);
-        REQUIRE((test_frames[index][1] & 0x01) != 0x01);
+        REQUIRE((test_frames[index][1] & 0x01U) != 0x01);
         REQUIRE(packet_input_status == input_status_waiting);
       }
     }
@@ -489,7 +489,7 @@ SCENARIO("Validate the packets data with invalid data") {
       }
       THEN("On 48th frame packet Input Status shall be available") {
         packet_input_status = packet_receiver.input(test_frames[index]);
-        REQUIRE((test_frames[index][1] & 0x01) != 0x01);
+        REQUIRE((test_frames[index][1] & 0x01U) != 0x01);
         REQUIRE(packet_input_status == input_status_available);
       }
     }
@@ -532,7 +532,7 @@ SCENARIO("Validate the packets data with invalid data") {
 
     WHEN("Receiving first frame of data from FrameReceiver") {
       packet_input_status = packet_receiver.input(test_frames[0]);
-      REQUIRE(0x01 == ((test_frames[0][1]) & 0x01));
+      REQUIRE(0x01 == ((test_frames[0][1]) & 0x01U));
       THEN("Packet Input status shall return waiting") {
         REQUIRE(packet_input_status == input_status_waiting);
       }
@@ -543,7 +543,7 @@ SCENARIO("Validate the packets data with invalid data") {
       THEN("For the frames 2 to 5 Packet Input status shall return waiting status") {
         for (index = 1; index < 5; index++) {
           packet_input_status = packet_receiver.input(test_frames[index]);
-          REQUIRE((test_frames[index][1] & 0x01) != 0x01);
+          REQUIRE((test_frames[index][1] & 0x01U) != 0x01);
           REQUIRE(packet_input_status == input_status_waiting);
         }
       }

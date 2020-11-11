@@ -117,7 +117,7 @@ SCENARIO("10 bytes of data for shift_left and reset.", "[NoninOEM3]") {
     }
     AND_WHEN("FrameBuffer output status is ok") {
       for (index = 0; index < 5; index++) {
-        buffer_status = frame_buffer.input(input_data[index]);
+        frame_buffer.input(input_data[index]);
       }
       buffer_status = frame_buffer.output(frame_data);
       REQUIRE(buffer_status == PF::BufferStatus::ok);
@@ -128,7 +128,7 @@ SCENARIO("10 bytes of data for shift_left and reset.", "[NoninOEM3]") {
     }
     AND_WHEN("FrameBuffer output status is ok") {
       for (index = 0; index < 5; index++) {
-        buffer_status = frame_buffer.input(input_data[index]);
+        frame_buffer.input(input_data[index]);
       }
       buffer_status = frame_buffer.output(frame_data);
       REQUIRE(buffer_status == PF::BufferStatus::ok);
@@ -140,7 +140,7 @@ SCENARIO("10 bytes of data for shift_left and reset.", "[NoninOEM3]") {
     }
     AND_WHEN("FrameBuffer input status is ok after FrameBuffer::left_shift") {
       for (index = 0; index < 5; index++) {
-        buffer_status = frame_buffer.input(input_data[index]);
+        frame_buffer.input(input_data[index]);
       }
       frame_buffer.shift_left();
       buffer_status = frame_buffer.input(input_data[5]);
@@ -155,7 +155,7 @@ SCENARIO("10 bytes of data for shift_left and reset.", "[NoninOEM3]") {
     }
     WHEN("FrameBuffer::output status is ok") {
       for (index = 0; index < 5; index++) {
-        buffer_status = frame_buffer.input(input_data[index]);
+        frame_buffer.input(input_data[index]);
       }
       buffer_status = frame_buffer.output(frame_data);
       REQUIRE(buffer_status == PF::BufferStatus::ok);
@@ -169,7 +169,7 @@ SCENARIO("10 bytes of data for shift_left and reset.", "[NoninOEM3]") {
     }
     AND_WHEN("FrameBuffer::output status is ok") {
       for (index = 0; index < 5; index++) {
-        buffer_status = frame_buffer.input(input_data[index]);
+        frame_buffer.input(input_data[index]);
       }
       buffer_status = frame_buffer.output(frame_data);
       REQUIRE(buffer_status == PF::BufferStatus::ok);

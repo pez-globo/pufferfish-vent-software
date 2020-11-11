@@ -94,7 +94,7 @@ SCENARIO("Complete packet is not available", "[NoninOEM3]") {
     }
     AND_WHEN("5th byte received from BufferedUART") {
       for (index = 0; index < 4; index++) {
-        return_status = nonin_uart.output(sensor_measurements);
+        nonin_uart.output(sensor_measurements);
       }
       THEN("return_status of Device::output shall be waiting") {
         return_status = nonin_uart.output(sensor_measurements);
@@ -103,7 +103,7 @@ SCENARIO("Complete packet is not available", "[NoninOEM3]") {
     }
     AND_WHEN("2nd frame data is received from BufferedUART") {
       for (index = 0; index < 5; index++) {
-        return_status = nonin_uart.output(sensor_measurements);
+        nonin_uart.output(sensor_measurements);
       }
       THEN("return_status of Device::output shall be waiting") {
         for (index = 5; index < 10; index++) {
@@ -132,7 +132,7 @@ SCENARIO("Complete packet is not available", "[NoninOEM3]") {
     }
     AND_WHEN("5th byte received from BufferedUART") {
       for (index = 0; index < 4; index++) {
-        return_status = nonin_uart.output(sensor_measurements);
+        nonin_uart.output(sensor_measurements);
       }
       THEN("return_status of Device::output shall be waiting") {
         return_status = nonin_uart.output(sensor_measurements);
@@ -141,7 +141,7 @@ SCENARIO("Complete packet is not available", "[NoninOEM3]") {
     }
     AND_WHEN("2nd frame data is received from BufferedUART") {
       for (index = 0; index < 5; index++) {
-        return_status = nonin_uart.output(sensor_measurements);
+        nonin_uart.output(sensor_measurements);
       }
       THEN("return_status of Device::output shall be waiting") {
         for (index = 5; index < 9; index++) {
@@ -152,7 +152,7 @@ SCENARIO("Complete packet is not available", "[NoninOEM3]") {
     }
     AND_WHEN("2nd frame checksum byte(i.e., 10th byte) is received from BufferedUART") {
       for (index = 0; index < 9; index++) {
-        return_status = nonin_uart.output(sensor_measurements);
+        nonin_uart.output(sensor_measurements);
       }
       THEN("return_status of Device::output shall be framing_error on checksum error") {
         return_status = nonin_uart.output(sensor_measurements);
@@ -179,7 +179,7 @@ SCENARIO("Complete packet is not available", "[NoninOEM3]") {
     }
     AND_WHEN("5th byte received from BufferedUART") {
       for (index = 0; index < 4; index++) {
-        return_status = nonin_uart.output(sensor_measurements);
+        nonin_uart.output(sensor_measurements);
       }
       THEN("return_status of Device::output shall be waiting") {
         return_status = nonin_uart.output(sensor_measurements);
@@ -188,7 +188,7 @@ SCENARIO("Complete packet is not available", "[NoninOEM3]") {
     }
     AND_WHEN("2nd frame data is received from BufferedUART") {
       for (index = 0; index < 5; index++) {
-        return_status = nonin_uart.output(sensor_measurements);
+        nonin_uart.output(sensor_measurements);
       }
       THEN("return_status of Device::output shall be waiting") {
         for (index = 5; index < 9; index++) {
@@ -199,7 +199,7 @@ SCENARIO("Complete packet is not available", "[NoninOEM3]") {
     }
     AND_WHEN("10th byte is received from BufferedUART") {
       for (index = 0; index < 9; index++) {
-        return_status = nonin_uart.output(sensor_measurements);
+        nonin_uart.output(sensor_measurements);
       }
       THEN("return_status of Device::output shall be framing_error on status byte error") {
         return_status = nonin_uart.output(sensor_measurements);
@@ -516,7 +516,7 @@ SCENARIO("Validate NoninOEM3 for valid packet data", "[NoninOEM3]") {
     }
     AND_WHEN("return_status for valid 124 bytes data is waiting") {
       for (index = 0; index < 124; index++) {
-        return_status = nonin_uart.output(sensor_measurements);
+        nonin_uart.output(sensor_measurements);
       }
       THEN("invoke the nonin_uart to read 125th byte data") {
         return_status = nonin_uart.output(sensor_measurements);

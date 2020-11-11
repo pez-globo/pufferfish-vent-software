@@ -140,3 +140,21 @@ jobs:
       run: |
         cd cmake-build-testcatch2
         ./TestCatch2
+
+  catch2-clang-tidy:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get install cmake
+
+    - name: Run CMake
+      run: |
+        ./cmake.sh TestCatch2
+
+    - name: Run clang-tidy
+      run: |
+        ./clang-tidy-all.sh TestCatch2
