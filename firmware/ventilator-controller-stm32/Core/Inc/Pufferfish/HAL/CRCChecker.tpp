@@ -25,8 +25,9 @@ Checksum SoftCRC<Checksum>::compute(const uint8_t *data, size_t size) {
     if (ref_in) {
       byte = reflect(byte);
     }
-    uint8_t lookup_index = byte ^ (remainder >> (width - 8));
-    remainder = crc_table_[lookup_index] ^ (remainder << 8);
+    uint8_t lookup_index = byte ^ static_cast<uint8_t>(remainder >> (width - CHAR_BIT));
+    remainder = crc_table_[lookup_index] ^
+                static_cast<Checksum>(remainder << static_cast<uint8_t>(CHAR_BIT));
   }
 
   if (ref_out) {
@@ -43,12 +44,12 @@ void SoftCRC<Checksum>::setup() {
 
   // Compute the remainder of each possible dividend
   for (size_t dividend = 0; dividend < table_size; ++dividend) {
-    Checksum remainder = dividend << (width - 8);
+    Checksum remainder = dividend << (width - CHAR_BIT);
     for (uint8_t i = CHAR_BIT; i > 0; --i) {
       if (remainder & top_bit) {
-        remainder = (remainder << 1) ^ polynomial;
+        remainder = static_cast<Checksum>(remainder << 1U) ^ polynomial;
       } else {
-        remainder = remainder << 1;
+        remainder = remainder << 1U;
       }
     }
     crc_table_[dividend] = remainder;
@@ -58,14 +59,15 @@ void SoftCRC<Checksum>::setup() {
 template <typename T>
 T reflect(T num) {
   // Adapted from https://barrgroup.com/Embedded-Systems/How-To/CRC-Calculation-C-Code
-  T reflection = 0;
+  static const T last_bit_mask = 0x01;
   const size_t num_bits = CHAR_BIT * sizeof(T);
+  T reflection = 0;
 
   for (size_t i = 0; i < num_bits; ++i) {
-    if ((num & 0x01) != 0) {
-      reflection |= 1 << (num_bits - 1U - i);
+    if ((num & last_bit_mask) != 0) {
+      reflection |= 1U << (num_bits - 1U - i);
     }
-    num = num >> 1;
+    num = num >> 1U;
   }
 
   return reflection;
