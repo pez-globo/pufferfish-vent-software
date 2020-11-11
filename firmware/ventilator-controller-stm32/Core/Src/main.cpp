@@ -108,7 +108,7 @@ PF::Driver::BreathingCircuit::ParametersServices parameters_service;
 PF::Driver::BreathingCircuit::Simulators simulator;
 
 // HAL Utilities
-PF::HAL::CRC32C crc32c(hcrc);
+PF::HAL::HALCRC32 crc32c(hcrc);
 
 // HAL Time
 PF::HAL::HALTime time;

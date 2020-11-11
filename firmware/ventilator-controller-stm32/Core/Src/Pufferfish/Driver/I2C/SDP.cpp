@@ -62,7 +62,7 @@ I2CDeviceStatus SDPSensor::serial_number(uint32_t &pn, uint64_t &sn) {
 
   static const size_t pn_data_size = 12;
   std::array<uint8_t, pn_data_size> data{};
-  I2CDeviceStatus ret2 = sensirion_.read(data, crc_poly, crc_init);
+  I2CDeviceStatus ret2 = sensirion_.read(data);
   if (ret2 != I2CDeviceStatus::ok) {
     return ret2;
   }
@@ -116,7 +116,7 @@ I2CDeviceStatus SDPSensor::read_full_sample(SDPSample &sample) {
 
   std::array<uint8_t, full_reading_size> data{};
 
-  I2CDeviceStatus ret = sensirion_.read(data, crc_poly, crc_init);
+  I2CDeviceStatus ret = sensirion_.read(data);
   if (ret == I2CDeviceStatus::read_error) {
     /// get NACK, no new data is available
     return I2CDeviceStatus::no_new_data;
@@ -259,7 +259,7 @@ I2CDeviceStatus SDPSensor::read_pressure_sample(
   static const uint8_t data_len = 2;
   std::array<uint8_t, data_len> data{{0}};
 
-  I2CDeviceStatus ret = sensirion_.read(data, crc_poly, crc_init);
+  I2CDeviceStatus ret = sensirion_.read(data);
   if (ret == I2CDeviceStatus::read_error) {
     // get NACK, no new data is available
     return I2CDeviceStatus::no_new_data;

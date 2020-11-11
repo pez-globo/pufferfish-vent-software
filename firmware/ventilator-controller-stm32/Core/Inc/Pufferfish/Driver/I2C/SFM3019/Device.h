@@ -14,6 +14,7 @@
 
 #include "Pufferfish/Driver/I2C/SensirionDevice.h"
 #include "Pufferfish/Driver/Testable.h"
+#include "Pufferfish/HAL/CRCChecker.h"
 #include "Pufferfish/HAL/Interfaces/I2CDevice.h"
 #include "Types.h"
 
@@ -27,7 +28,7 @@ static const uint16_t default_i2c_addr = 0x2e;
 class Device {
  public:
   explicit Device(HAL::I2CDevice &dev, HAL::I2CDevice &global_dev, GasType gas)
-      : sensirion_(dev), global_(global_dev), gas(gas) {}
+      : crc8_(crc_params), sensirion_(dev, crc8_), global_(global_dev, crc8_), gas(gas) {}
 
   /**
    * Starts a flow measurement
@@ -82,12 +83,12 @@ class Device {
   I2CDeviceStatus reset();
 
  private:
-  static const uint8_t crc_poly = 0x31;
-  static const uint8_t crc_init = 0xff;
+  static constexpr HAL::CRC8Parameters crc_params = {0x31, 0xff, false, false, 0x00};
 
+  HAL::SoftCRC8 crc8_;
   SensirionDevice sensirion_;
   SensirionDevice global_;
-  const GasType gas = GasType::air;
+  const GasType gas;
 };
 
 }  // namespace Pufferfish::Driver::I2C::SFM3019

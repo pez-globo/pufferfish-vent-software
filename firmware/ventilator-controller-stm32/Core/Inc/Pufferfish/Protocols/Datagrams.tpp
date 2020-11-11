@@ -10,7 +10,6 @@
 #include <type_traits>
 
 #include "Datagrams.h"
-#include "Pufferfish/HAL/STM32/CRC.h"
 #include "Pufferfish/Util/Endian.h"
 
 namespace Pufferfish::Protocols {

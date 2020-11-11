@@ -10,6 +10,7 @@
 
 #include <array>
 
+#include "Pufferfish/HAL/Interfaces/CRCChecker.h"
 #include "Pufferfish/HAL/Interfaces/I2CDevice.h"
 
 namespace Pufferfish::Driver::I2C {
@@ -19,7 +20,7 @@ namespace Pufferfish::Driver::I2C {
  */
 class SensirionDevice {
  public:
-  explicit SensirionDevice(HAL::I2CDevice &dev) : dev_(dev) {}
+  explicit SensirionDevice(HAL::I2CDevice &dev, HAL::CRC8 &crc8) : dev_(dev), crc8_(crc8) {}
 
   /**
    * Reads a data from the sensor, while performing CRC check
@@ -31,7 +32,7 @@ class SensirionDevice {
    * @return ok on success, error code otherwise
    */
   template <size_t size>
-  I2CDeviceStatus read(std::array<uint8_t, size> &buf, uint8_t polynomial, uint8_t init);
+  I2CDeviceStatus read(std::array<uint8_t, size> &buf);
 
   /**
    * Writes a single-byte command to the device
@@ -55,10 +56,11 @@ class SensirionDevice {
    * @param init    a initial value for CRC calculation
    * @return ok on success, error code otherwise
    */
-  I2CDeviceStatus write(uint16_t command, uint16_t arg, uint8_t polynomial, uint8_t init);
+  I2CDeviceStatus write(uint16_t command, uint16_t arg);
 
  private:
   HAL::I2CDevice &dev_;
+  HAL::CRC8 &crc8_;
 };
 
 }  // namespace Pufferfish::Driver::I2C

@@ -36,6 +36,7 @@
 #include <array>
 
 #include "Pufferfish/Driver/Testable.h"
+#include "Pufferfish/HAL/CRCChecker.h"
 #include "Pufferfish/HAL/HAL.h"
 #include "SensirionDevice.h"
 
@@ -62,7 +63,8 @@ class SDPSensor : public Testable {
 
   // Cppcheck false positive, dev cannot be given to SensirionDevice ctor as
   // const ref cppcheck-suppress constParameter
-  SDPSensor(HAL::I2CDevice &dev, HAL::Time &time) : sensirion_(dev), time_(time) {}
+  SDPSensor(HAL::I2CDevice &dev, HAL::Time &time)
+      : crc8_(crc_params), sensirion_(dev, crc8_), time_(time) {}
 
   /**
    * start continuously making measurements in sensor
@@ -111,11 +113,11 @@ class SDPSensor : public Testable {
   I2CDeviceStatus test() override;
 
  private:
-  static const uint8_t crc_poly = 0x31;
-  static const uint8_t crc_init = 0xff;
+  static constexpr HAL::CRC8Parameters crc_params = {0x31, 0xff, false, false, 0x00};
 
   static const size_t full_reading_size = 6;
 
+  HAL::SoftCRC8 crc8_;
   SensirionDevice sensirion_;
   HAL::Time &time_;
   bool measuring_ = false;

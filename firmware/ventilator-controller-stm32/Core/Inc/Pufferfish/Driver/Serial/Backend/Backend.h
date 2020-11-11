@@ -11,7 +11,7 @@
 
 #include "Frames.h"
 #include "Pufferfish/Application/States.h"
-#include "Pufferfish/HAL/CRC.h"
+#include "Pufferfish/HAL/Interfaces/CRCChecker.h"
 #include "Pufferfish/Protocols/CRCElements.h"
 #include "Pufferfish/Protocols/Datagrams.h"
 #include "Pufferfish/Protocols/Messages.h"
@@ -72,7 +72,7 @@ class BackendReceiver {
     invalid_message_encoding
   };
 
-  explicit BackendReceiver(HAL::CRC32C &crc32c) : crc_(crc32c), message_(message_descriptors) {}
+  explicit BackendReceiver(HAL::CRC32 &crc32c) : crc_(crc32c), message_(message_descriptors) {}
 
   // Call this until it returns outputReady, then call output
   InputStatus input(uint8_t new_byte);
@@ -107,7 +107,7 @@ class BackendSender {
     invalid_return_code
   };
 
-  explicit BackendSender(HAL::CRC32C &crc32c) : message_(message_descriptors), crc_(crc32c) {}
+  explicit BackendSender(HAL::CRC32 &crc32c) : message_(message_descriptors), crc_(crc32c) {}
 
   Status transform(const BackendMessage &input_message, FrameProps::ChunkBuffer &output_buffer);
 
@@ -127,7 +127,7 @@ class Backend {
  public:
   enum class Status { ok = 0, waiting, invalid };
 
-  Backend(HAL::CRC32C &crc32c, Application::States &states)
+  Backend(HAL::CRC32 &crc32c, Application::States &states)
       : receiver_(crc32c), sender_(crc32c), synchronizer_(states, state_sync_schedule) {}
 
   Status input(uint8_t new_byte);

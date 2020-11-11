@@ -11,6 +11,7 @@
 #pragma once
 
 #include "Pufferfish/Driver/Testable.h"
+#include "Pufferfish/HAL/CRCChecker.h"
 #include "Pufferfish/HAL/Interfaces/Time.h"
 #include "SensirionDevice.h"
 
@@ -38,7 +39,7 @@ class SFM3000 : public Testable {
   static constexpr float scale_factor_o2 = 142.8F;
 
   explicit SFM3000(HAL::I2CDevice &dev, HAL::Time &time, float scale_factor = scale_factor_air)
-      : sensirion_(dev), time_(time), scale_factor_(scale_factor) {}
+      : crc8_(crc_params), sensirion_(dev, crc8_), time_(time), scale_factor_(scale_factor) {}
 
   /**
    * Starts a flow measurement
@@ -64,9 +65,9 @@ class SFM3000 : public Testable {
   I2CDeviceStatus test() override;
 
  private:
-  static const uint8_t crc_poly = 0x31;
-  static const uint8_t crc_init = 0x00;
+  static constexpr HAL::CRC8Parameters crc_params = {0x31, 0x00, false, false, 0x00};
 
+  HAL::SoftCRC8 crc8_;
   SensirionDevice sensirion_;
   bool measuring_ = false;
   HAL::Time &time_;

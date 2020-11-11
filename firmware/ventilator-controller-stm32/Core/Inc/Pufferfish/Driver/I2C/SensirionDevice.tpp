@@ -6,14 +6,12 @@
 
 #pragma once
 
-#include "Pufferfish/HAL/CRC.h"
 #include "SensirionDevice.h"
 
 namespace Pufferfish::Driver::I2C {
 
 template <size_t size>
-I2CDeviceStatus SensirionDevice::read(
-    std::array<uint8_t, size> &buf, uint8_t polynomial, uint8_t init) {
+I2CDeviceStatus SensirionDevice::read(std::array<uint8_t, size> &buf) {
   static_assert(size % 2 == 0, "Read size must be an even number");
 
   std::array<uint8_t, 3 * size / 2> buf_with_crc{};
@@ -22,8 +20,7 @@ I2CDeviceStatus SensirionDevice::read(
     return ret;
   }
   for (size_t word_start = 0; word_start < buf_with_crc.size(); word_start += 3) {
-    uint8_t expected_crc = Pufferfish::HAL::compute_crc8(
-        buf_with_crc.data() + word_start, sizeof(uint16_t), polynomial, init, false, false, 0x00);
+    uint8_t expected_crc = crc8_.compute(buf_with_crc.data() + word_start, sizeof(uint16_t));
     uint8_t received_crc = buf_with_crc[word_start + sizeof(uint16_t)];
     if (expected_crc != received_crc) {
       return I2CDeviceStatus::crc_check_failed;
