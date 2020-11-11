@@ -43,7 +43,7 @@ SCENARIO("FrameReceiver Input for 20 bytes of data.", "[NoninOEM3]") {
     PF::Driver::Serial::Nonin::FrameReceiver frame_receiver;
     PF::Driver::Serial::Nonin::FrameReceiver::FrameInputStatus frame_input_status;
     PF::Driver::Serial::Nonin::FrameReceiver::FrameOutputStatus frame_output_status;
-    Frame frameOutput;
+    Frame frame_output;
     uint8_t input_data[20] = {0x01, 0x81, 0x01, 0x00, 0x83, 0x01, 0x80, 0x01, 0x48, 0xCA,
                               0x01, 0x80, 0x01, 0x61, 0xE3, 0x01, 0x80, 0x01, 0x30, 0xB2};
 
@@ -69,7 +69,7 @@ SCENARIO("FrameReceiver Input for 20 bytes of data.", "[NoninOEM3]") {
       for (uint8_t index = 0; index < 5; index++) {
         frame_input_status = frame_receiver.input(input_data[index]);
       }
-      frame_output_status = frame_receiver.output(frameOutput);
+      frame_output_status = frame_receiver.output(frame_output);
       REQUIRE(frame_output_status == output_available);
       THEN("frame_receiver::input should return waiting") {
         for (uint8_t index = 5; index < 9; index++) {
@@ -81,11 +81,11 @@ SCENARIO("FrameReceiver Input for 20 bytes of data.", "[NoninOEM3]") {
     WHEN("On input of 10th byte of INPUT_DATA to FrameReceiver ") {
       for (uint8_t index = 0; index < 9; index++) {
         if (index == 5) {
-          frame_output_status = frame_receiver.output(frameOutput);
+          frame_output_status = frame_receiver.output(frame_output);
         }
         frame_input_status = frame_receiver.input(input_data[index]);
       }
-      frame_output_status = frame_receiver.output(frameOutput);
+      frame_output_status = frame_receiver.output(frame_output);
       REQUIRE(frame_output_status == output_waiting);
       THEN("frame_receiver::input should return available") {
         frame_input_status = frame_receiver.input(input_data[9]);
@@ -96,11 +96,11 @@ SCENARIO("FrameReceiver Input for 20 bytes of data.", "[NoninOEM3]") {
     WHEN("On input of 11 to 14 bytes of INPUT_DATA to FrameReceiver ") {
       for (uint8_t index = 0; index < 10; index++) {
         if (index == 5) {
-          frame_output_status = frame_receiver.output(frameOutput);
+          frame_output_status = frame_receiver.output(frame_output);
         }
         frame_input_status = frame_receiver.input(input_data[index]);
       }
-      frame_output_status = frame_receiver.output(frameOutput);
+      frame_output_status = frame_receiver.output(frame_output);
       REQUIRE(frame_output_status == output_available);
       THEN("frame_receiver::input should return waiting") {
         for (uint8_t index = 10; index < 14; index++) {
@@ -112,11 +112,11 @@ SCENARIO("FrameReceiver Input for 20 bytes of data.", "[NoninOEM3]") {
     WHEN("On input of 15th byte of INPUT_DATA to FrameReceiver ") {
       for (uint8_t index = 0; index < 14; index++) {
         if (index % 5 == 0) {
-          frame_output_status = frame_receiver.output(frameOutput);
+          frame_output_status = frame_receiver.output(frame_output);
         }
         frame_input_status = frame_receiver.input(input_data[index]);
       }
-      frame_output_status = frame_receiver.output(frameOutput);
+      frame_output_status = frame_receiver.output(frame_output);
       REQUIRE(frame_output_status == output_waiting);
       THEN("frame_receiver::input should return available") {
         frame_input_status = frame_receiver.input(input_data[14]);
@@ -127,11 +127,11 @@ SCENARIO("FrameReceiver Input for 20 bytes of data.", "[NoninOEM3]") {
     WHEN("On input of 16 to 19 bytes of INPUT_DATA to FrameReceiver ") {
       for (uint8_t index = 0; index < 15; index++) {
         if (index % 5 == 0) {
-          frame_output_status = frame_receiver.output(frameOutput);
+          frame_output_status = frame_receiver.output(frame_output);
         }
         frame_input_status = frame_receiver.input(input_data[index]);
       }
-      frame_output_status = frame_receiver.output(frameOutput);
+      frame_output_status = frame_receiver.output(frame_output);
       REQUIRE(frame_output_status == output_available);
       THEN("frame_receiver::input should return waiting") {
         for (uint8_t index = 15; index < 19; index++) {
@@ -143,16 +143,16 @@ SCENARIO("FrameReceiver Input for 20 bytes of data.", "[NoninOEM3]") {
     WHEN("On input of 10th byte of INPUT_DATA to FrameReceiver ") {
       for (uint8_t index = 0; index < 19; index++) {
         if (index % 5 == 0) {
-          frame_output_status = frame_receiver.output(frameOutput);
+          frame_output_status = frame_receiver.output(frame_output);
         }
         frame_input_status = frame_receiver.input(input_data[index]);
       }
-      frame_output_status = frame_receiver.output(frameOutput);
+      frame_output_status = frame_receiver.output(frame_output);
       REQUIRE(frame_output_status == output_waiting);
       THEN("frame_receiver::input should return available") {
         frame_input_status = frame_receiver.input(input_data[19]);
         REQUIRE(frame_input_status == input_available);
-        frame_output_status = frame_receiver.output(frameOutput);
+        frame_output_status = frame_receiver.output(frame_output);
         REQUIRE(frame_output_status == output_available);
       }
     }
@@ -168,8 +168,8 @@ SCENARIO("FrameReceiver for first frames of data received ", "[NoninOEM3]") {
 
     WHEN("On input of 4 bytes of INPUT_DATA to FrameReceiver ") {
       THEN("On FrameReceiver.input() for 4 Byte data shall return not available") {
-        for (uint8_t index = 0; index < 4; index++) {
-          frame_input_status = frame_receiver.input(input_data[index]);
+        for (unsigned char index : input_data) {
+          frame_input_status = frame_receiver.input(index);
           REQUIRE(frame_input_status == input_waiting);
         }
       }
@@ -180,7 +180,7 @@ SCENARIO("FrameReceiver for first frames of data received ", "[NoninOEM3]") {
     PF::Driver::Serial::Nonin::FrameReceiver frame_receiver;
     PF::Driver::Serial::Nonin::FrameReceiver::FrameInputStatus frame_input_status;
     PF::Driver::Serial::Nonin::FrameReceiver::FrameOutputStatus frame_output_status;
-    Frame frameOutput;
+    Frame frame_output;
     uint8_t input_data[7] = {0x01, 0x81, 0x01, 0x81, 0x01, 0x00, 0x83};
     WHEN("On input of 6 bytes of INPUT_DATA to FrameReceiver ") {
       THEN("OFrameReceiver.input()' for 6 Byte data from INPUT_DATA shall return waiting") {
@@ -203,18 +203,18 @@ SCENARIO("FrameReceiver for first frames of data received ", "[NoninOEM3]") {
       }
     }
     AND_WHEN("'FrameReceiver.input()' status is available on receiving 7 bytes of data") {
-      for (uint8_t index = 0; index < 7; index++) {
-        frame_input_status = frame_receiver.input(input_data[index]);
+      for (unsigned char index : input_data) {
+        frame_input_status = frame_receiver.input(index);
       }
       REQUIRE(frame_input_status == input_available);
       THEN("Invoke FrameReceiver::output shall return available") {
-        frame_output_status = frame_receiver.output(frameOutput);
+        frame_output_status = frame_receiver.output(frame_output);
         REQUIRE(frame_output_status == output_available);
-        REQUIRE(frameOutput[0] == input_data[2]);
-        REQUIRE(frameOutput[1] == input_data[3]);
-        REQUIRE(frameOutput[2] == input_data[4]);
-        REQUIRE(frameOutput[3] == input_data[5]);
-        REQUIRE(frameOutput[4] == input_data[6]);
+        REQUIRE(frame_output[0] == input_data[2]);
+        REQUIRE(frame_output[1] == input_data[3]);
+        REQUIRE(frame_output[2] == input_data[4]);
+        REQUIRE(frame_output[3] == input_data[5]);
+        REQUIRE(frame_output[4] == input_data[6]);
       }
     }
   }
@@ -223,7 +223,7 @@ SCENARIO("FrameReceiver for first frames of data received ", "[NoninOEM3]") {
     PF::Driver::Serial::Nonin::FrameReceiver frame_receiver;
     PF::Driver::Serial::Nonin::FrameReceiver::FrameInputStatus frame_input_status;
     PF::Driver::Serial::Nonin::FrameReceiver::FrameOutputStatus frame_output_status;
-    Frame frameOutput;
+    Frame frame_output;
     uint8_t input_data[7] = {0x01, 0x81, 0x01, 0x81, 0x01, 0x00, 0x83};
     WHEN("On input of 6 bytes of INPUT_DATA to FrameReceiver ") {
       THEN("FrameReceiver.input() for 6 Byte data from INPUT_DATA shall return waiting") {
@@ -241,7 +241,7 @@ SCENARIO("FrameReceiver for first frames of data received ", "[NoninOEM3]") {
       }
       REQUIRE(frame_input_status == input_waiting);
       THEN("Invoke FrameReceiver::output shall return waiting") {
-        frame_output_status = frame_receiver.output(frameOutput);
+        frame_output_status = frame_receiver.output(frame_output);
         REQUIRE(frame_output_status == output_waiting);
       }
     }
@@ -249,102 +249,102 @@ SCENARIO("FrameReceiver for first frames of data received ", "[NoninOEM3]") {
 }
 
 SCENARIO("Validate function 'validate_start_of_frame' ", "[NoninOEM3]") {
-  Frame frameBuffer{};
-  uint8_t checksum;
+  Frame frame_buffer{};
+  uint8_t checksum = 0;
   GIVEN("A valid first frame") {
-    frameBuffer = {0x01, 0x81, 0x02, 0x00, 0x84};
+    frame_buffer = {0x01, 0x81, 0x02, 0x00, 0x84};
     WHEN("FRAME DATA : 0x01  0x81 0x02  0x00  0x84") {
       THEN("validate_frame() shall return available") {
-        REQUIRE(((frameBuffer[0] == 0x01) && ((frameBuffer[1] & 0x81) == 0x81)));
-        checksum = (frameBuffer[0] + frameBuffer[1] + frameBuffer[2] + frameBuffer[3]) % 256;
-        REQUIRE(frameBuffer[4] == checksum);
-        REQUIRE(PF::Driver::Serial::Nonin::validate_start_of_frame(frameBuffer) == true);
+        REQUIRE(((frame_buffer[0] == 0x01) && ((frame_buffer[1] & 0x81) == 0x81)));
+        checksum = (frame_buffer[0] + frame_buffer[1] + frame_buffer[2] + frame_buffer[3]) % 256;
+        REQUIRE(frame_buffer[4] == checksum);
+        REQUIRE(PF::Driver::Serial::Nonin::validate_start_of_frame(frame_buffer) == true);
       }
     }
   }
 
   GIVEN("A valid frame other than first frame") {
-    frameBuffer = {0x01, 0x80, 0x02, 0x00, 0x83};
+    frame_buffer = {0x01, 0x80, 0x02, 0x00, 0x83};
     WHEN("FRAME DATA : 0x01  0x80 0x02  0x00  0x83") {
       THEN("validate_frame() shall return available") {
-        REQUIRE(((frameBuffer[0] == 0x01) && ((frameBuffer[1] & 0x81) != 0x81)));
-        REQUIRE(PF::Driver::Serial::Nonin::validate_start_of_frame(frameBuffer) == false);
+        REQUIRE(((frame_buffer[0] == 0x01) && ((frame_buffer[1] & 0x81) != 0x81)));
+        REQUIRE(PF::Driver::Serial::Nonin::validate_start_of_frame(frame_buffer) == false);
       }
     }
   }
 
   GIVEN("A Frame having invalid checksum") {
-    frameBuffer = {0x01, 0x81, 0x02, 0x00, 0x00};
+    frame_buffer = {0x01, 0x81, 0x02, 0x00, 0x00};
     WHEN("FRAME DATA : 0x01  0x81 0x02  0x00  0x00") {
       THEN("validate_frame() shall return framing_error") {
-        REQUIRE(((frameBuffer[0] == 0x01) && ((frameBuffer[1] & 0x81) == 0x81)));
-        checksum = (frameBuffer[0] + frameBuffer[1] + frameBuffer[2] + frameBuffer[3]) % 256;
-        REQUIRE(frameBuffer[4] != checksum);
-        REQUIRE(PF::Driver::Serial::Nonin::validate_start_of_frame(frameBuffer) == false);
+        REQUIRE(((frame_buffer[0] == 0x01) && ((frame_buffer[1] & 0x81) == 0x81)));
+        checksum = (frame_buffer[0] + frame_buffer[1] + frame_buffer[2] + frame_buffer[3]) % 256;
+        REQUIRE(frame_buffer[4] != checksum);
+        REQUIRE(PF::Driver::Serial::Nonin::validate_start_of_frame(frame_buffer) == false);
       }
     }
   }
 
   GIVEN("A Frame having invalid status Byte") {
-    frameBuffer = {0x01, 0x7F, 0x02, 0x00, 0x82};
+    frame_buffer = {0x01, 0x7F, 0x02, 0x00, 0x82};
     WHEN("FRAME DATA : 0x01  0x7F 0x02  0x00  0x82") {
       THEN("validate_frame()' shall return framing_error") {
-        REQUIRE(((frameBuffer[0] == 0x01) && ((frameBuffer[1] & 0x81) != 0x81)));
-        REQUIRE(PF::Driver::Serial::Nonin::validate_start_of_frame(frameBuffer) == false);
+        REQUIRE(((frame_buffer[0] == 0x01) && ((frame_buffer[1] & 0x81) != 0x81)));
+        REQUIRE(PF::Driver::Serial::Nonin::validate_start_of_frame(frame_buffer) == false);
       }
     }
   }
 }
 
 SCENARIO("Validate function 'validate_frame' ", "[NoninOEM3]") {
-  Frame frameBuffer{};
+  Frame frame_buffer{};
   PF::Driver::Serial::Nonin::FrameReceiver::FrameInputStatus frame_input_status;
-  uint8_t checksum;
+  uint8_t checksum = 0;
   GIVEN("A valid first frame") {
-    frameBuffer = {0x01, 0x81, 0x02, 0x00, 0x84};
+    frame_buffer = {0x01, 0x81, 0x02, 0x00, 0x84};
     WHEN("FRAME DATA : 0x01  0x81 0x02  0x00  0x84") {
       THEN("validate_frame()' shall return available") {
-        REQUIRE(((frameBuffer[0] == 0x01) && ((frameBuffer[1] & 0x80) == 0x80)));
-        checksum = (frameBuffer[0] + frameBuffer[1] + frameBuffer[2] + frameBuffer[3]) % 256;
-        REQUIRE(frameBuffer[4] == checksum);
-        frame_input_status = PF::Driver::Serial::Nonin::validate_frame(frameBuffer);
+        REQUIRE(((frame_buffer[0] == 0x01) && ((frame_buffer[1] & 0x80) == 0x80)));
+        checksum = (frame_buffer[0] + frame_buffer[1] + frame_buffer[2] + frame_buffer[3]) % 256;
+        REQUIRE(frame_buffer[4] == checksum);
+        frame_input_status = PF::Driver::Serial::Nonin::validate_frame(frame_buffer);
         REQUIRE(frame_input_status == input_available);
       }
     }
   }
 
   GIVEN("A valid frame other than first frame") {
-    frameBuffer = {0x01, 0x80, 0x02, 0x00, 0x83};
+    frame_buffer = {0x01, 0x80, 0x02, 0x00, 0x83};
     WHEN("FRAME DATA : 0x01  0x80 0x02  0x00  0x83") {
       THEN("validate_frame() shall return available") {
-        REQUIRE(((frameBuffer[0] == 0x01) && ((frameBuffer[1] & 0x80) == 0x80)));
-        checksum = (frameBuffer[0] + frameBuffer[1] + frameBuffer[2] + frameBuffer[3]) % 256;
-        REQUIRE(frameBuffer[4] == checksum);
-        frame_input_status = PF::Driver::Serial::Nonin::validate_frame(frameBuffer);
+        REQUIRE(((frame_buffer[0] == 0x01) && ((frame_buffer[1] & 0x80) == 0x80)));
+        checksum = (frame_buffer[0] + frame_buffer[1] + frame_buffer[2] + frame_buffer[3]) % 256;
+        REQUIRE(frame_buffer[4] == checksum);
+        frame_input_status = PF::Driver::Serial::Nonin::validate_frame(frame_buffer);
         REQUIRE(frame_input_status == input_available);
       }
     }
   }
 
   GIVEN("A Frame having invalid checksum") {
-    frameBuffer = {0x01, 0x80, 0x02, 0x00, 0x00};
+    frame_buffer = {0x01, 0x80, 0x02, 0x00, 0x00};
     WHEN("FRAME DATA : 0x01  0x80 0x02  0x00  0x00") {
       THEN("On 'validate_frame()' shall return framing_error") {
-        REQUIRE(((frameBuffer[0] == 0x01) && ((frameBuffer[1] & 0x80) == 0x80)));
-        checksum = (frameBuffer[0] + frameBuffer[1] + frameBuffer[2] + frameBuffer[3]) % 256;
-        REQUIRE(frameBuffer[4] != checksum);
-        frame_input_status = PF::Driver::Serial::Nonin::validate_frame(frameBuffer);
+        REQUIRE(((frame_buffer[0] == 0x01) && ((frame_buffer[1] & 0x80) == 0x80)));
+        checksum = (frame_buffer[0] + frame_buffer[1] + frame_buffer[2] + frame_buffer[3]) % 256;
+        REQUIRE(frame_buffer[4] != checksum);
+        frame_input_status = PF::Driver::Serial::Nonin::validate_frame(frame_buffer);
         REQUIRE(frame_input_status == input_framing_error);
       }
     }
   }
 
   GIVEN("A Frame having invalid status Byte") {
-    frameBuffer = {0x01, 0x7F, 0x02, 0x00, 0x82};
+    frame_buffer = {0x01, 0x7F, 0x02, 0x00, 0x82};
     WHEN("FRAME DATA : 0x01  0x7F 0x02  0x00  0x82") {
       THEN("On validate_frame() shall return framing_error") {
-        REQUIRE(((frameBuffer[0] == 0x01) && ((frameBuffer[1] & 0x80) != 0x80)));
-        frame_input_status = PF::Driver::Serial::Nonin::validate_frame(frameBuffer);
+        REQUIRE(((frame_buffer[0] == 0x01) && ((frame_buffer[1] & 0x80) != 0x80)));
+        frame_input_status = PF::Driver::Serial::Nonin::validate_frame(frame_buffer);
         REQUIRE(frame_input_status == input_framing_error);
       }
     }

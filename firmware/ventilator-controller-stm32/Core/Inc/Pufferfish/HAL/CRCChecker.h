@@ -43,15 +43,15 @@ class SoftCRC : public CRCChecker<Checksum> {
  public:
   const Checksum polynomial;
   const Checksum init;
-  const bool ref_in;
-  const bool ref_out;
+  const bool ref_in{};
+  const bool ref_out{};
   const Checksum xor_out;
 
   SoftCRC(Checksum polynomial, Checksum init, bool ref_in, bool ref_out, Checksum xor_out)
       : polynomial(polynomial), init(init), ref_in(ref_in), ref_out(ref_out), xor_out(xor_out) {
     setup();
   };
-  SoftCRC(const CRCParameters<Checksum> &parameters)
+  explicit SoftCRC(const CRCParameters<Checksum> &parameters)
       : SoftCRC(
             parameters.polynomial,
             parameters.init,
@@ -65,7 +65,7 @@ class SoftCRC : public CRCChecker<Checksum> {
   static const size_t table_size = 256;
   // Reflected lookup table generated at http://www.sunshine2k.de/coding/javascript/crc/crc_js.html
   // using CRC32_C preset
-  std::array<uint32_t, table_size> crc_table;
+  std::array<uint32_t, table_size> crc_table_;
 
   void setup();
 };

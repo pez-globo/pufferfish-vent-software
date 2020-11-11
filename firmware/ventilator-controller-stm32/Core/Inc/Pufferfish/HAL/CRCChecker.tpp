@@ -26,7 +26,7 @@ Checksum SoftCRC<Checksum>::compute(const uint8_t *data, size_t size) {
       byte = reflect(byte);
     }
     uint8_t lookup_index = byte ^ (remainder >> (width - 8));
-    remainder = crc_table[lookup_index] ^ (remainder << 8);
+    remainder = crc_table_[lookup_index] ^ (remainder << 8);
   }
 
   if (ref_out) {
@@ -51,7 +51,7 @@ void SoftCRC<Checksum>::setup() {
         remainder = remainder << 1;
       }
     }
-    crc_table[dividend] = remainder;
+    crc_table_[dividend] = remainder;
   }
 }
 

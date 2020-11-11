@@ -135,7 +135,7 @@ SCENARIO("CRC8 should obtain correct checksums on test inputs", "[crc]") {
     PF::HAL::SoftCRC8 checker(0x31, 0xff, false, false, 0x00);
 
     WHEN("an empty sequence is input") {
-      std::array<uint8_t, 0> input;
+      std::array<uint8_t, 0> input{};
 
       THEN("the checksum is correct") {
         uint8_t expected = 0xff;
@@ -186,7 +186,7 @@ SCENARIO("CRC32C should obtain correct checksums on test inputs", "[crc]") {
     PF::HAL::SoftCRC32 checker(PF::HAL::crc32c_params);
 
     WHEN("an empty sequence is input") {
-      std::array<uint8_t, 0> input;
+      std::array<uint8_t, 0> input{};
 
       THEN("the checksum is correct") {
         uint32_t expected = 0x00;

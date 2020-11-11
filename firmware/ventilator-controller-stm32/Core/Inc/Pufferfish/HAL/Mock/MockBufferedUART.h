@@ -50,7 +50,7 @@ class MockBufferedUART : public BufferedUART {
    * @param  Read byte output data
    * @return buffer status of ring buffer
    */
-  virtual BufferStatus read(uint8_t &read_byte) volatile override;
+  BufferStatus read(uint8_t &read_byte) volatile override;
 
   /**
    * sets read byte data from ring buffer
@@ -64,7 +64,7 @@ class MockBufferedUART : public BufferedUART {
    * @param  write byte input data
    * @return buffer status of ring buffer
    */
-  virtual BufferStatus write(uint8_t write_byte) volatile override;
+  BufferStatus write(uint8_t write_byte) volatile override;
 
   /**
    * Gets write byte data from ring buffer
@@ -80,7 +80,7 @@ class MockBufferedUART : public BufferedUART {
    * @param  written_size size of written array
    * @return buffer status of ring buffer
    */
-  virtual BufferStatus write(
+  BufferStatus write(
       const uint8_t *write_bytes,
       AtomicSize write_size,
       HAL::AtomicSize &written_size) volatile override;
@@ -91,7 +91,7 @@ class MockBufferedUART : public BufferedUART {
    * @param  timeout     time to write block
    * @return buffer status of ring buffer
    */
-  virtual BufferStatus write_block(uint8_t write_byte, uint32_t timeout) volatile override;
+  BufferStatus write_block(uint8_t write_byte, uint32_t timeout) volatile override;
 
   /**
    * gets write data block from ring buffer
@@ -99,7 +99,7 @@ class MockBufferedUART : public BufferedUART {
    * @param  timeout    time to get write block
    * @return buffer status of ring buffer
    */
-  void get_write_block(uint8_t *byte, const uint32_t timeout) volatile;
+  void get_write_block(uint8_t *byte, uint32_t timeout) volatile;
 
   /**
    * write data block to ring buffer
@@ -109,7 +109,7 @@ class MockBufferedUART : public BufferedUART {
    * @param  written_size size of written array
    * @return buffer status of ring buffer
    */
-  virtual BufferStatus write_block(
+  BufferStatus write_block(
       const uint8_t *write_bytes,
       AtomicSize write_size,
       uint32_t timeout,
