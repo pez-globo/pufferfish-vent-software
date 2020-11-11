@@ -41,17 +41,8 @@ static constexpr CRC32Parameters crc32c_params = {0x1edc6f41, 0xffffffff, true, 
 template <typename Checksum>
 class SoftCRC : public CRCChecker<Checksum> {
  public:
-  SoftCRC(Checksum polynomial, Checksum init, bool ref_in, bool ref_out, Checksum xor_out)
-      : polynomial(polynomial), init(init), ref_in(ref_in), ref_out(ref_out), xor_out(xor_out) {
-    setup();
-  };
-  explicit SoftCRC(const CRCParameters<Checksum> &parameters)
-      : SoftCRC(
-            parameters.polynomial,
-            parameters.init,
-            parameters.ref_in,
-            parameters.ref_out,
-            parameters.xor_out) {}
+  SoftCRC(Checksum polynomial, Checksum init, bool ref_in, bool ref_out, Checksum xor_out);
+  explicit SoftCRC(const CRCParameters<Checksum> &parameters);
 
   Checksum compute(const uint8_t *data, size_t size) override;
 

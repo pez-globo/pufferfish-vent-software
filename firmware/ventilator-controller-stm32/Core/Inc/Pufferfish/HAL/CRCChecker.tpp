@@ -14,6 +14,22 @@ namespace Pufferfish {
 namespace HAL {
 
 template <typename Checksum>
+SoftCRC<Checksum>::SoftCRC(
+    Checksum polynomial, Checksum init, bool ref_in, bool ref_out, Checksum xor_out)
+    : polynomial(polynomial), init(init), ref_in(ref_in), ref_out(ref_out), xor_out(xor_out) {
+  setup();
+};
+
+template <typename Checksum>
+SoftCRC<Checksum>::SoftCRC(const CRCParameters<Checksum> &parameters)
+    : SoftCRC(
+          parameters.polynomial,
+          parameters.init,
+          parameters.ref_in,
+          parameters.ref_out,
+          parameters.xor_out) {}
+
+template <typename Checksum>
 Checksum SoftCRC<Checksum>::compute(const uint8_t *data, size_t size) {
   // Adapted from https://barrgroup.com/Embedded-Systems/How-To/CRC-Calculation-C-Code
   static const size_t width = CHAR_BIT * sizeof(Checksum);
