@@ -184,8 +184,14 @@ PF::HAL::HALDigitalOutput alarm_buzzer(
     BUZZ1_EN_Pin);  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
 
 /*FRAM SPI Instantiation*/
-PF::HAL::HALDigitalOutput fram_cs(*GPIO1_GPIO_Port, GPIO1_Pin, true);
-PF::HAL::HALDigitalOutput fram_protect(*GPIO2_GPIO_Port, GPIO2_Pin, true);
+PF::HAL::HALDigitalOutput fram_cs(
+    *GPIO1_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+    GPIO1_Pin,  // @suppress("C-Style cast instead of C++ cast")
+    true);
+PF::HAL::HALDigitalOutput fram_protect(
+    *GPIO2_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+    GPIO2_Pin,  // @suppress("C-Style cast instead of C++ cast")
+    true);
 PF::HAL::HALSPIDevice fram_spi(hspi1, fram_cs);
 PF::Driver::SPI::FRAM::Device fram_dev(fram_spi, fram_protect);
 

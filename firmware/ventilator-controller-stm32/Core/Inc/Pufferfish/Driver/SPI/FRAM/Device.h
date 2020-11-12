@@ -16,10 +16,10 @@
 #include "Pufferfish/HAL/Interfaces/SPIDevice.h"
 
 enum class Block : uint8_t {
-  NONE = 0b00000000,
-  UPPER_1_4 = 0b00000100,
-  UPPER_1_2 = 0b00001000,
-  ALL = 0b00001100
+  none = 0b00000000,
+  upper_1_4 = 0b00000100,
+  upper_1_2 = 0b00001000,
+  all = 0b00001100
 };
 
 namespace Pufferfish::Driver::SPI::FRAM {
@@ -77,16 +77,16 @@ class Device {
   HAL::SPIDevice &fram_spi_;
   HAL::DigitalOutput &fram_protect_;
 
-  enum class opcode : uint8_t {
-    WREN = 0b00000110,
-    WRDI = 0b00000100,
-    RDSR = 0b00000101,
-    WRSR = 0b00000001,
-    READ = 0b00000011,
-    FSTRD = 0b00001011,
-    WRITE = 0b00000010,
-    SLEEP = 0b10111001,
-    RDID = 0b10011111
+  enum class Opcode : uint8_t {
+    wren = 0b00000110,
+    wrdi = 0b00000100,
+    rdsr = 0b00000101,
+    wrsr = 0b00000001,
+    read = 0b00000011,
+    fstrd = 0b00001011,
+    write = 0b00000010,
+    sleep = 0b10111001,
+    rdid = 0b10011111
   };
 };
 }  // namespace Pufferfish::Driver::SPI::FRAM

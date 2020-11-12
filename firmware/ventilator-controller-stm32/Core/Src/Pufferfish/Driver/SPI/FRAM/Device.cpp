@@ -16,8 +16,8 @@ namespace Pufferfish::Driver::SPI::FRAM {
 // FRAM
 
 SPIDeviceStatus Device::write(uint16_t addr, uint8_t *buffer, size_t buffer_len) {
-  uint8_t op_wren = static_cast<uint8_t>(opcode::RDSR);
-  uint8_t op_write = static_cast<uint8_t>(opcode::RDSR);
+  auto op_wren = static_cast<uint8_t>(Opcode::rdsr);
+  auto op_write = static_cast<uint8_t>(Opcode::rdsr);
 
   fram_spi_.chip_select(false);
   if (fram_spi_.write(&op_wren, sizeof(size_t)) != SPIDeviceStatus::ok) {
@@ -45,7 +45,7 @@ SPIDeviceStatus Device::write(uint16_t addr, uint8_t *buffer, size_t buffer_len)
 }
 
 SPIDeviceStatus Device::read(uint16_t addr, uint8_t *buffer, size_t buffer_len) {
-  uint8_t op_read = static_cast<uint8_t>(opcode::RDSR);
+  auto op_read = static_cast<uint8_t>(Opcode::rdsr);
   fram_spi_.chip_select(false);
 
   if (fram_spi_.write(&op_read, sizeof(size_t)) != SPIDeviceStatus::ok) {
@@ -65,11 +65,11 @@ SPIDeviceStatus Device::read(uint16_t addr, uint8_t *buffer, size_t buffer_len) 
   return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus Device::protect_block(bool protect, Block block) {
-  uint8_t op_rdsr = static_cast<uint8_t>(opcode::RDSR);
-  uint8_t op_wren = static_cast<uint8_t>(opcode::RDSR);
-  uint8_t op_wrsr = static_cast<uint8_t>(opcode::RDSR);
-  uint8_t rx_buf;
+SPIDeviceStatus Device::protect_block(bool /*protect*/, Block block) {
+  auto op_rdsr = static_cast<uint8_t>(Opcode::rdsr);
+  auto op_wren = static_cast<uint8_t>(Opcode::rdsr);
+  auto op_wrsr = static_cast<uint8_t>(Opcode::rdsr);
+  uint8_t rx_buf = 0;
 
   fram_protect_.write(true);
   fram_spi_.chip_select(false);
@@ -86,7 +86,8 @@ SPIDeviceStatus Device::protect_block(bool protect, Block block) {
   }
   // Creating Value for new Status Register while retaining WPEN
   // And-ing a mask of 0b11110011 and Or-ing in the Block
-  uint8_t status_reg_val = (rx_buf & 0xF3) | static_cast<uint8_t>(block);
+  static const uint8_t mask = 0b11110011;
+  uint8_t status_reg_val = (rx_buf & mask) + static_cast<uint8_t>(block);
 
   if (fram_spi_.write(&op_wren, sizeof(size_t)) != SPIDeviceStatus::ok) {
     fram_spi_.chip_select(true);
@@ -110,9 +111,9 @@ SPIDeviceStatus Device::protect_block(bool protect, Block block) {
 }
 
 SPIDeviceStatus Device::protect_status(Block &block) {
-  uint8_t op_rdsr = static_cast<uint8_t>(opcode::RDSR);
+  auto op_rdsr = static_cast<uint8_t>(Opcode::rdsr);
   fram_spi_.chip_select(false);
-  uint8_t rx_buf;
+  uint8_t rx_buf = 0;
 
   if (fram_spi_.write(&op_rdsr, sizeof(uint8_t)) != SPIDeviceStatus::ok) {
     fram_spi_.chip_select(true);
@@ -126,28 +127,29 @@ SPIDeviceStatus Device::protect_status(Block &block) {
 
   // Creating Value to compare block value to
   // And-ing a mask of 0b00001100
-  uint8_t protect_status = rx_buf & 0xC;
+  static const uint8_t mask = 0b00001100;
+  uint8_t protect_status = rx_buf & mask;
   switch (protect_status) {
-    case static_cast<uint8_t>(Block::NONE):
-      block = Block::NONE;
+    case static_cast<uint8_t>(Block::none):
+      block = Block::none;
       break;
-    case static_cast<uint8_t>(Block::UPPER_1_4):
-      block = Block::UPPER_1_4;
+    case static_cast<uint8_t>(Block::upper_1_4):
+      block = Block::upper_1_4;
       break;
-    case static_cast<uint8_t>(Block::UPPER_1_2):
-      block = Block::UPPER_1_2;
+    case static_cast<uint8_t>(Block::upper_1_2):
+      block = Block::upper_1_2;
       break;
-    case static_cast<uint8_t>(Block::ALL):
-      block = Block::ALL;
+    case static_cast<uint8_t>(Block::all):
+      block = Block::all;
       break;
     default:
-      block = Block::ALL;
+      block = Block::all;
   }
   return SPIDeviceStatus::ok;
 }
 
 SPIDeviceStatus Device::sleep_mode() {
-  uint8_t op_sleep = static_cast<uint8_t>(opcode::SLEEP);
+  auto op_sleep = static_cast<uint8_t>(Opcode::sleep);
   fram_spi_.chip_select(false);
 
   if (fram_spi_.write(&op_sleep, sizeof(size_t)) != SPIDeviceStatus::ok) {
