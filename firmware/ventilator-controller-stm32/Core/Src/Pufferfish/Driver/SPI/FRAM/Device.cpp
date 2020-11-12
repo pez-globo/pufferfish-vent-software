@@ -9,23 +9,28 @@
  */
 
 #include "Pufferfish/Driver/SPI/FRAM/Device.h"
+#include "Pufferfish/Util/Bytes.h"
 
 namespace Pufferfish::Driver::SPI::FRAM {
   // FRAM
 
-SPIDeviceStatus Device::write(uint8_t addr, uint8_t *buffer, size_t buffer_len) {
-  opcode op;
+SPIDeviceStatus Device::write(uint16_t addr, uint8_t *buffer, size_t buffer_len) {
+  uint8_t op_wren = static_cast<uint8_t>(opcode::RDSR);
+  uint8_t op_write = static_cast<uint8_t>(opcode::RDSR);
+
   fram_spi_.chip_select(false);
-  if(fram_spi_.write(&op.WREN, sizeof(size_t)) != SPIDeviceStatus::ok){
+  if(fram_spi_.write(&op_wren, sizeof(size_t)) != SPIDeviceStatus::ok){
     fram_spi_.chip_select(true);
     return SPIDeviceStatus::write_error;
   }
-  if(fram_spi_.write(&op.WRITE, sizeof(size_t)) != SPIDeviceStatus::ok){
+  if(fram_spi_.write(&op_write, sizeof(size_t)) != SPIDeviceStatus::ok){
     fram_spi_.chip_select(true);
     return SPIDeviceStatus::write_error;
   }
 
-  if(fram_spi_.write(&addr, 2*sizeof(size_t)) != SPIDeviceStatus::ok){
+  std::array<uint8_t, sizeof(uint16_t)> buf{
+    {Util::get_byte<1>(addr), Util::get_byte<0>(addr)}};
+  if(fram_spi_.write(buf.data(), buf.size()) != SPIDeviceStatus::ok){
     fram_spi_.chip_select(true);
     return SPIDeviceStatus::write_error;
   }
@@ -39,15 +44,17 @@ SPIDeviceStatus Device::write(uint8_t addr, uint8_t *buffer, size_t buffer_len) 
   return SPIDeviceStatus::ok;
 }
 
-SPIDeviceStatus Device::read(uint8_t addr, uint8_t *buffer, size_t buffer_len){
-  opcode op;
+SPIDeviceStatus Device::read(uint16_t addr, uint8_t *buffer, size_t buffer_len){
+  uint8_t op_read = static_cast<uint8_t>(opcode::RDSR);
   fram_spi_.chip_select(false);
 
-  if(fram_spi_.write(&op.READ, sizeof(size_t)) != SPIDeviceStatus::ok){
+  if(fram_spi_.write(&op_read, sizeof(size_t)) != SPIDeviceStatus::ok){
     fram_spi_.chip_select(true);
     return SPIDeviceStatus::write_error;
   }
-  if(fram_spi_.write(&addr, 2*sizeof(size_t)) != SPIDeviceStatus::ok){
+  std::array<uint8_t, sizeof(uint16_t)> buf{
+      {Util::get_byte<1>(addr), Util::get_byte<0>(addr)}};
+  if(fram_spi_.write(buf.data(), buf.size()) != SPIDeviceStatus::ok){
     fram_spi_.chip_select(true);
     return SPIDeviceStatus::write_error;
   }
@@ -60,45 +67,55 @@ SPIDeviceStatus Device::read(uint8_t addr, uint8_t *buffer, size_t buffer_len){
 }
 
 SPIDeviceStatus Device::protect_block(bool protect, Block block){
-  //WRITE PROTECT PIN NEEDS TO BE HIGH - ASK ETHAN
-  opcode op;
+  uint8_t op_rdsr = static_cast<uint8_t>(opcode::RDSR);
+  uint8_t op_wren = static_cast<uint8_t>(opcode::RDSR);
+  uint8_t op_wrsr = static_cast<uint8_t>(opcode::RDSR);
   uint8_t rx_buf;
+
+  fram_protect_.write(true);
   fram_spi_.chip_select(false);
-  if(fram_spi_.write(&op.RDSR, sizeof(size_t)) != SPIDeviceStatus::ok){
+
+  if(fram_spi_.write(&op_rdsr, sizeof(size_t)) != SPIDeviceStatus::ok){
     fram_spi_.chip_select(true);
+    fram_protect_.write(false);
     return SPIDeviceStatus::write_error;
   }
   if(fram_spi_.read(&rx_buf, sizeof(size_t)) != SPIDeviceStatus::ok){
     fram_spi_.chip_select(true);
+    fram_protect_.write(false);
     return SPIDeviceStatus::read_error;
   }
-  // Creating Value for new Status Register while retaining
-  // WPEN
+  // Creating Value for new Status Register while retaining WPEN
   //And-ing a mask of 0b11110011 and Or-ing in the Block
   uint8_t status_reg_val = (rx_buf & 0xF3) | static_cast<uint8_t>(block);
 
-  if(fram_spi_.write(&op.WREN, sizeof(size_t)) != SPIDeviceStatus::ok){
+  if(fram_spi_.write(&op_wren, sizeof(size_t)) != SPIDeviceStatus::ok){
     fram_spi_.chip_select(true);
+    fram_protect_.write(false);
     return SPIDeviceStatus::write_error;
   }
-  if(fram_spi_.write(& op.WRSR, sizeof(size_t)) != SPIDeviceStatus::ok){
+  if(fram_spi_.write(& op_wrsr, sizeof(size_t)) != SPIDeviceStatus::ok){
     fram_spi_.chip_select(true);
+    fram_protect_.write(false);
     return SPIDeviceStatus::write_error;
   }
   if(fram_spi_.write(&status_reg_val, sizeof(size_t)) != SPIDeviceStatus::ok){
     fram_spi_.chip_select(true);
+    fram_protect_.write(false);
     return SPIDeviceStatus::write_error;
   }
+
   fram_spi_.chip_select(true);
+  fram_protect_.write(false);
   return SPIDeviceStatus::ok;
 }
 
 SPIDeviceStatus Device::protect_status(Block &block){
-  uint8_t op = static_cast<uint8_t>(opcode::RDSR);
+  uint8_t op_rdsr = static_cast<uint8_t>(opcode::RDSR);
   fram_spi_.chip_select(false);
   uint8_t rx_buf;
 
-  if(fram_spi_.write(&op, sizeof(uint8_t)) != SPIDeviceStatus::ok){
+  if(fram_spi_.write(&op_rdsr, sizeof(uint8_t)) != SPIDeviceStatus::ok){
     fram_spi_.chip_select(true);
     return SPIDeviceStatus::write_error;
   }
@@ -131,10 +148,10 @@ SPIDeviceStatus Device::protect_status(Block &block){
 }
 
 SPIDeviceStatus Device::sleep_mode(){
-  opcode op;
+  uint8_t op_sleep = static_cast<uint8_t>(opcode::SLEEP);
   fram_spi_.chip_select(false);
 
-  if(fram_spi_.write(&op.SLEEP, sizeof(size_t)) != SPIDeviceStatus::ok){
+  if(fram_spi_.write(&op_sleep, sizeof(size_t)) != SPIDeviceStatus::ok){
     fram_spi_.chip_select(true);
     return SPIDeviceStatus::write_error;
   }

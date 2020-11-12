@@ -188,10 +188,14 @@ PF::HAL::HALDigitalOutput fram_cs(
     *GPIO1_GPIO_Port,
     GPIO1_Pin,
     true);
+PF::HAL::HALDigitalOutput fram_protect(
+    *GPIO2_GPIO_Port,
+    GPIO2_Pin,
+    true);
 PF::HAL::HALSPIDevice fram_spi(
     hspi1,
     fram_cs);
-PF::Driver::SPI::FRAM::Device fram_dev(fram_spi);
+PF::Driver::SPI::FRAM::Device fram_dev(fram_spi, fram_protect);
 
 PF::Driver::Indicators::LEDAlarm alarm_dev_led(alarm_led_r, alarm_led_g, alarm_led_b);
 PF::Driver::Indicators::AuditoryAlarm alarm_dev_sound(
