@@ -46,6 +46,7 @@
 #include "Pufferfish/Driver/Indicators/AuditoryAlarm.h"
 #include "Pufferfish/Driver/Indicators/LEDAlarm.h"
 #include "Pufferfish/Driver/Indicators/PulseGenerator.h"
+#include "Pufferfish/Driver/SPI/FRAM/Device.h"
 #include "Pufferfish/Driver/Serial/Backend/UART.h"
 #include "Pufferfish/Driver/Serial/FDO2/Sensor.h"
 #include "Pufferfish/Driver/Serial/Nonin/Sensor.h"
@@ -54,7 +55,6 @@
 #include "Pufferfish/HAL/STM32/HAL.h"
 #include "Pufferfish/Statuses.h"
 #include "Pufferfish/Util/Timeouts.h"
-#include "Pufferfish/Driver/SPI/FRAM/Device.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -184,17 +184,9 @@ PF::HAL::HALDigitalOutput alarm_buzzer(
     BUZZ1_EN_Pin);  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
 
 /*FRAM SPI Instantiation*/
-PF::HAL::HALDigitalOutput fram_cs(
-    *GPIO1_GPIO_Port,
-    GPIO1_Pin,
-    true);
-PF::HAL::HALDigitalOutput fram_protect(
-    *GPIO2_GPIO_Port,
-    GPIO2_Pin,
-    true);
-PF::HAL::HALSPIDevice fram_spi(
-    hspi1,
-    fram_cs);
+PF::HAL::HALDigitalOutput fram_cs(*GPIO1_GPIO_Port, GPIO1_Pin, true);
+PF::HAL::HALDigitalOutput fram_protect(*GPIO2_GPIO_Port, GPIO2_Pin, true);
+PF::HAL::HALSPIDevice fram_spi(hspi1, fram_cs);
 PF::Driver::SPI::FRAM::Device fram_dev(fram_spi, fram_protect);
 
 PF::Driver::Indicators::LEDAlarm alarm_dev_led(alarm_led_r, alarm_led_g, alarm_led_b);
