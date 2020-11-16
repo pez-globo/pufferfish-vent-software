@@ -1,3 +1,8 @@
+Mermaid UML diagram
+If using vscode editor:
+1. install the extennsion "Markdown Preview Mermaid Support"
+2. press Ctl-K V with this file open
+
 ```mermaid
 classDiagram
       class BackendNS
