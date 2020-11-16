@@ -64,9 +64,11 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "TestCatch2")
     file(
         GLOB_RECURSE LIBRARY_SOURCES
         "Core/Src/Pufferfish/Driver/Indicators/PulseGenerator.cpp"
-        "Core/Src/Pufferfish/Driver/Serial/*.cpp"
+        "Core/Src/Pufferfish/Driver/Serial/*.*"
+        "Core/Src/Pufferfish/Application/*.*"
+        "Core/Src/Pufferfish/Util/*.*"
         "Core/Src/Pufferfish/HAL/CRC.cpp"
-        "Core/Src/Pufferfish/Application/mcu_pb.c"
+        "Core/Src/Pufferfish/HAL/Mock/MockTime.cpp"
         "Core/Src/nanopb/pb_encode.c"
         "Core/Src/nanopb/pb_decode.c"
         "Core/Src/nanopb/pb_common.c"
