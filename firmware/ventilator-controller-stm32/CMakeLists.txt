@@ -76,7 +76,14 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "TestCatch2")
         "Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_crc_ex.c"
     )
     add_library(Pufferfish ${LIBRARY_SOURCES})
-    file(GLOB_RECURSE EXECUTABLE_SOURCES "Core/Test/*.*")
+
+    file(GLOB_RECURSE EXECUTABLE_SOURCES
+        "Core/Test/*.*"
+        "Core/Src/nanopb/*.c"
+        "Core/Src/Pufferfish/Application/*.*"
+        "Core/Src/Pufferfish/Util/*.*"
+    )
+
     add_executable(${CMAKE_BUILD_TYPE} ${EXECUTABLE_SOURCES})
     target_link_libraries(${CMAKE_BUILD_TYPE} Pufferfish gcov)
 else ()
