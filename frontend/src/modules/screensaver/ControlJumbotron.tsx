@@ -18,18 +18,18 @@ const useStyles = makeStyles((theme: Theme) => ({
     flexGrow: 1,
     // border: '1px solid yellow',
   },
-  valueLabel: {
-    fontSize: '8rem',
-    margin: '0 auto',
-    fontWeight: 'initial',
+  ControlLabel: {
+    fontSize: '4.5rem',
     // border: '1px solid red',
+    fontWeight: 'lighter',
+    lineHeight: '.9',
+    margin: '0 auto',
   },
   unitsLabel: {
     fontWeight: 100,
     paddingLeft: theme.spacing(0),
     // paddingTop: theme.spacing(4),
     color: theme.palette.grey[400],
-    textAlign: 'center',
     // border: '1px solid red'
   },
   labelItems: {
@@ -45,17 +45,17 @@ export interface Props {
 }
 
 /**
- * ValueJumbotron
+ * ControlJumbotron
  *
  * A component for displaying values in a large way.
  */
-export const ValueJumbotron = ({ value, label, units = '' }: Props): JSX.Element => {
+export const ControlJumbotron = ({ value, label, units = '' }: Props): JSX.Element => {
   const classes = useStyles();
 
   return (
     <Grid container className={classes.root}>
       <Grid item style={{ width: '100%' }} className={classes.labelItems}>
-        <Typography variant="h3" style={{ fontWeight: 'bold', fontSize: '4rem' }}>
+        <Typography variant="h3" style={{ fontWeight: 'bold', fontSize: '1.8rem' }}>
           {label}
         </Typography>
       </Grid>
@@ -67,12 +67,12 @@ export const ValueJumbotron = ({ value, label, units = '' }: Props): JSX.Element
         className={classes.displayContainer}
         wrap="nowrap"
       >
-        <Typography align="left" variant="h1" className={classes.valueLabel}>
+        <Typography variant="h1" className={classes.ControlLabel}>
           {value !== undefined ? value.toFixed(0) : '--'}
         </Typography>
       </Grid>
       <Grid item style={{ width: '100%' }}>
-        <Typography align="left" variant="h4" className={classes.unitsLabel}>
+        <Typography variant="h4" className={classes.unitsLabel} style={{ fontSize: '1.3rem' }}>
           {units}
         </Typography>
       </Grid>
@@ -80,4 +80,4 @@ export const ValueJumbotron = ({ value, label, units = '' }: Props): JSX.Element
   );
 };
 
-export default ValueJumbotron;
+export default ControlJumbotron;

@@ -6,8 +6,6 @@ import {
   CycleMeasurements,
   Parameters,
   ParametersRequest,
-  Ping,
-  Announcement,
   AlarmLimitsRequest,
   VentilationMode,
   ExpectedLogEvent,
@@ -139,18 +137,6 @@ export const getParametersRequestMode = createSelector(
   (parametersRequest: ParametersRequest): VentilationMode => parametersRequest.mode,
 );
 
-// Ping
-export const getPing = createSelector(
-  getController,
-  (states: ControllerStates): Ping => states.ping,
-);
-
-// Announcement
-export const getAnnouncement = createSelector(
-  getController,
-  (states: ControllerStates): Announcement => states.announcement,
-);
-
 // RotaryEncoder
 export const getRotaryEncoder = createSelector(
   getController,
@@ -259,20 +245,20 @@ export const getLogEvent = createSelector(
   (states: ControllerStates): LogEvent => states.logEvent,
 );
 
-// Next Logged Events
-export const getNextLoggedEvents = createSelector(
+// Next Log Events
+export const getNextLogEvents = createSelector(
   getController,
-  (states: ControllerStates): LogEvent[] => states.nextLogEvents.logEvents,
+  (states: ControllerStates): LogEvent[] => states.nextLogEvents.elements,
 );
 
 // Patient Alarm Event
-export const getExpectedLoggedEvent = createSelector(
+export const getExpectedLogEvent = createSelector(
   getController,
-  (states: ControllerStates): number => states.expectedLoggedEvent.id,
+  (states: ControllerStates): number => states.expectedLogEvent.id,
 );
 
-// Active logged event Ids
-export const getActiveLoggedEventIds = createSelector(
+// Active log event Ids
+export const getActiveLogEventIds = createSelector(
   getController,
   (states: ControllerStates): number[] => states.activeLogEvents.id,
 );
@@ -282,7 +268,7 @@ export const getPopupEventLog = createSelector(getController, (states: Controlle
   | LogEvent
   | undefined => {
   const maxId = Math.max(...states.activeLogEvents.id);
-  return states.nextLogEvents.logEvents.find((el: LogEvent) => el.id === maxId);
+  return states.nextLogEvents.elements.find((el: LogEvent) => el.id === maxId);
 });
 
 // Battery power

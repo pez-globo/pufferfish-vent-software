@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom';
 import { Button, Snackbar, makeStyles, Theme, Grid, Typography, Popover } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
 import { useSelector } from 'react-redux';
+import VolumeOffIcon from '@material-ui/icons/VolumeOff';
+import VolumeUpIcon from '@material-ui/icons/VolumeUp';
 import { BellIcon } from '../icons';
 import { LogEventCode } from '../../store/controller/proto/mcu_pb';
 import { BMIN, PERCENT } from '../info/units';
-import { getActiveLoggedEventIds, getPopupEventLog } from '../../store/controller/selectors';
+import { getActiveLogEventIds, getPopupEventLog } from '../../store/controller/selectors';
 
 export const ALARM_EVENT_PATIENT = 'Patient';
 export const ALARM_EVENT_SYSTEM = 'System';
@@ -61,6 +63,21 @@ const useStyles = makeStyles((theme: Theme) => ({
     '&:hover': {
       backgroundColor: '#e0e0e052',
       // boxShadow: 'none',
+    },
+  },
+  alertColor: {
+    backgroundColor: '#FF0000',
+    color: '#fff',
+    '&:hover': {
+      backgroundColor: '#FF0000',
+    },
+  },
+  timer: { padding: '6px 16px', backgroundColor: '#88211b', borderRadius: '0px 4px 4px 0px' },
+  alertTimer: {
+    margin: '0px 12px',
+    backgroundColor: '#0053b336',
+    '&:hover': {
+      backgroundColor: '#0053b336',
     },
   },
 }));
@@ -174,50 +191,77 @@ export const EventAlerts = ({ path, label }: Props): JSX.Element => {
   };
 
   const popupEventLog = useSelector(getPopupEventLog);
+  const activeLog = useSelector(getActiveLogEventIds);
   useEffect(() => {
     if (popupEventLog) {
       const eventType = getEventType(popupEventLog.code);
       if (eventType.type) {
         setOpen(true);
-        setAlertCount(1);
+        setAlertCount(activeLog.length);
         setAlert({ label: eventType.label });
       }
+    } else {
+      setAlertCount(0);
     }
-  }, [popupEventLog]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [popupEventLog, JSON.stringify(activeLog)]);
 
   return (
-    <div>
-      <Button
-        style={{ marginRight: 12 }}
-        component={Link}
-        to={path}
-        variant="contained"
-        color="primary"
-        ref={buttonRef}
-      >
-        <BellIcon />
-        <div hidden={!(alertCount > 0)} className={classes.iconBadge}>
-          {alertCount}
-        </div>
-      </Button>
-      {label}
-      {buttonRef && (
-        <Popover
-          className={classes.marginTop}
-          open={open}
-          anchorEl={buttonRef.current}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'left',
-          }}
-          transformOrigin={{
-            vertical: 'top',
-            horizontal: 'left',
-          }}
+    <div style={{ display: 'flex' }}>
+      <Grid hidden={alertCount <= 0}>
+        <Button
+          style={{ marginLeft: 12 }}
+          variant="contained"
+          color="primary"
+          className={classes.alertColor}
         >
-          <AlertToast label={alert.label} onClose={handleClose} />
-        </Popover>
-      )}
+          <VolumeOffIcon />
+        </Button>
+        <Button
+          style={{ margin: '0px 12px', padding: 0 }}
+          variant="contained"
+          color="primary"
+          className={classes.alertColor}
+        >
+          <span style={{ padding: '6px 16px' }}>{alert.label}</span>
+          <div
+            className={classes.iconBadge}
+            style={{ left: -6, right: 'auto', backgroundColor: '#FFF', color: '#ff0000' }}
+          >
+            {alertCount}
+          </div>
+          <div className={classes.timer}>2:00</div>
+        </Button>
+      </Grid>
+      <Grid hidden={alertCount > 0}>
+        <Button variant="contained" color="primary" className={classes.alertTimer}>
+          <VolumeUpIcon />
+        </Button>
+        <Button
+          style={{ padding: 0 }}
+          variant="contained"
+          color="primary"
+          className={classes.alertTimer}
+        >
+          <span style={{ padding: '6px 30px', visibility: 'hidden' }}>{label}</span>
+        </Button>
+      </Grid>
+      <Grid>
+        <Button
+          style={{ marginRight: 12 }}
+          component={Link}
+          to={path}
+          variant="contained"
+          color="primary"
+          ref={buttonRef}
+        >
+          <BellIcon />
+          {/* <div hidden={!(alertCount > 0)} className={classes.iconBadge}>
+            {alertCount}
+          </div> */}
+        </Button>
+        {label}
+      </Grid>
     </div>
   );
 };

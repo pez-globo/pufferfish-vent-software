@@ -43,7 +43,9 @@ const FiO2Info = (): JSX.Element => {
   return (
     <Knob
       valueDisplay={<FiO2Display label={label} units={units} isLive={true} />}
-      valueModal={<FiO2ValueModal label={label} units={units} requestCommitSetting={doSetFiO2} />}
+      valueModal={
+        <FiO2ValueModal label={label} units={units} requestCommitSetting={doSetFiO2} min={21} />
+      }
       alarmModal={
         <AlarmModal
           label={label}

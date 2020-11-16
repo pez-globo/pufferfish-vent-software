@@ -13,3 +13,4 @@ body {
     user-select: none;
     touch-action: none;
 }
+.MuiDrawer-modal{z-index: 99;}

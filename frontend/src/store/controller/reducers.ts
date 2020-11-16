@@ -4,8 +4,6 @@ import {
   SensorMeasurements,
   CycleMeasurements,
   Parameters,
-  Ping,
-  Announcement,
   ActiveLogEvents,
   BatteryPower,
   ScreenStatus,
@@ -46,8 +44,6 @@ export const controllerReducer = combineReducers({
   ),
   parameters: messageReducer<Parameters>(MessageType.Parameters, Parameters),
   parametersRequest: parametersRequestReducer,
-  ping: messageReducer<Ping>(MessageType.Ping, Ping),
-  announcement: messageReducer<Announcement>(MessageType.Announcement, Announcement),
 
   // Message states from frontend_pb
   rotaryEncoder: rotaryEncoderReducer,

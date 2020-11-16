@@ -36,9 +36,34 @@ typedef struct _ActiveLogEvents {
     pb_callback_t id;
 } ActiveLogEvents;
 
-typedef struct _NextLogEvents {
-    pb_callback_t log_events;
-} NextLogEvents;
+typedef struct _AlarmLimits {
+    uint32_t rr_min;
+    uint32_t rr_max;
+    uint32_t pip_min;
+    uint32_t pip_max;
+    uint32_t peep_min;
+    uint32_t peep_max;
+    uint32_t ip_above_peep_min;
+    uint32_t ip_above_peep_max;
+    uint32_t insp_time_min;
+    uint32_t insp_time_max;
+    uint32_t fio2_min;
+    uint32_t fio2_max;
+    uint32_t paw_min;
+    uint32_t paw_max;
+    uint32_t mve_min;
+    uint32_t mve_max;
+    uint32_t tv_min;
+    uint32_t tv_max;
+    uint32_t etco2_min;
+    uint32_t etco2_max;
+    uint32_t flow_min;
+    uint32_t flow_max;
+    uint32_t apnea_min;
+    uint32_t apnea_max;
+    uint32_t spo2_min;
+    uint32_t spo2_max;
+} AlarmLimits;
 
 typedef struct _AlarmLimitsRequest {
     uint32_t rr_min;
@@ -103,9 +128,16 @@ typedef struct _LogEvent {
     uint32_t id;
     uint32_t time;
     LogEventCode code;
-    float oldValue;
-    float newValue;
+    float old_value;
+    float new_value;
 } LogEvent;
+
+typedef struct _NextLogEvents {
+    uint32_t next_expected;
+    uint32_t total;
+    uint32_t remaining;
+    pb_callback_t elements;
+} NextLogEvents;
 
 typedef struct _Parameters {
     uint32_t time;
@@ -169,6 +201,7 @@ extern "C" {
 
 /* Initializer values for message structs */
 #define Alarms_init_default                      {0, 0, 0}
+#define AlarmLimits_init_default                 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 #define AlarmLimitsRequest_init_default          {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 #define SensorMeasurements_init_default          {0, 0, 0, 0, 0, 0, 0}
 #define CycleMeasurements_init_default           {0, 0, 0, 0, 0, 0, 0}
@@ -178,11 +211,12 @@ extern "C" {
 #define Announcement_init_default                {0, {0, {0}}}
 #define LogEvent_init_default                    {0, 0, _LogEventCode_MIN, 0, 0}
 #define ExpectedLogEvent_init_default            {0}
-#define NextLogEvents_init_default               {{{NULL}, NULL}}
+#define NextLogEvents_init_default               {0, 0, 0, {{NULL}, NULL}}
 #define ActiveLogEvents_init_default             {{{NULL}, NULL}}
 #define BatteryPower_init_default                {0}
 #define ScreenStatus_init_default                {0}
 #define Alarms_init_zero                         {0, 0, 0}
+#define AlarmLimits_init_zero                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 #define AlarmLimitsRequest_init_zero             {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 #define SensorMeasurements_init_zero             {0, 0, 0, 0, 0, 0, 0}
 #define CycleMeasurements_init_zero              {0, 0, 0, 0, 0, 0, 0}
@@ -192,14 +226,39 @@ extern "C" {
 #define Announcement_init_zero                   {0, {0, {0}}}
 #define LogEvent_init_zero                       {0, 0, _LogEventCode_MIN, 0, 0}
 #define ExpectedLogEvent_init_zero               {0}
-#define NextLogEvents_init_zero                  {{{NULL}, NULL}}
+#define NextLogEvents_init_zero                  {0, 0, 0, {{NULL}, NULL}}
 #define ActiveLogEvents_init_zero                {{{NULL}, NULL}}
 #define BatteryPower_init_zero                   {0}
 #define ScreenStatus_init_zero                   {0}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define ActiveLogEvents_id_tag                   1
-#define NextLogEvents_log_events_tag             1
+#define AlarmLimits_rr_min_tag                   1
+#define AlarmLimits_rr_max_tag                   2
+#define AlarmLimits_pip_min_tag                  3
+#define AlarmLimits_pip_max_tag                  4
+#define AlarmLimits_peep_min_tag                 5
+#define AlarmLimits_peep_max_tag                 6
+#define AlarmLimits_ip_above_peep_min_tag        7
+#define AlarmLimits_ip_above_peep_max_tag        8
+#define AlarmLimits_insp_time_min_tag            9
+#define AlarmLimits_insp_time_max_tag            10
+#define AlarmLimits_fio2_min_tag                 11
+#define AlarmLimits_fio2_max_tag                 12
+#define AlarmLimits_paw_min_tag                  13
+#define AlarmLimits_paw_max_tag                  14
+#define AlarmLimits_mve_min_tag                  15
+#define AlarmLimits_mve_max_tag                  16
+#define AlarmLimits_tv_min_tag                   17
+#define AlarmLimits_tv_max_tag                   18
+#define AlarmLimits_etco2_min_tag                19
+#define AlarmLimits_etco2_max_tag                20
+#define AlarmLimits_flow_min_tag                 21
+#define AlarmLimits_flow_max_tag                 22
+#define AlarmLimits_apnea_min_tag                23
+#define AlarmLimits_apnea_max_tag                24
+#define AlarmLimits_spo2_min_tag                 25
+#define AlarmLimits_spo2_max_tag                 26
 #define AlarmLimitsRequest_rr_min_tag            1
 #define AlarmLimitsRequest_rr_max_tag            2
 #define AlarmLimitsRequest_pip_min_tag           3
@@ -243,8 +302,12 @@ extern "C" {
 #define LogEvent_id_tag                          1
 #define LogEvent_time_tag                        2
 #define LogEvent_code_tag                        3
-#define LogEvent_oldValue_tag                    4
-#define LogEvent_newValue_tag                    5
+#define LogEvent_old_value_tag                   4
+#define LogEvent_new_value_tag                   5
+#define NextLogEvents_next_expected_tag          1
+#define NextLogEvents_total_tag                  2
+#define NextLogEvents_remaining_tag              3
+#define NextLogEvents_elements_tag               4
 #define Parameters_time_tag                      1
 #define Parameters_mode_tag                      2
 #define Parameters_pip_tag                       3
@@ -283,6 +346,36 @@ X(a, STATIC,   SINGULAR, BOOL,     alarm_one,         2) \
 X(a, STATIC,   SINGULAR, BOOL,     alarm_two,         3)
 #define Alarms_CALLBACK NULL
 #define Alarms_DEFAULT NULL
+
+#define AlarmLimits_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, UINT32,   rr_min,            1) \
+X(a, STATIC,   SINGULAR, UINT32,   rr_max,            2) \
+X(a, STATIC,   SINGULAR, UINT32,   pip_min,           3) \
+X(a, STATIC,   SINGULAR, UINT32,   pip_max,           4) \
+X(a, STATIC,   SINGULAR, UINT32,   peep_min,          5) \
+X(a, STATIC,   SINGULAR, UINT32,   peep_max,          6) \
+X(a, STATIC,   SINGULAR, UINT32,   ip_above_peep_min,   7) \
+X(a, STATIC,   SINGULAR, UINT32,   ip_above_peep_max,   8) \
+X(a, STATIC,   SINGULAR, UINT32,   insp_time_min,     9) \
+X(a, STATIC,   SINGULAR, UINT32,   insp_time_max,    10) \
+X(a, STATIC,   SINGULAR, UINT32,   fio2_min,         11) \
+X(a, STATIC,   SINGULAR, UINT32,   fio2_max,         12) \
+X(a, STATIC,   SINGULAR, UINT32,   paw_min,          13) \
+X(a, STATIC,   SINGULAR, UINT32,   paw_max,          14) \
+X(a, STATIC,   SINGULAR, UINT32,   mve_min,          15) \
+X(a, STATIC,   SINGULAR, UINT32,   mve_max,          16) \
+X(a, STATIC,   SINGULAR, UINT32,   tv_min,           17) \
+X(a, STATIC,   SINGULAR, UINT32,   tv_max,           18) \
+X(a, STATIC,   SINGULAR, UINT32,   etco2_min,        19) \
+X(a, STATIC,   SINGULAR, UINT32,   etco2_max,        20) \
+X(a, STATIC,   SINGULAR, UINT32,   flow_min,         21) \
+X(a, STATIC,   SINGULAR, UINT32,   flow_max,         22) \
+X(a, STATIC,   SINGULAR, UINT32,   apnea_min,        23) \
+X(a, STATIC,   SINGULAR, UINT32,   apnea_max,        24) \
+X(a, STATIC,   SINGULAR, UINT32,   spo2_min,         25) \
+X(a, STATIC,   SINGULAR, UINT32,   spo2_max,         26)
+#define AlarmLimits_CALLBACK NULL
+#define AlarmLimits_DEFAULT NULL
 
 #define AlarmLimitsRequest_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, UINT32,   rr_min,            1) \
@@ -380,8 +473,8 @@ X(a, STATIC,   SINGULAR, BYTES,    announcement,      2)
 X(a, STATIC,   SINGULAR, UINT32,   id,                1) \
 X(a, STATIC,   SINGULAR, UINT32,   time,              2) \
 X(a, STATIC,   SINGULAR, UENUM,    code,              3) \
-X(a, STATIC,   SINGULAR, FLOAT,    oldValue,          4) \
-X(a, STATIC,   SINGULAR, FLOAT,    newValue,          5)
+X(a, STATIC,   SINGULAR, FLOAT,    old_value,         4) \
+X(a, STATIC,   SINGULAR, FLOAT,    new_value,         5)
 #define LogEvent_CALLBACK NULL
 #define LogEvent_DEFAULT NULL
 
@@ -391,10 +484,13 @@ X(a, STATIC,   SINGULAR, UINT32,   id,                1)
 #define ExpectedLogEvent_DEFAULT NULL
 
 #define NextLogEvents_FIELDLIST(X, a) \
-X(a, CALLBACK, REPEATED, MESSAGE,  log_events,        1)
+X(a, STATIC,   SINGULAR, UINT32,   next_expected,     1) \
+X(a, STATIC,   SINGULAR, UINT32,   total,             2) \
+X(a, STATIC,   SINGULAR, UINT32,   remaining,         3) \
+X(a, CALLBACK, REPEATED, MESSAGE,  elements,          4)
 #define NextLogEvents_CALLBACK pb_default_field_callback
 #define NextLogEvents_DEFAULT NULL
-#define NextLogEvents_log_events_MSGTYPE LogEvent
+#define NextLogEvents_elements_MSGTYPE LogEvent
 
 #define ActiveLogEvents_FIELDLIST(X, a) \
 X(a, CALLBACK, REPEATED, UINT32,   id,                1)
@@ -412,6 +508,7 @@ X(a, STATIC,   SINGULAR, BOOL,     lock,              1)
 #define ScreenStatus_DEFAULT NULL
 
 extern const pb_msgdesc_t Alarms_msg;
+extern const pb_msgdesc_t AlarmLimits_msg;
 extern const pb_msgdesc_t AlarmLimitsRequest_msg;
 extern const pb_msgdesc_t SensorMeasurements_msg;
 extern const pb_msgdesc_t CycleMeasurements_msg;
@@ -428,6 +525,7 @@ extern const pb_msgdesc_t ScreenStatus_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
 #define Alarms_fields &Alarms_msg
+#define AlarmLimits_fields &AlarmLimits_msg
 #define AlarmLimitsRequest_fields &AlarmLimitsRequest_msg
 #define SensorMeasurements_fields &SensorMeasurements_msg
 #define CycleMeasurements_fields &CycleMeasurements_msg
@@ -444,6 +542,7 @@ extern const pb_msgdesc_t ScreenStatus_msg;
 
 /* Maximum encoded size of messages (where known) */
 #define Alarms_size                              10
+#define AlarmLimits_size                         167
 #define AlarmLimitsRequest_size                  167
 #define SensorMeasurements_size                  37
 #define CycleMeasurements_size                   36
@@ -470,6 +569,13 @@ struct MessageDescriptor<Alarms> {
     static PB_INLINE_CONSTEXPR const pb_size_t fields_array_length = 3;
     static PB_INLINE_CONSTEXPR const pb_msgdesc_t* fields() {
         return &Alarms_msg;
+    }
+};
+template <>
+struct MessageDescriptor<AlarmLimits> {
+    static PB_INLINE_CONSTEXPR const pb_size_t fields_array_length = 26;
+    static PB_INLINE_CONSTEXPR const pb_msgdesc_t* fields() {
+        return &AlarmLimits_msg;
     }
 };
 template <>
@@ -537,7 +643,7 @@ struct MessageDescriptor<ExpectedLogEvent> {
 };
 template <>
 struct MessageDescriptor<NextLogEvents> {
-    static PB_INLINE_CONSTEXPR const pb_size_t fields_array_length = 1;
+    static PB_INLINE_CONSTEXPR const pb_size_t fields_array_length = 4;
     static PB_INLINE_CONSTEXPR const pb_msgdesc_t* fields() {
         return &NextLogEvents_msg;
     }

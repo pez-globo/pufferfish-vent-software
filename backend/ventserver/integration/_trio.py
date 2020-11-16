@@ -46,7 +46,7 @@ async def send_all_serial(
         return
 
     if not serial.is_open:
-        logger.warning(
+        logger.debug(
             'Discarding because serial I/O endpoint is not open: %s', send_bytes
         )
         return
@@ -68,7 +68,7 @@ async def send_all_websocket(
     """
     for send_event in send_channel.output_all():
         if not websocket.is_open:
-            logger.warning(
+            logger.debug(
                 'Discarding because websocket I/O endpoint is not open: %s',
                 send_event
             )

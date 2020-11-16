@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { makeStyles, Theme, Grid, Button, Typography } from '@material-ui/core';
 import { useDispatch, useSelector } from 'react-redux';
 import ValueSlider from './ValueSlider';
@@ -47,9 +47,12 @@ interface Props {
   units: string;
   committedMin?: number;
   committedMax?: number;
+  disableAlarmButton?: boolean;
+  updateModalStatus?(status: boolean): void;
   requestCommitRange(min: number, max: number): void;
   stateKey: string;
   step?: number;
+  openModal?: boolean;
 }
 
 export const AlarmModal = ({
@@ -57,7 +60,10 @@ export const AlarmModal = ({
   units,
   committedMin = 0,
   committedMax = 100,
+  disableAlarmButton = false,
+  updateModalStatus,
   requestCommitRange,
+  openModal = false,
   stateKey,
   step,
 }: Props): JSX.Element => {
@@ -74,6 +80,21 @@ export const AlarmModal = ({
     alarmLimits[`${stateKey}Max`],
   ]);
   const dispatch = useDispatch();
+
+  const initSetValue = useCallback(() => {
+    setOpen(openModal);
+  }, [openModal]);
+
+  useEffect(() => {
+    initSetValue();
+  }, [initSetValue]);
+
+  useEffect(() => {
+    if (updateModalStatus) {
+      updateModalStatus(open);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const handleOpen = () => {
     setOpen(true);
@@ -107,14 +128,16 @@ export const AlarmModal = ({
   return (
     <Grid container direction="column" alignItems="center" justify="center">
       <Grid container item xs>
-        <Button
-          onClick={handleOpen}
-          color="primary"
-          variant="contained"
-          className={classes.openButton}
-        >
-          Alarm
-        </Button>
+        {!disableAlarmButton && (
+          <Button
+            onClick={handleOpen}
+            color="primary"
+            variant="contained"
+            className={classes.openButton}
+          >
+            Alarm
+          </Button>
+        )}
       </Grid>
       <ModalPopup
         withAction={true}

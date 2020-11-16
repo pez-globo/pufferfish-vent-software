@@ -10,6 +10,8 @@ import { VentilationMode } from '../../store/controller/proto/mcu_pb';
 import { getParametersRequestMode } from '../../store/controller/selectors';
 import { updateCommittedParameter } from '../../store/controller/actions';
 import { getModeText } from '../displays/ModeBanner';
+import EventAlerts from '../app/EventAlerts';
+import { LOGS_ROUTE } from '../navigation/constants';
 
 const useStyles = makeStyles((theme: Theme) => ({
   button: {
@@ -22,6 +24,13 @@ const useStyles = makeStyles((theme: Theme) => ({
     marginLeft: 10,
     marginRight: -50,
     color: 'white',
+  },
+  alertColor: {
+    backgroundColor: '#FF0000',
+    color: '#fff',
+    '&:hover': {
+      backgroundColor: '#FF0000',
+    },
   },
 }));
 

@@ -18,6 +18,8 @@ class VentilationMode(betterproto.Enum):
 
 
 class LogEventCode(betterproto.Enum):
+    """Log Events"""
+
     fio2_too_low = 0
     fio2_too_high = 1
     spo2_too_low = 2
@@ -33,6 +35,36 @@ class Alarms(betterproto.Message):
     time: int = betterproto.uint32_field(1)
     alarm_one: bool = betterproto.bool_field(2)
     alarm_two: bool = betterproto.bool_field(3)
+
+
+@dataclass
+class AlarmLimits(betterproto.Message):
+    rr_min: int = betterproto.uint32_field(1)
+    rr_max: int = betterproto.uint32_field(2)
+    pip_min: int = betterproto.uint32_field(3)
+    pip_max: int = betterproto.uint32_field(4)
+    peep_min: int = betterproto.uint32_field(5)
+    peep_max: int = betterproto.uint32_field(6)
+    ip_above_peep_min: int = betterproto.uint32_field(7)
+    ip_above_peep_max: int = betterproto.uint32_field(8)
+    insp_time_min: int = betterproto.uint32_field(9)
+    insp_time_max: int = betterproto.uint32_field(10)
+    fio2_min: int = betterproto.uint32_field(11)
+    fio2_max: int = betterproto.uint32_field(12)
+    paw_min: int = betterproto.uint32_field(13)
+    paw_max: int = betterproto.uint32_field(14)
+    mve_min: int = betterproto.uint32_field(15)
+    mve_max: int = betterproto.uint32_field(16)
+    tv_min: int = betterproto.uint32_field(17)
+    tv_max: int = betterproto.uint32_field(18)
+    etco2_min: int = betterproto.uint32_field(19)
+    etco2_max: int = betterproto.uint32_field(20)
+    flow_min: int = betterproto.uint32_field(21)
+    flow_max: int = betterproto.uint32_field(22)
+    apnea_min: int = betterproto.uint32_field(23)
+    apnea_max: int = betterproto.uint32_field(24)
+    spo2_min: int = betterproto.uint32_field(25)
+    spo2_max: int = betterproto.uint32_field(26)
 
 
 @dataclass
@@ -143,7 +175,10 @@ class ExpectedLogEvent(betterproto.Message):
 
 @dataclass
 class NextLogEvents(betterproto.Message):
-    log_events: List["LogEvent"] = betterproto.message_field(1)
+    next_expected: int = betterproto.uint32_field(1)
+    total: int = betterproto.uint32_field(2)
+    remaining: int = betterproto.uint32_field(3)
+    elements: List["LogEvent"] = betterproto.message_field(4)
 
 
 @dataclass

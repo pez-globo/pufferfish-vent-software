@@ -9,6 +9,9 @@
 PB_BIND(Alarms, Alarms, AUTO)
 
 
+PB_BIND(AlarmLimits, AlarmLimits, AUTO)
+
+
 PB_BIND(AlarmLimitsRequest, AlarmLimitsRequest, AUTO)
 
 

@@ -33,17 +33,17 @@ export const nextLogEventsReducer = (
       if (action.messageType === MessageType.NextLogEvents) {
         const newEventState = action.state as NextLogEvents;
         const oldEventState = state as NextLogEvents;
-        if (!oldEventState || !oldEventState.logEvents.length) {
+        if (!oldEventState || !oldEventState.elements.length) {
           return newEventState as NextLogEvents;
         }
-        const ids = new Set(oldEventState.logEvents.map((d) => d.id));
+        const ids = new Set(oldEventState.elements.map((d) => d.id));
         const events = [
-          ...oldEventState.logEvents,
-          ...newEventState.logEvents.filter((d) => !ids.has(d.id)),
+          ...oldEventState.elements,
+          ...newEventState.elements.filter((d) => !ids.has(d.id)),
         ];
         return {
           ...newEventState,
-          logEvents: events,
+          elements: events,
         };
       }
       return state;

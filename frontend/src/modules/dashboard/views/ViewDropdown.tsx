@@ -95,7 +95,7 @@ export const ViewDropdown = (): JSX.Element => {
 
   return (
     <div>
-      <Button
+      {/* <Button
         className={classes.button}
         disableElevation
         aria-haspopup="true"
@@ -105,7 +105,7 @@ export const ViewDropdown = (): JSX.Element => {
         <ListItemIcon className={classes.arrow}>
           <ArrowDropDown fontSize="default" />
         </ListItemIcon>
-      </Button>
+      </Button> */}
       <StyledMenu
         id="simple-menu"
         anchorEl={anchorEl}
