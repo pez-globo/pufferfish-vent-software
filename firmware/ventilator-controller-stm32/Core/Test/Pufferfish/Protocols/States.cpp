@@ -32,13 +32,13 @@ SCENARIO("Protocols::State behaves correctly", "[Datagram]") {
     BackendStateSynchronizer synchronizer{states, PF::Driver::Serial::Backend::state_sync_schedule};
 
     WHEN("data is written to it") {
-      PF::HAL::MockTime time;
-      const uint32_t ctime = 7867643;
-      time.set_millis(ctime);
-      auto current_time = time.millis();
-      THEN("the final status should be ok") {
-        REQUIRE(current_time == ctime);
-      }
+      // PF::HAL::MockTime time;
+      // const uint32_t ctime = 7867643;
+      // time.set_millis(ctime);
+      // auto current_time = time.millis();
+      // THEN("the final status should be ok") {
+      //   REQUIRE(current_time == ctime);
+      // }
     }
 
   }

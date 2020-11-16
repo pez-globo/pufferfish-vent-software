@@ -11,6 +11,7 @@
  */
 
 #include "Pufferfish/Protocols/CRCElements.h"
+#include "Pufferfish/HAL/CRCChecker.h"
 
 #include "catch2/catch.hpp"
 
@@ -23,8 +24,7 @@ SCENARIO("Protocols::CRCElement behaves correctly", "[CRCElement]") {
     using TestCRCElement = PF::Protocols::CRCElement<TestCRCElementProps::PayloadBuffer>;
     TestCRCElementProps::PayloadBuffer buffer;
     TestCRCElement crc_element{buffer};
-    CRC_HandleTypeDef hcrc;
-    PF::HAL::CRC32C crc32c{hcrc};
+    PF::HAL::SoftCRC32 crc32c{PF::HAL::crc32c_params};
     PF::Util::ByteVector<buffer_size> output_buffer;
 
     WHEN("data is written to it") {
@@ -51,8 +51,7 @@ SCENARIO("Protocols::CRCElement behaves correctly", "[CRCElement]") {
     using TestCRCElement = PF::Protocols::CRCElement<TestCRCElementProps::PayloadBuffer>;
     TestCRCElementProps::PayloadBuffer input_buffer;
     TestCRCElement crc_element{input_buffer};
-    CRC_HandleTypeDef hcrc;
-    PF::HAL::CRC32C crc32c{hcrc};
+    PF::HAL::SoftCRC32 crc32c{PF::HAL::crc32c_params};
     PF::Protocols::CRCElementReceiver<buffer_size> crc_element_receiver{crc32c};
 
     WHEN("data is written to it") {
@@ -71,8 +70,7 @@ SCENARIO("Protocols::CRCElement behaves correctly", "[CRCElement]") {
     using TestCRCElement = PF::Protocols::CRCElement<TestCRCElementProps::PayloadBuffer>;
     TestCRCElementProps::PayloadBuffer buffer;
     TestCRCElement crc_element{buffer};
-    CRC_HandleTypeDef hcrc;
-    PF::HAL::CRC32C crc32c{hcrc};
+    PF::HAL::SoftCRC32 crc32c{PF::HAL::crc32c_params};
     PF::Protocols::CRCElementSender<buffer_size> crc_element_sender{crc32c};
 
     WHEN("data is written to it") {

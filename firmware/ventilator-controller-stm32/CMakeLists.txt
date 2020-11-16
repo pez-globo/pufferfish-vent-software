@@ -67,7 +67,14 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "TestCatch2")
         "Core/Src/Pufferfish/Driver/Serial/*.cpp"
     )
     add_library(Pufferfish ${LIBRARY_SOURCES})
-    file(GLOB_RECURSE EXECUTABLE_SOURCES "Core/Test/*.*")
+
+    file(GLOB_RECURSE EXECUTABLE_SOURCES
+        "Core/Test/*.*"
+        "Core/Src/nanopb/*.c"
+        "Core/Src/Pufferfish/Application/*.*"
+        "Core/Src/Pufferfish/Util/*.*"
+    )
+
     add_executable(${CMAKE_BUILD_TYPE} ${EXECUTABLE_SOURCES})
     target_link_libraries(${CMAKE_BUILD_TYPE} Pufferfish gcov)
 else ()
