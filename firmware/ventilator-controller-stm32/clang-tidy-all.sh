@@ -42,15 +42,17 @@ STM32_USER_FILTERS=`echo "$STM32_USER_FILTERS" | ./clang-tidy-line-filters.sh`
 LINE_FILTERS="[$EXCLUDE_FILTERS,$STM32_USER_FILTERS,$INCLUDE_FILTERS]"
 
 # Check files
+SOURCE_FILES=`find Core/Src/Pufferfish -iname *.cpp | xargs`
 if [ "$1" == "TestCatch2" ]; then
-  SOURCE_FILES="Core/Src/Pufferfish/Driver/Indicators/PulseGenerator.cpp"
   TEST_FILES=`find Core/Test -iname *.cpp | xargs`
-  FILES="$SOURCE_FILES $TEST_FILES"
+  FILES="$TEST_FILES"
   CHECK_OVERRIDES="-readability-magic-numbers"
-else
-  SOURCE_FILES=`find Core/Src/Pufferfish -iname *.cpp | xargs`
+elif [ "$1" == "Clang" ]; then
   FILES="$SOURCE_FILES $STM32_USER_FILES"
   CHECK_OVERRIDES=""
+else
+  echo "$1 is not a valid target for clang-tidy checks"
+  exit 1
 fi
 echo clang-tidy $FILE --line-filter="$LINE_FILTERS" $CHECK_OVERRIDES $STANDARD_ARGS
 clang-tidy $FILES --line-filter="$LINE_FILTERS" --checks=$CHECK_OVERRIDES $STANDARD_ARGS

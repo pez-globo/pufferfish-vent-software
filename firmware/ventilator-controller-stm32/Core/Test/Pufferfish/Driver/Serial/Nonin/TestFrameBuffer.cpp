@@ -18,7 +18,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <array>
+
 #include "Pufferfish/Driver/Serial/Nonin/FrameBuffer.h"
+#include "Pufferfish/Util/Array.h"
 #include "catch2/catch.hpp"
 
 namespace PF = Pufferfish;
@@ -26,7 +29,7 @@ namespace PF = Pufferfish;
 SCENARIO("5 bytes of valid data.", "[NoninOEM3]") {
   GIVEN("5 bytes of data : 0x01, 0x83, 0x01, 0x80, 0x00") {
     uint8_t index = 0;
-    uint8_t input_data[5] = {0x01, 0x83, 0x01, 0x80, 0x00};
+    auto input_data = PF::Util::make_array<uint8_t>(0x01, 0x83, 0x01, 0x80, 0x00);
     PF::Driver::Serial::Nonin::FrameBuffer frame_buffer;
     PF::BufferStatus buffer_status;
     Frame frame_data;
@@ -67,7 +70,8 @@ SCENARIO("5 bytes of valid data.", "[NoninOEM3]") {
 SCENARIO("10 bytes of data for shift_left and reset.", "[NoninOEM3]") {
   GIVEN("A 10 bytes of data : 0x01 0x81 0x01 0x00 0x83 0x01 0x80 0x01 0x00 0x82") {
     uint8_t index = 0;
-    uint8_t input_data[15] = {0x01, 0x81, 0x01, 0x00, 0x83, 0x01, 0x80, 0x01, 0x00, 0x82};
+    auto input_data =
+        PF::Util::make_array<uint8_t>(0x01, 0x81, 0x01, 0x00, 0x83, 0x01, 0x80, 0x01, 0x00, 0x82);
     PF::Driver::Serial::Nonin::FrameBuffer frame_buffer;
     PF::BufferStatus buffer_status;
     Frame frame_data;
@@ -113,7 +117,7 @@ SCENARIO("10 bytes of data for shift_left and reset.", "[NoninOEM3]") {
     }
     AND_WHEN("FrameBuffer output status is ok") {
       for (index = 0; index < 5; index++) {
-        buffer_status = frame_buffer.input(input_data[index]);
+        frame_buffer.input(input_data[index]);
       }
       buffer_status = frame_buffer.output(frame_data);
       REQUIRE(buffer_status == PF::BufferStatus::ok);
@@ -124,7 +128,7 @@ SCENARIO("10 bytes of data for shift_left and reset.", "[NoninOEM3]") {
     }
     AND_WHEN("FrameBuffer output status is ok") {
       for (index = 0; index < 5; index++) {
-        buffer_status = frame_buffer.input(input_data[index]);
+        frame_buffer.input(input_data[index]);
       }
       buffer_status = frame_buffer.output(frame_data);
       REQUIRE(buffer_status == PF::BufferStatus::ok);
@@ -136,7 +140,7 @@ SCENARIO("10 bytes of data for shift_left and reset.", "[NoninOEM3]") {
     }
     AND_WHEN("FrameBuffer input status is ok after FrameBuffer::left_shift") {
       for (index = 0; index < 5; index++) {
-        buffer_status = frame_buffer.input(input_data[index]);
+        frame_buffer.input(input_data[index]);
       }
       frame_buffer.shift_left();
       buffer_status = frame_buffer.input(input_data[5]);
@@ -151,7 +155,7 @@ SCENARIO("10 bytes of data for shift_left and reset.", "[NoninOEM3]") {
     }
     WHEN("FrameBuffer::output status is ok") {
       for (index = 0; index < 5; index++) {
-        buffer_status = frame_buffer.input(input_data[index]);
+        frame_buffer.input(input_data[index]);
       }
       buffer_status = frame_buffer.output(frame_data);
       REQUIRE(buffer_status == PF::BufferStatus::ok);
@@ -165,7 +169,7 @@ SCENARIO("10 bytes of data for shift_left and reset.", "[NoninOEM3]") {
     }
     AND_WHEN("FrameBuffer::output status is ok") {
       for (index = 0; index < 5; index++) {
-        buffer_status = frame_buffer.input(input_data[index]);
+        frame_buffer.input(input_data[index]);
       }
       buffer_status = frame_buffer.output(frame_data);
       REQUIRE(buffer_status == PF::BufferStatus::ok);

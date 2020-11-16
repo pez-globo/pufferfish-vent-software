@@ -9,7 +9,7 @@
 
 #include "Pufferfish/Application/States.h"
 #include "Pufferfish/Driver/Serial/Backend/Backend.h"
-#include "Pufferfish/HAL/STM32/CRC.h"
+#include "Pufferfish/HAL/Interfaces/CRCChecker.h"
 #include "Pufferfish/HAL/STM32/HALBufferedUART.h"
 
 namespace Pufferfish::Driver::Serial::Backend {
@@ -18,7 +18,7 @@ class UARTBackend {
  public:
   using BufferedUART = HAL::LargeBufferedUART;
 
-  UARTBackend(volatile BufferedUART &uart, HAL::CRC32C &crc32c, Application::States &states)
+  UARTBackend(volatile BufferedUART &uart, HAL::CRC32 &crc32c, Application::States &states)
       : uart_(uart), backend_(crc32c, states) {}
 
   void setup_irq();

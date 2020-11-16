@@ -24,7 +24,7 @@ namespace Pufferfish {
 namespace HAL {
 
 template <AtomicSize rx_buffer_size, AtomicSize tx_buffer_size>
-MockBufferedUART<rx_buffer_size, tx_buffer_size>::MockBufferedUART() {}
+MockBufferedUART<rx_buffer_size, tx_buffer_size>::MockBufferedUART() = default;
 
 template <AtomicSize rx_buffer_size, AtomicSize tx_buffer_size>
 BufferStatus MockBufferedUART<rx_buffer_size, tx_buffer_size>::read(uint8_t &read_byte) volatile {
@@ -64,7 +64,7 @@ BufferStatus MockBufferedUART<rx_buffer_size, tx_buffer_size>::write(
 template <AtomicSize rx_buffer_size, AtomicSize tx_buffer_size>
 BufferStatus MockBufferedUART<rx_buffer_size, tx_buffer_size>::write_block(
     uint8_t write_byte, uint32_t timeout) volatile {
-  uint32_t index;
+  uint32_t index = 0;
   for (index = 0; index < timeout; index++) {
     if (write(write_byte) != BufferStatus::ok) {
       break;

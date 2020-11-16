@@ -32,7 +32,7 @@ I2CDeviceStatus Device::read_product_id(uint32_t &product_number) {
   }
 
   std::array<uint8_t, sizeof(uint32_t)> buffer{};
-  I2CDeviceStatus ret2 = sensirion_.read(buffer, crc_poly, crc_init);
+  I2CDeviceStatus ret2 = sensirion_.read(buffer);
   if (ret2 != I2CDeviceStatus::ok) {
     return ret2;
   }
@@ -42,21 +42,17 @@ I2CDeviceStatus Device::read_product_id(uint32_t &product_number) {
 }
 
 I2CDeviceStatus Device::set_averaging(uint8_t averaging_window) {
-  return sensirion_.write(
-      static_cast<uint16_t>(Command::set_averaging), averaging_window, crc_poly, crc_init);
+  return sensirion_.write(static_cast<uint16_t>(Command::set_averaging), averaging_window);
 }
 
 I2CDeviceStatus Device::request_conversion_factors() {
   return sensirion_.write(
-      static_cast<uint16_t>(Command::read_conversion),
-      static_cast<uint16_t>(gas),
-      crc_poly,
-      crc_init);
+      static_cast<uint16_t>(Command::read_conversion), static_cast<uint16_t>(gas));
 }
 
 I2CDeviceStatus Device::read_conversion_factors(ConversionFactors &conversion) {
   std::array<uint8_t, 3 * sizeof(uint16_t)> buffer{};
-  I2CDeviceStatus ret = sensirion_.read(buffer, crc_poly, crc_init);
+  I2CDeviceStatus ret = sensirion_.read(buffer);
   if (ret != I2CDeviceStatus::ok) {
     return ret;
   }
@@ -73,7 +69,7 @@ I2CDeviceStatus Device::read_conversion_factors(ConversionFactors &conversion) {
 I2CDeviceStatus Device::read_sample(Sample &sample, int16_t scale_factor, int16_t offset) {
   // read flow raw
   std::array<uint8_t, sizeof(uint16_t)> buffer{};
-  I2CDeviceStatus ret = sensirion_.read(buffer, crc_poly, crc_init);
+  I2CDeviceStatus ret = sensirion_.read(buffer);
   if (ret != I2CDeviceStatus::ok) {
     return ret;
   }

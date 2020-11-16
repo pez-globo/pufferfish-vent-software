@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "CRC.h"
+#include "CRCChecker.h"
 #include "Types.h"
 
 // Interfaces

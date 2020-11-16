@@ -37,7 +37,7 @@ I2CDeviceStatus SFM3000::serial_number(uint32_t &sn) {
   }
 
   std::array<uint8_t, sizeof(uint32_t)> buffer{};
-  I2CDeviceStatus ret2 = sensirion_.read(buffer, crc_poly, crc_init);
+  I2CDeviceStatus ret2 = sensirion_.read(buffer);
   if (ret2 != I2CDeviceStatus::ok) {
     return ret2;
   }
@@ -57,7 +57,7 @@ I2CDeviceStatus SFM3000::read_sample(SFM3000Sample &sample) {
   }
 
   std::array<uint8_t, sizeof(uint16_t)> buffer{};
-  I2CDeviceStatus ret = sensirion_.read(buffer, crc_poly, crc_init);
+  I2CDeviceStatus ret = sensirion_.read(buffer);
   if (ret != I2CDeviceStatus::ok) {
     return ret;
   }

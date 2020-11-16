@@ -20,7 +20,6 @@
 
 #include "Pufferfish/HAL/STM32/HALSPIDevice.h"
 
-#include "Pufferfish/HAL/CRC.h"
 #include "stm32h7xx_hal.h"
 
 namespace Pufferfish::HAL {

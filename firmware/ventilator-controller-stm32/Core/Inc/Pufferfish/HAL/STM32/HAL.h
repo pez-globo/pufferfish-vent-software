@@ -8,10 +8,10 @@
 
 #pragma once
 
-#include "CRC.h"
 #include "Endian.h"
 #include "HALAnalogInput.h"
 #include "HALBufferedUART.h"
+#include "HALCRCChecker.h"
 #include "HALDigitalInput.h"
 #include "HALDigitalOutput.h"
 #include "HALI2CDevice.h"

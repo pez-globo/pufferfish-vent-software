@@ -15,7 +15,7 @@ namespace Pufferfish::Util {
 
 template <typename ElementType, typename... Arg>
 constexpr auto make_array(Arg&&... arg) {
-  return std::array<ElementType, sizeof...(Arg)>{{std::forward<Arg>(arg)...}};
+  return std::array<ElementType, sizeof...(Arg)>{{std::forward<ElementType>(arg)...}};
 }
 
 }  // namespace Pufferfish::Util
