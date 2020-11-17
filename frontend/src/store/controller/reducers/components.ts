@@ -119,7 +119,7 @@ export const frontendDisplaySettingReducer = (
   return withRequestUpdate<FrontendDisplaySetting>(state, action, FRONTEND_DISPLAY_SETTINGS);
 };
 
-export const expectedLoggedEventReducer = (
+export const expectedLogEventReducer = (
   state: ExpectedLogEvent = ExpectedLogEvent.fromJSON({
     id: 0,
   }) as ExpectedLogEvent,

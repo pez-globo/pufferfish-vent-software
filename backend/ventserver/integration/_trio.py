@@ -256,7 +256,7 @@ async def process_io_persistently(
         nursery: trio.Nursery,
         channel: triochannels.TrioChannel[server.ReceiveOutputEvent],
         push_endpoint: 'trio.MemorySendChannel[server.ReceiveOutputEvent]',
-        reconnect_interval: float = 0.001
+        reconnect_interval: float = 0.01
 ) -> None:
     """Process all traffic on the I/O endpoint and reconnect on broken pipes.
 

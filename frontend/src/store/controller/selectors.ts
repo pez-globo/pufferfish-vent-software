@@ -14,6 +14,7 @@ import {
 } from './proto/mcu_pb';
 import { RotaryEncoder, FrontendDisplaySetting, SystemSettingRequest } from './proto/frontend_pb';
 import {
+  PBMessageType,
   ControllerStates,
   WaveformPoint,
   WaveformHistory,

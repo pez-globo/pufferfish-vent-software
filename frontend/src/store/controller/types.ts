@@ -41,23 +41,21 @@ export interface RotaryEncoderParameter {
 
 export type PBMessage =
   // mcu_pb
-  | AlarmLimits
-  | AlarmLimitsRequest
   | Alarms
   | SensorMeasurements
   | CycleMeasurements
   | Parameters
   | ParametersRequest
-  | LogEvent
+  | AlarmLimits
+  | AlarmLimitsRequest
   | ExpectedLogEvent
   | NextLogEvents
   | ActiveLogEvents
+  // frontend_pb
   | BatteryPower
   | ScreenStatus
-  // frontend_pb
   | SystemSettingRequest
   | FrontendDisplaySetting
-  | RotaryEncoderParameter
   | RotaryEncoder;
 
 export type PBMessageType =
@@ -69,16 +67,18 @@ export type PBMessageType =
   | typeof CycleMeasurements
   | typeof Parameters
   | typeof ParametersRequest
+  | typeof ExpectedLogEvent
   | typeof NextLogEvents
   | typeof ActiveLogEvents
+  // frontend_pb
   | typeof BatteryPower
   | typeof ScreenStatus
-  // frontend_pb
   | typeof SystemSettingRequest
   | typeof FrontendDisplaySetting
   | typeof RotaryEncoder;
 
 export enum MessageType {
+  // mcu_pb
   Alarms = 1,
   SensorMeasurements = 2,
   CycleMeasurements = 3,
@@ -89,6 +89,7 @@ export enum MessageType {
   ExpectedLogEvent = 8,
   NextLogEvents = 9,
   ActiveLogEvents = 10,
+  // frontend_pb
   BatteryPower = 64,
   ScreenStatus = 65,
   RotaryEncoder = 128,
@@ -156,30 +157,42 @@ export interface ControllerStates {
 }
 
 export const MessageClass = new Map<MessageType, PBMessageType>([
+  // mcu_pb
   [MessageType.Alarms, Alarms],
-  [MessageType.AlarmLimitsRequest, AlarmLimitsRequest],
-  [MessageType.SystemSettingRequest, SystemSettingRequest],
-  [MessageType.FrontendDisplaySetting, FrontendDisplaySetting],
   [MessageType.SensorMeasurements, SensorMeasurements],
   [MessageType.CycleMeasurements, CycleMeasurements],
   [MessageType.Parameters, Parameters],
   [MessageType.ParametersRequest, ParametersRequest],
+  [MessageType.AlarmLimits, AlarmLimits],
+  [MessageType.AlarmLimitsRequest, AlarmLimitsRequest],
+  [MessageType.ExpectedLogEvent, ExpectedLogEvent],
   [MessageType.NextLogEvents, NextLogEvents],
   [MessageType.ActiveLogEvents, ActiveLogEvents],
+  // frontend_pb
+  [MessageType.BatteryPower, BatteryPower],
+  [MessageType.ScreenStatus, ScreenStatus],
+  [MessageType.SystemSettingRequest, SystemSettingRequest],
+  [MessageType.FrontendDisplaySetting, FrontendDisplaySetting],
   [MessageType.RotaryEncoder, RotaryEncoder],
 ]);
 
 export const MessageTypes = new Map<PBMessageType, MessageType>([
+  // mcu_pb
   [Alarms, MessageType.Alarms],
-  [AlarmLimitsRequest, MessageType.AlarmLimitsRequest],
-  [SystemSettingRequest, MessageType.SystemSettingRequest],
-  [FrontendDisplaySetting, MessageType.FrontendDisplaySetting],
   [SensorMeasurements, MessageType.SensorMeasurements],
   [CycleMeasurements, MessageType.CycleMeasurements],
   [Parameters, MessageType.Parameters],
   [ParametersRequest, MessageType.ParametersRequest],
+  [AlarmLimits, MessageType.AlarmLimits],
+  [AlarmLimitsRequest, MessageType.AlarmLimitsRequest],
+  [ExpectedLogEvent, MessageType.ExpectedLogEvent],
   [NextLogEvents, MessageType.NextLogEvents],
   [ActiveLogEvents, MessageType.ActiveLogEvents],
+  // frontend_pb
+  [BatteryPower, MessageType.BatteryPower],
+  [ScreenStatus, MessageType.ScreenStatus],
+  [SystemSettingRequest, MessageType.SystemSettingRequest],
+  [FrontendDisplaySetting, MessageType.FrontendDisplaySetting],
   [RotaryEncoder, MessageType.RotaryEncoder],
 ]);
 

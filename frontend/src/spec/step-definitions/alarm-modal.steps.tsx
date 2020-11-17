@@ -10,10 +10,6 @@ import { AlarmModal } from '../../modules/controllers';
 import { darkTheme } from '../../styles/customTheme';
 import { updateCommittedState } from '../../store/controller/actions';
 import { ALARM_LIMITS, commitAction } from '../../store/controller/types';
-import controllerSaga, {
-  initConnectionPersistently,
-  updateClock,
-} from '../../store/controller/saga';
 import { INITIALIZED } from '../../store/app/types';
 
 const feature = loadFeature('src/spec/features/alarm-modal.feature');

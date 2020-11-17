@@ -1,131 +1,80 @@
-import { eventChannel, Subscribe, END, EventChannel } from 'redux-saga';
+import { EventChannel } from 'redux-saga';
 import {
   put,
-  call,
   take,
   takeEvery,
   fork,
   delay,
   select,
-  apply,
   takeLatest,
   all,
   ChannelTakeEffect,
 } from 'redux-saga/effects';
-import { BufferReader } from 'protobufjs/minimal';
-import { Socket } from 'dgram';
-import { MessageClass, MessageTypes } from './types';
-import { ParametersRequest } from './proto/mcu_pb';
-import { INITIALIZED, CLOCK_UPDATED } from '../app/types';
+import { INITIALIZED } from '../app/types';
+import { PBMessageType } from './types';
 import { updateState } from './actions';
-import { getParametersRequest } from './selectors';
+import { deserializeMessage } from './protocols/messages';
+import { advanceSchedule } from './protocols/states';
+import { getStateProcessor, initialSendSchedule } from './protocols/backend';
+import { createReceiveChannel, receiveBuffer, sendBuffer, setupConnection } from './io/websocket';
+import updateClock from './io/clock';
 
-function createConnectionChannel() {
-  return eventChannel((emit) => {
-    const sock = new WebSocket('ws://localhost:8000/');
-    sock.onerror = (err) => emit({ err, sock: null });
-    sock.onopen = (event) => emit({ err: null, sock });
-    sock.onclose = (event) => emit({ err: 'Closing!', sock });
-    return () => {
-      // console.log('Closing WebSocket...');
-      sock.close();
-    };
-  });
+function* deserializeResponse(response: Response) {
+  const buffer = yield receiveBuffer(response);
+  return deserializeMessage(buffer);
 }
 
-function createReceiveChannel(sock: WebSocket) {
-  const sockCopy = sock;
-  return eventChannel((emit) => {
-    sockCopy.onmessage = (message) => emit(message.data);
-    return () => {
-      sockCopy.close();
-    };
-  });
-}
-
-function* receive(message: ChannelTakeEffect<unknown>) {
-  const response = new Response(yield message);
-  const buffer = new Uint8Array(yield response.arrayBuffer());
-  const messageType = buffer[0];
-  const messageBody = buffer.slice(1);
-  const messageBodyReader = new BufferReader(messageBody);
-  const messageClass = MessageClass.get(messageType);
-  if (messageClass !== undefined) {
-    const pbMessage = messageClass.decode(messageBodyReader);
-    yield put(updateState(messageType, pbMessage));
-  } else {
-    // console.warn('Unknown message type', messageType, messageBody);
+function* receive(response: ChannelTakeEffect<Response>) {
+  try {
+    const results = yield deserializeResponse(yield response);
+    yield put(updateState(results.messageType, results.pbMessage));
+  } catch (err) {
+    console.error(err);
   }
 }
 
-function* receiveAll(channel: EventChannel<unknown>) {
+function* receiveAll(channel: EventChannel<Response>) {
   while (true) {
-    const message = yield take(channel);
-    yield receive(message);
+    const response = yield take(channel);
+    yield receive(response);
   }
 }
 
-function* sendParametersRequest(sock: WebSocket, parametersRequest: ParametersRequest) {
-  const messageType = MessageTypes.get(ParametersRequest);
-  if (messageType === undefined) {
-    // console.warn('Error: unknown message type for', ParametersRequest);
-    return;
-  }
-  const messageBody = ParametersRequest.encode(parametersRequest).finish();
-  const buffer = new Uint8Array(1 + messageBody.length);
-  buffer.set([messageType], 0);
-  buffer.set(messageBody, 1);
-  yield apply(sock, sock.send, [buffer]);
-  yield delay(90);
+function* sendState(sock: WebSocket, pbMessageType: PBMessageType) {
+  const processor = getStateProcessor(pbMessageType);
+  const pbMessage = yield select(processor.selector);
+  const body = processor.serializer(pbMessage);
+  yield sendBuffer(sock, body);
 }
 
 function* sendAll(sock: WebSocket) {
-  let clock = 0;
+  const schedule = Array.from(initialSendSchedule);
   while (sock.readyState === WebSocket.OPEN) {
-    const parametersRequest = yield select(getParametersRequest);
-    yield sendParametersRequest(sock, { ...parametersRequest, time: clock });
-    clock += 1;
+    const { time, pbMessageType } = advanceSchedule(schedule);
+    yield sendState(sock, pbMessageType);
+    yield delay(time);
   }
-  // console.log('Websocket is no longer open!');
 }
 
-function* initConnection() {
-  let connectionChannel;
-  let connection;
-  while (true) {
-    connectionChannel = yield call(createConnectionChannel);
-    connection = yield take(connectionChannel);
-    if (connection.err == null) {
-      break;
-    }
-    // console.warn('WebSocket connection error', connection.err)
-    yield delay(1);
-  }
-  // console.log('Connected to WebSocket!');
-  const receiveChannel = createReceiveChannel(connection.sock);
+function* serviceConnection() {
+  const { sock, connectionChannel } = yield setupConnection();
+  const receiveChannel = createReceiveChannel(sock);
   yield fork(receiveAll, receiveChannel);
-  yield fork(sendAll, connection.sock);
-  connection = yield take(connectionChannel);
+  yield fork(sendAll, sock);
+  const connection = yield take(connectionChannel);
   receiveChannel.close();
 }
 
-export function* initConnectionPersistently(): IterableIterator<unknown> {
+export function* serviceConnectionPersistently(): IterableIterator<unknown> {
   while (true) {
-    yield initConnection();
-    // console.log('Reestablishing WebSocket connection...');
-  }
-}
-
-export function* updateClock(): IterableIterator<unknown> {
-  while (true) {
-    yield delay(1000);
-    yield put({ type: CLOCK_UPDATED });
+    yield serviceConnection();
+    console.warn('Reestablishing WebSocket connection...');
   }
 }
 
 export function* controllerSaga(): IterableIterator<unknown> {
   yield all([
-    yield takeEvery(INITIALIZED, initConnectionPersistently),
+    yield takeEvery(INITIALIZED, serviceConnectionPersistently),
     yield takeLatest(INITIALIZED, updateClock),
   ]);
 }
