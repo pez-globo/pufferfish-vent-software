@@ -98,251 +98,21 @@ UART_HandleTypeDef huart3;
 
 namespace PF = Pufferfish;
 
-// Application State
-PF::Application::States all_states;
-
-// Parameters
-PF::Driver::BreathingCircuit::ParametersServices parameters_service;
-
-// Breathing Circuit Simulation
-PF::Driver::BreathingCircuit::Simulators simulator;
-
-// HAL Utilities
-PF::HAL::HALCRC32 crc32c(hcrc);
-
-// HAL Time
+// HAL for Time
+// We need to declare these as non-const global variables because they are used by the HAL for
+// Buffered UART (see below)
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 PF::HAL::HALTime time;
 
-// Buffered UARTs
+// HAL for Buffered UART
+// We need to declare these as non-const global variables because they are used by the interrupt
+// handler functions in stm32h7xx_it.cpp
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 volatile Pufferfish::HAL::LargeBufferedUART backend_uart(huart3, time);
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 volatile Pufferfish::HAL::LargeBufferedUART fdo2_uart(huart7, time);
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 volatile Pufferfish::HAL::ReadOnlyBufferedUART nonin_oem_uart(huart4, time);
-
-// UART Serial Communication
-PF::Driver::Serial::Backend::UARTBackend backend(backend_uart, crc32c, all_states);
-
-// Create an object for ADC3 of AnalogInput Class
-static const uint32_t adc_poll_timeout = 10;
-PF::HAL::HALAnalogInput adc3_input(hadc3, adc_poll_timeout);
-
-// The following lines suppress Eclipse CDT's warning about C-style casts;
-// those come from STM32CubeMX-generated #define constants, which we have no
-// control over
-
-// Interface Board
-PF::HAL::HALDigitalOutput ser_clock(
-    *SER_CLK_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
-    SER_CLK_Pin,  // @suppress("C-Style cast instead of C++ cast")
-    true);
-PF::HAL::HALDigitalOutput ser_clear(
-    *SER_CLR_N_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
-    SER_CLR_N_Pin,  // @suppress("C-Style cast instead of C++ cast")
-    false);
-PF::HAL::HALDigitalOutput ser_r_clock(
-    *SER_RCLK_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
-    SER_RCLK_Pin,  // @suppress("C-Style cast instead of C++ cast")
-    true);
-PF::HAL::HALDigitalOutput ser_input(
-    *SER_IN_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
-    SER_IN_Pin,  // @suppress("C-Style cast instead of C++ cast")
-    true);
-
-PF::HAL::HALDigitalOutput board_led1(
-    *LD1_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
-    LD1_Pin);  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
-static const uint32_t flash_period = 50;
-static const uint32_t blink_period = 500;
-static const uint32_t dim_period = 8;
-PF::Driver::Indicators::PWMGenerator flasher(flash_period, 1);
-PF::Driver::Indicators::PWMGenerator blinker(blink_period, 1);
-PF::Driver::Indicators::PWMGenerator dimmer(dim_period, 1);
-PF::Driver::ShiftRegister leds_reg(ser_input, ser_clock, ser_r_clock, ser_clear, time);
-
-PF::Driver::ShiftedOutput alarm_led_r(leds_reg, 0);
-PF::Driver::ShiftedOutput alarm_led_g(leds_reg, 1);
-PF::Driver::ShiftedOutput alarm_led_b(leds_reg, 2);
-PF::Driver::ShiftedOutput led_alarm_en(leds_reg, 3);
-PF::Driver::ShiftedOutput led_full_o2(leds_reg, 4);
-// NOLINTNEXTLINE(readability-magic-numbers)
-PF::Driver::ShiftedOutput led_manual_breath(leds_reg, 5);
-// NOLINTNEXTLINE(readability-magic-numbers)
-PF::Driver::ShiftedOutput led_lock(leds_reg, 6);
-
-PF::HAL::HALDigitalOutput alarm_reg_high(
-    *ALARM1_HIGH_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
-    ALARM1_HIGH_Pin);  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
-PF::HAL::HALDigitalOutput alarm_reg_med(
-    *ALARM1_MED_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
-    ALARM1_MED_Pin);  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
-PF::HAL::HALDigitalOutput alarm_reg_low(
-    *ALARM1_LOW_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
-    ALARM1_LOW_Pin);  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
-PF::HAL::HALDigitalOutput alarm_buzzer(
-    *BUZZ1_EN_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
-    BUZZ1_EN_Pin);  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
-
-PF::Driver::Indicators::LEDAlarm alarm_dev_led(alarm_led_r, alarm_led_g, alarm_led_b);
-PF::Driver::Indicators::AuditoryAlarm alarm_dev_sound(
-    alarm_reg_high, alarm_reg_med, alarm_reg_low, alarm_buzzer);
-PF::AlarmsManager h_alarms(alarm_dev_led, alarm_dev_sound);
-
-PF::HAL::HALDigitalInput button_alarm_en(
-    *SET_ALARM_EN_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
-    SET_ALARM_EN_Pin,  // @suppress("C-Style cast instead of C++ cast")
-    true);
-PF::HAL::HALDigitalInput button_full_o2(
-    *SET_100_O2_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
-    SET_100_O2_Pin,  // @suppress("C-Style cast instead of C++ cast")
-    true);
-PF::HAL::HALDigitalInput button_manual_breath(
-    *SET_MANUAL_BREATH_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
-    SET_MANUAL_BREATH_Pin,  // @suppress("C-Style cast instead of C++ cast")
-    true);
-PF::HAL::HALDigitalInput button_lock(
-    *SET_LOCK_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
-    SET_LOCK_Pin,  // @suppress("C-Style cast instead of C++ cast")
-    true);
-PF::HAL::HALDigitalInput button_power(
-    *SET_PWR_ON_OFF_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
-    SET_PWR_ON_OFF_Pin,  // @suppress("C-Style cast instead of C++ cast")
-    true);
-
-PF::Driver::Button::Debouncer switch_debounce;
-PF::Driver::Button::EdgeDetector switch_transition;
-PF::Driver::Button::Button button_membrane(button_alarm_en, switch_debounce, time);
-
-// Solenoid Valves
-PF::HAL::HALPWM drive1_ch1(htim2, TIM_CHANNEL_4);
-PF::HAL::HALPWM drive1_ch2(htim2, TIM_CHANNEL_2);
-PF::HAL::HALPWM drive1_ch3(htim3, TIM_CHANNEL_4);
-PF::HAL::HALPWM drive1_ch4(htim3, TIM_CHANNEL_1);
-PF::HAL::HALPWM drive1_ch5(htim3, TIM_CHANNEL_2);
-PF::HAL::HALPWM drive1_ch6(htim3, TIM_CHANNEL_3);
-PF::HAL::HALPWM drive1_ch7(htim4, TIM_CHANNEL_2);
-PF::HAL::HALPWM drive2_ch1(htim4, TIM_CHANNEL_3);
-PF::HAL::HALPWM drive2_ch2(htim4, TIM_CHANNEL_4);
-PF::HAL::HALPWM drive2_ch3(htim5, TIM_CHANNEL_1);
-PF::HAL::HALPWM drive2_ch4(htim8, TIM_CHANNEL_1);
-PF::HAL::HALPWM drive2_ch5(htim8, TIM_CHANNEL_2);
-PF::HAL::HALPWM drive2_ch6(htim8, TIM_CHANNEL_4);
-PF::HAL::HALPWM drive2_ch7(htim12, TIM_CHANNEL_2);
-
-// Base I2C Devices
-// Note: I2C1 is marked I2C2 in the control board v1.0 schematic, and vice versa
-/*PF::HAL::HALI2CDevice i2c_hal_mux1(hi2c2, PF::Driver::I2C::TCA9548A::default_i2c_addr);
-PF::HAL::HALI2CDevice i2c_hal_mux2(hi2c1, PF::Driver::I2C::TCA9548A::default_i2c_addr);
-
-PF::HAL::HALI2CDevice i2c_hal_press1(hi2c1, PF::Driver::I2C::abpxxxx001pg2a3.i2c_addr);
-PF::HAL::HALI2CDevice i2c_hal_press2(hi2c1, PF::Driver::I2C::abpxxxx001pg2a3.i2c_addr);
-PF::HAL::HALI2CDevice i2c_hal_press3(hi2c1, PF::Driver::I2C::abpxxxx001pg2a3.i2c_addr);
-PF::HAL::HALI2CDevice i2c_hal_press7(hi2c1, PF::Driver::I2C::abpxxxx030pg2a3.i2c_addr);
-PF::HAL::HALI2CDevice i2c_hal_press8(hi2c1, PF::Driver::I2C::abpxxxx030pg2a3.i2c_addr);
-PF::HAL::HALI2CDevice i2c_hal_press9(hi2c1, PF::Driver::I2C::abpxxxx001pg2a3.i2c_addr);
-PF::HAL::HALI2CDevice i2c_hal_press13(hi2c2, PF::Driver::I2C::SDPSensor::sdp8xx_i2c_addr);
-PF::HAL::HALI2CDevice i2c_hal_press14(hi2c2, PF::Driver::I2C::SDPSensor::sdp3x_i2c_addr);
-PF::HAL::HALI2CDevice i2c_hal_press15(hi2c2, PF::Driver::I2C::SDPSensor::sdp3x_i2c_addr);
-PF::HAL::HALI2CDevice i2c_hal_press16(hi2c2, PF::Driver::I2C::SFM3000::default_i2c_addr);
-PF::HAL::HALI2CDevice i2c_hal_press17(hi2c2, PF::Driver::I2C::SDPSensor::sdp3x_i2c_addr);
-PF::HAL::HALI2CDevice i2c_hal_press18(hi2c2, PF::Driver::I2C::SDPSensor::sdp3x_i2c_addr);*/
-
-PF::HAL::HALI2CDevice i2c2_hal_global(hi2c2, 0x00);
-PF::HAL::HALI2CDevice i2c4_hal_global(hi2c4, 0x00);
-PF::HAL::HALI2CDevice i2c_hal_sfm3019_air(hi2c2, PF::Driver::I2C::SFM3019::default_i2c_addr);
-PF::HAL::HALI2CDevice i2c_hal_sfm3019_o2(hi2c4, PF::Driver::I2C::SFM3019::default_i2c_addr);
-/*
-// I2C Mux
-PF::Driver::I2C::TCA9548A i2c_mux1(i2c_hal_mux1);
-PF::Driver::I2C::TCA9548A i2c_mux2(i2c_hal_mux2);
-
-// Extended I2C Device
-PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press1(i2c_hal_press1, i2c_mux2, 0);
-PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press2(i2c_hal_press2, i2c_mux2, 2);
-PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press3(i2c_hal_press3, i2c_mux2, 4);
-PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press7(i2c_hal_press7, i2c_mux2, 1);
-PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press8(i2c_hal_press8, i2c_mux2, 3);
-// NOLINTNEXTLINE(readability-magic-numbers)
-PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press9(i2c_hal_press9, i2c_mux2, 5);
-
-PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press13(i2c_hal_press13, i2c_mux1, 0);
-PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press14(i2c_hal_press14, i2c_mux1, 2);
-PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press15(i2c_hal_press15, i2c_mux1, 4);
-PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press16(i2c_hal_press16, i2c_mux1, 1);
-PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press17(i2c_hal_press17, i2c_mux1, 3);
-PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press18(
-    i2c_hal_press18,
-    i2c_mux1,
-    // NOLINTNEXTLINE(readability-magic-numbers)
-    5);
-
-// Actual usable sensor
-PF::Driver::I2C::HoneywellABP i2c_press1(i2c_ext_press1, PF::Driver::I2C::abpxxxx001pg2a3);
-PF::Driver::I2C::HoneywellABP i2c_press2(i2c_ext_press2, PF::Driver::I2C::abpxxxx001pg2a3);
-PF::Driver::I2C::HoneywellABP i2c_press3(i2c_ext_press3, PF::Driver::I2C::abpxxxx001pg2a3);
-PF::Driver::I2C::HoneywellABP i2c_press7(i2c_ext_press7, PF::Driver::I2C::abpxxxx030pg2a3);
-PF::Driver::I2C::HoneywellABP i2c_press8(i2c_ext_press8, PF::Driver::I2C::abpxxxx030pg2a3);
-PF::Driver::I2C::HoneywellABP i2c_press9(i2c_ext_press9, PF::Driver::I2C::abpxxxx001pg2a3);
-PF::Driver::I2C::SDPSensor i2c_press13(i2c_ext_press13);
-PF::Driver::I2C::SDPSensor i2c_press14(i2c_ext_press14);
-PF::Driver::I2C::SDPSensor i2c_press15(i2c_ext_press15);
-PF::Driver::I2C::SFM3000 i2c_press16(i2c_ext_press16);
-PF::Driver::I2C::SDPSensor i2c_press17(i2c_ext_press17);
-PF::Driver::I2C::SDPSensor i2c_press18(i2c_ext_press18);
-*/
-
-// SFM3019
-
-PF::Driver::I2C::SFM3019::Device sfm3019_dev_air(
-    i2c_hal_sfm3019_air, i2c2_hal_global, PF::Driver::I2C::SFM3019::GasType::air);
-PF::Driver::I2C::SFM3019::Sensor sfm3019_air(sfm3019_dev_air, true, time);
-PF::Driver::I2C::SFM3019::Device sfm3019_dev_o2(
-    i2c_hal_sfm3019_o2, i2c4_hal_global, PF::Driver::I2C::SFM3019::GasType::o2);
-PF::Driver::I2C::SFM3019::Sensor sfm3019_o2(sfm3019_dev_o2, true, time);
-
-// FDO2
-PF::Driver::Serial::FDO2::Device fdo2_dev(fdo2_uart);
-PF::Driver::Serial::FDO2::Sensor fdo2(fdo2_dev, time);
-
-// Nonin OEM III
-PF::Driver::Serial::Nonin::Device nonin_oem_dev(nonin_oem_uart);
-PF::Driver::Serial::Nonin::Sensor nonin_oem(nonin_oem_dev);
-
-// Initializables
-
-auto initializables = PF::Util::make_array<std::reference_wrapper<PF::Driver::Initializable>>(
-    sfm3019_air, sfm3019_o2, fdo2, nonin_oem);
-std::array<PF::InitializableState, initializables.size()> initialization_states;
-
-/*
-// Test list
-// NOLINTNEXTLINE(readability-magic-numbers)
-auto i2c_test_list = PF::Util::make_array<PF::Driver::Testable *>(
-     &i2c_mux1,
-     &i2c_mux2,
-     &i2c_press1,
-     &i2c_press2,
-     &i2c_press3,
-     &i2c_press7,
-     &i2c_press8,
-     &i2c_press9,
-     &i2c_press13,
-     &i2c_press14,
-     &i2c_press15,
-     &i2c_press16,
-     &i2c_press17,
-     &i2c_press18);
-*/
-
-int interface_test_state = 0;
-int interface_test_millis = 0;
-
-// Breathing Circuit Control
-PF::Driver::BreathingCircuit::HFNCControlLoop hfnc(
-    all_states.parameters(),
-    all_states.sensor_measurements(),
-    sfm3019_air,
-    sfm3019_o2,
-    drive1_ch1,
-    drive1_ch2);
 
 /* USER CODE END PV */
 
@@ -372,35 +142,7 @@ static void MX_TIM12_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void interface_test_loop() {
-  // get state of buttons
-  bool l_alarm_en = button_alarm_en.read();
-  bool l_o2 = button_full_o2.read();
-  bool l_manual = button_manual_breath.read();
-  bool l_lock = button_lock.read();
-  // bool l_power = button_power.read();
 
-  // simply write back
-  led_alarm_en.write(l_alarm_en);
-  led_full_o2.write(l_o2);
-  led_manual_breath.write(l_manual);
-  led_lock.write(l_lock);
-
-  // cycle though alarms
-  //  if (!l_power) {
-  //    hAlarms.clearAll();
-  //  } else if (time.millis() - interface_test_millis > 100) {
-  //    hAlarms.add(PF::AlarmStatus::highPriority);
-  //    interface_test_millis = time.millis();
-  //    if (interface_test_state) {
-  //      interface_test_state--;
-  //      hAlarms.add(static_cast<PF::AlarmStatus>(interface_test_state));
-  //    } else {
-  //      interface_test_state = static_cast<int>(PF::AlarmStatus::noAlarm);
-  //      hAlarms.clearAll();
-  //    }
-  //  }
-}
 /* USER CODE END 0 */
 
 /**
@@ -461,37 +203,265 @@ int main(void)
   MX_TIM8_Init();
   MX_TIM12_Init();
   /* USER CODE BEGIN 2 */
-  // Time
+
+  // HAL Utilities
+  PF::HAL::HALCRC32 crc32c(hcrc);
+
+  // HAL for Time
   PF::HAL::HALTime::micros_delay_init();
 
-  /*
-  interface_test_millis = time.millis();
+  // HAL for Analog Inputs
+  static const uint32_t adc_poll_timeout = 10;
+  PF::HAL::HALAnalogInput adc3_input(hadc3, adc_poll_timeout);
+  // adc3_input.start();
 
-  // ADCs
-  adc3_input.start();
-  */
+  // The following lines suppress Eclipse CDT's warning about C-style casts;
+  // those come from STM32CubeMX-generated #define constants, which we have no
+  // control over
 
-  // UARTs
-  backend_uart.setup_irq();
-  fdo2_uart.setup_irq();
-  nonin_oem_uart.setup_irq();
+  // HAL for Board LED Indicator
+  PF::HAL::HALDigitalOutput board_led1(
+      *LD1_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+      LD1_Pin);  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+  // Driver for Board LED Indicator
+  static const uint32_t flash_period = 50;
+  static const uint32_t blink_period = 500;
+  static const uint32_t dim_period = 8;
+  PF::Driver::Indicators::PWMGenerator flasher(flash_period, 1);
+  flasher.start(time.millis());
+  PF::Driver::Indicators::PWMGenerator blinker(blink_period, 1);
+  blinker.start(time.millis());
+  PF::Driver::Indicators::PWMGenerator dimmer(dim_period, 1);
+  dimmer.start(time.millis());
 
-  // Hardware PWMs
+  // HAL for Interface Board LEDs
+  PF::HAL::HALDigitalOutput ser_clock(
+      *SER_CLK_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+      SER_CLK_Pin,  // @suppress("C-Style cast instead of C++ cast")
+      true);
+  PF::HAL::HALDigitalOutput ser_clear(
+      *SER_CLR_N_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+      SER_CLR_N_Pin,  // @suppress("C-Style cast instead of C++ cast")
+      false);
+  PF::HAL::HALDigitalOutput ser_r_clock(
+      *SER_RCLK_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+      SER_RCLK_Pin,  // @suppress("C-Style cast instead of C++ cast")
+      true);
+  PF::HAL::HALDigitalOutput ser_input(
+      *SER_IN_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+      SER_IN_Pin,  // @suppress("C-Style cast instead of C++ cast")
+      true);
+
+  // Driver for Interface Board LEDs
+  PF::Driver::ShiftRegister leds_reg(ser_input, ser_clock, ser_r_clock, ser_clear, time);
+  PF::Driver::ShiftedOutput alarm_led_r(leds_reg, 0);
+  PF::Driver::ShiftedOutput alarm_led_g(leds_reg, 1);
+  PF::Driver::ShiftedOutput alarm_led_b(leds_reg, 2);
+  PF::Driver::ShiftedOutput led_alarm_en(leds_reg, 3);
+  PF::Driver::ShiftedOutput led_full_o2(leds_reg, 4);
+  // NOLINTNEXTLINE(readability-magic-numbers)
+  PF::Driver::ShiftedOutput led_manual_breath(leds_reg, 5);
+  // NOLINTNEXTLINE(readability-magic-numbers)
+  PF::Driver::ShiftedOutput led_lock(leds_reg, 6);
+
+  // HAL for Interface Board Audio Alarms
+  PF::HAL::HALDigitalOutput alarm_reg_high(
+      *ALARM1_HIGH_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+      ALARM1_HIGH_Pin);  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+  PF::HAL::HALDigitalOutput alarm_reg_med(
+      *ALARM1_MED_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+      ALARM1_MED_Pin);  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+  PF::HAL::HALDigitalOutput alarm_reg_low(
+      *ALARM1_LOW_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+      ALARM1_LOW_Pin);  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+  PF::HAL::HALDigitalOutput alarm_buzzer(
+      *BUZZ1_EN_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+      BUZZ1_EN_Pin);  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+
+  // HAL for Interface Board Buttons
+  PF::HAL::HALDigitalInput button_alarm_en(
+      *SET_ALARM_EN_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+      SET_ALARM_EN_Pin,  // @suppress("C-Style cast instead of C++ cast")
+      true);
+  PF::HAL::HALDigitalInput button_full_o2(
+      *SET_100_O2_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+      SET_100_O2_Pin,  // @suppress("C-Style cast instead of C++ cast")
+      true);
+  PF::HAL::HALDigitalInput button_manual_breath(
+      *SET_MANUAL_BREATH_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+      SET_MANUAL_BREATH_Pin,  // @suppress("C-Style cast instead of C++ cast")
+      true);
+  PF::HAL::HALDigitalInput button_lock(
+      *SET_LOCK_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+      SET_LOCK_Pin,  // @suppress("C-Style cast instead of C++ cast")
+      true);
+  PF::HAL::HALDigitalInput button_power(
+      *SET_PWR_ON_OFF_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+      SET_PWR_ON_OFF_Pin,  // @suppress("C-Style cast instead of C++ cast")
+      true);
+
+  // Driver for Interface Board Buttons
+  PF::Driver::Button::Debouncer switch_debounce;
+  PF::Driver::Button::EdgeDetector switch_transition;
+  PF::Driver::Button::Button button_membrane(button_alarm_en, switch_debounce, time);
+
+  // Driver for Solenoid Valves
+  PF::HAL::HALPWM drive1_ch1(htim2, TIM_CHANNEL_4);
   drive1_ch1.start();
   drive1_ch1.set_duty_cycle_raw(0);
+  PF::HAL::HALPWM drive1_ch2(htim2, TIM_CHANNEL_2);
   drive1_ch2.start();
   drive1_ch2.set_duty_cycle_raw(0);
+  PF::HAL::HALPWM drive1_ch3(htim3, TIM_CHANNEL_4);
+  PF::HAL::HALPWM drive1_ch4(htim3, TIM_CHANNEL_1);
+  PF::HAL::HALPWM drive1_ch5(htim3, TIM_CHANNEL_2);
+  PF::HAL::HALPWM drive1_ch6(htim3, TIM_CHANNEL_3);
+  PF::HAL::HALPWM drive1_ch7(htim4, TIM_CHANNEL_2);
+  PF::HAL::HALPWM drive2_ch1(htim4, TIM_CHANNEL_3);
+  PF::HAL::HALPWM drive2_ch2(htim4, TIM_CHANNEL_4);
+  PF::HAL::HALPWM drive2_ch3(htim5, TIM_CHANNEL_1);
+  PF::HAL::HALPWM drive2_ch4(htim8, TIM_CHANNEL_1);
+  PF::HAL::HALPWM drive2_ch5(htim8, TIM_CHANNEL_2);
+  PF::HAL::HALPWM drive2_ch6(htim8, TIM_CHANNEL_4);
+  PF::HAL::HALPWM drive2_ch7(htim12, TIM_CHANNEL_2);
 
-  // Software PWMs
-  blinker.start(time.millis());
-  flasher.start(time.millis());
-  dimmer.start(time.millis());
+  // Note: I2C1 is marked I2C2 in the control board v1.0 schematic, and vice versa
+  /*
+  // HAL for I2C Multiplexers
+  PF::HAL::HALI2CDevice i2c_hal_mux1(hi2c2, PF::Driver::I2C::TCA9548A::default_i2c_addr);
+  PF::HAL::HALI2CDevice i2c_hal_mux2(hi2c1, PF::Driver::I2C::TCA9548A::default_i2c_addr);
+
+  // Driver for I2C Multiplexers
+  PF::Driver::I2C::TCA9548A i2c_mux1(i2c_hal_mux1);
+  PF::Driver::I2C::TCA9548A i2c_mux2(i2c_hal_mux2);
+
+  // HAL for ABP
+  PF::HAL::HALI2CDevice i2c_hal_press1(hi2c1, PF::Driver::I2C::abpxxxx001pg2a3.i2c_addr);
+  PF::HAL::HALI2CDevice i2c_hal_press2(hi2c1, PF::Driver::I2C::abpxxxx001pg2a3.i2c_addr);
+  PF::HAL::HALI2CDevice i2c_hal_press3(hi2c1, PF::Driver::I2C::abpxxxx001pg2a3.i2c_addr);
+  PF::HAL::HALI2CDevice i2c_hal_press7(hi2c1, PF::Driver::I2C::abpxxxx030pg2a3.i2c_addr);
+  PF::HAL::HALI2CDevice i2c_hal_press8(hi2c1, PF::Driver::I2C::abpxxxx030pg2a3.i2c_addr);
+  PF::HAL::HALI2CDevice i2c_hal_press9(hi2c1, PF::Driver::I2C::abpxxxx001pg2a3.i2c_addr);
+
+  // Driver for ABP
+  PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press1(i2c_hal_press1, i2c_mux2, 0);
+  PF::Driver::I2C::HoneywellABP i2c_press1(i2c_ext_press1, PF::Driver::I2C::abpxxxx001pg2a3);
+  PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press2(i2c_hal_press2, i2c_mux2, 2);
+  PF::Driver::I2C::HoneywellABP i2c_press2(i2c_ext_press2, PF::Driver::I2C::abpxxxx001pg2a3);
+  PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press3(i2c_hal_press3, i2c_mux2, 4);
+  PF::Driver::I2C::HoneywellABP i2c_press3(i2c_ext_press3, PF::Driver::I2C::abpxxxx001pg2a3);
+  PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press7(i2c_hal_press7, i2c_mux2, 1);
+  PF::Driver::I2C::HoneywellABP i2c_press7(i2c_ext_press7, PF::Driver::I2C::abpxxxx030pg2a3);
+  PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press8(i2c_hal_press8, i2c_mux2, 3);
+  PF::Driver::I2C::HoneywellABP i2c_press8(i2c_ext_press8, PF::Driver::I2C::abpxxxx030pg2a3);
+  // NOLINTNEXTLINE(readability-magic-numbers)
+  PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press9(i2c_hal_press9, i2c_mux2, 5);
+  PF::Driver::I2C::HoneywellABP i2c_press9(i2c_ext_press9, PF::Driver::I2C::abpxxxx001pg2a3);
+
+  // HAL for SDP
+  PF::HAL::HALI2CDevice i2c_hal_press13(hi2c2, PF::Driver::I2C::SDPSensor::sdp8xx_i2c_addr);
+  PF::HAL::HALI2CDevice i2c_hal_press14(hi2c2, PF::Driver::I2C::SDPSensor::sdp3x_i2c_addr);
+  PF::HAL::HALI2CDevice i2c_hal_press15(hi2c2, PF::Driver::I2C::SDPSensor::sdp3x_i2c_addr);
+
+  // Driver for SDP
+  PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press13(i2c_hal_press13, i2c_mux1, 0);
+  PF::Driver::I2C::SDPSensor i2c_press13(i2c_ext_press13);
+  PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press14(i2c_hal_press14, i2c_mux1, 2);
+  PF::Driver::I2C::SDPSensor i2c_press14(i2c_ext_press14);
+  PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press15(i2c_hal_press15, i2c_mux1, 4);
+  PF::Driver::I2C::SDPSensor i2c_press15(i2c_ext_press15);
+
+  // HAL for SFM3000
+  PF::HAL::HALI2CDevice i2c_hal_press16(hi2c2, PF::Driver::I2C::SFM3000::default_i2c_addr);
+
+  // Driver for SFM3000
+  PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press16(i2c_hal_press16, i2c_mux1, 1);
+  PF::Driver::I2C::SFM3000 i2c_press16(i2c_ext_press16);
+
+  // HAL for more SDP
+  PF::HAL::HALI2CDevice i2c_hal_press17(hi2c2, PF::Driver::I2C::SDPSensor::sdp3x_i2c_addr);
+  PF::HAL::HALI2CDevice i2c_hal_press18(hi2c2, PF::Driver::I2C::SDPSensor::sdp3x_i2c_addr);
+
+  // Driver for more SDP
+  PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press17(i2c_hal_press17, i2c_mux1, 3);
+  PF::Driver::I2C::SDPSensor i2c_press17(i2c_ext_press17);
+  PF::Driver::I2C::ExtendedI2CDevice i2c_ext_press18(
+      i2c_hal_press18,
+      i2c_mux1,
+      // NOLINTNEXTLINE(readability-magic-numbers)
+      5);
+  PF::Driver::I2C::SDPSensor i2c_press18(i2c_ext_press18);
+  */
+
+  // HAL for SDP Global Reset
+  PF::HAL::HALI2CDevice i2c2_hal_global(hi2c2, 0x00);
+  PF::HAL::HALI2CDevice i2c4_hal_global(hi2c4, 0x00);
+
+  // HAL for SFM3019
+  PF::HAL::HALI2CDevice i2c_hal_sfm3019_air(hi2c2, PF::Driver::I2C::SFM3019::default_i2c_addr);
+  PF::HAL::HALI2CDevice i2c_hal_sfm3019_o2(hi2c4, PF::Driver::I2C::SFM3019::default_i2c_addr);
+
+  // Driver for SFM3019
+  PF::Driver::I2C::SFM3019::Device sfm3019_dev_air(
+      i2c_hal_sfm3019_air, i2c2_hal_global, PF::Driver::I2C::SFM3019::GasType::air);
+  PF::Driver::I2C::SFM3019::Sensor sfm3019_air(sfm3019_dev_air, true, time);
+  PF::Driver::I2C::SFM3019::Device sfm3019_dev_o2(
+      i2c_hal_sfm3019_o2, i2c4_hal_global, PF::Driver::I2C::SFM3019::GasType::o2);
+  PF::Driver::I2C::SFM3019::Sensor sfm3019_o2(sfm3019_dev_o2, true, time);
+
+  // HAL for FDO2 Sensor
+  fdo2_uart.setup_irq();
+
+  // Driver for FDO2
+  PF::Driver::Serial::FDO2::Device fdo2_dev(fdo2_uart);
+  PF::Driver::Serial::FDO2::Sensor fdo2(fdo2_dev, time);
+
+  // HAL for Nonin OEM III
+  nonin_oem_uart.setup_irq();
+
+  // Driver for Nonin OEM III
+  PF::Driver::Serial::Nonin::Device nonin_oem_dev(nonin_oem_uart);
+  PF::Driver::Serial::Nonin::Sensor nonin_oem(nonin_oem_dev);
+
+  // Application State
+  PF::Application::States all_states;
+
+  // Driver for Breathing Circuit
+  PF::Driver::BreathingCircuit::ParametersServices parameters_service;
+  PF::Driver::BreathingCircuit::Simulators simulator;
+  PF::Driver::BreathingCircuit::HFNCControlLoop hfnc(
+      all_states.parameters(),
+      all_states.sensor_measurements(),
+      sfm3019_air,
+      sfm3019_o2,
+      drive1_ch1,
+      drive1_ch2);
+
+  // Driver for Alarms & Indicators
+  PF::Driver::Indicators::LEDAlarm alarm_dev_led(alarm_led_r, alarm_led_g, alarm_led_b);
+  PF::Driver::Indicators::AuditoryAlarm alarm_dev_sound(
+      alarm_reg_high, alarm_reg_med, alarm_reg_low, alarm_buzzer);
+  PF::AlarmsManager h_alarms(alarm_dev_led, alarm_dev_sound);
+
+  // HAL for Backend
+  backend_uart.setup_irq();
+
+  // Driver for Backend
+  PF::Driver::Serial::Backend::UARTBackend backend(backend_uart, crc32c, all_states);
+
+  // Initializables
+  auto initializables = PF::Util::make_array<std::reference_wrapper<PF::Driver::Initializable>>(
+      sfm3019_air, sfm3019_o2, fdo2, nonin_oem);
+  std::array<PF::InitializableState, initializables.size()> initialization_states;
+
+  int interface_test_state = 0;
+  int interface_test_millis = time.millis();
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  // Setup
+  // Setup Loop
   static const uint32_t setup_indicator_duration = 2000;
 
   board_led1.write(true);
@@ -531,7 +501,7 @@ int main(void)
   }
   board_led1.write(false);
 
-  // Normal loop
+  // Normal Loop
   while (true) {
     uint32_t current_time = time.millis();
 
@@ -587,16 +557,38 @@ int main(void)
     board_led1.write(false);
     time.delay(blink_low_delay);
     board_led1.write(true);
-    //interface_test_loop();
+
+    // Interface Board Test
+    // get state of buttons
+    bool l_alarm_en = button_alarm_en.read();
+    bool l_o2 = button_full_o2.read();
+    bool l_manual = button_manual_breath.read();
+    bool l_lock = button_lock.read();
+    // bool l_power = button_power.read();
+
+    // simply write back
+    led_alarm_en.write(l_alarm_en);
+    led_full_o2.write(l_o2);
+    led_manual_breath.write(l_manual);
+    led_lock.write(l_lock);
+
+    // cycle though alarms
+    //  if (!l_power) {
+    //    hAlarms.clearAll();
+    //  } else if (time.millis() - interface_test_millis > 100) {
+    //    hAlarms.add(PF::AlarmStatus::highPriority);
+    //    interface_test_millis = time.millis();
+    //    if (interface_test_state) {
+    //      interface_test_state--;
+    //      hAlarms.add(static_cast<PF::AlarmStatus>(interface_test_state));
+    //    } else {
+    //      interface_test_state = static_cast<int>(PF::AlarmStatus::noAlarm);
+    //      hAlarms.clearAll();
+    //    }
+    //  }
     //leds_reg.update();
 
-    for (PF::Driver::Testable *t : i2c_test_list) {
-      if (t->test() != PF::I2CDeviceStatus::ok) {
-        board_led1.write(false);
-      }
-    }
     time.delay(loop_delay);
-
 
     // FIXME: Added for testing
     // Read the Analog data of ADC3 and validate the return value
