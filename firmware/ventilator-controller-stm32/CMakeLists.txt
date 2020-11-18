@@ -81,10 +81,13 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "TestCatch2")
         "Core/Test/*.*"
         "Core/Src/nanopb/*.c"
         "Core/Src/Pufferfish/Application/*.*"
+        "Core/Src/Pufferfish/HAL/Mock/MockTime.cpp"
         "Core/Src/Pufferfish/Util/*.*"
     )
 
     add_executable(${CMAKE_BUILD_TYPE} ${EXECUTABLE_SOURCES})
+    include_directories("Core/Inc")
+    include_directories("Core/Test/Inc")
     target_link_libraries(${CMAKE_BUILD_TYPE} Pufferfish gcov)
 else ()
     add_definitions(-DUSE_HAL_DRIVER -DSTM32H743xx -DDEBUG)
