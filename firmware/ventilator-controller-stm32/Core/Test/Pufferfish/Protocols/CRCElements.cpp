@@ -50,13 +50,18 @@ SCENARIO("Protocols::CRCElement behaves correctly", "[CRCElement]") {
     using TestCRCElementProps = PF::Protocols::CRCElementProps<buffer_size>;
     using TestCRCElement = PF::Protocols::CRCElement<TestCRCElementProps::PayloadBuffer>;
     TestCRCElementProps::PayloadBuffer input_buffer;
+  
+    for (uint32_t i=0; i < TestCRCElementProps :: payload_max_size; ++i) {
+      input_buffer.push_back(i);
+    }
     TestCRCElement crc_element{input_buffer};
     PF::HAL::SoftCRC32 crc32c{PF::HAL::crc32c_params};
     PF::Protocols::CRCElementReceiver<buffer_size> crc_element_receiver{crc32c};
 
     WHEN("data is written to it") {
-      auto write_status = crc_element.write(input_buffer, crc32c);
-      auto status = crc_element_receiver.transform(input_buffer, crc_element);
+      Pufferfish::Util::ByteVector<254UL> output_buffer;
+      auto write_status = crc_element.write(output_buffer, crc32c);
+      auto status = crc_element_receiver.transform(output_buffer, crc_element);
       THEN("the final status should be ok") {
         REQUIRE(write_status == PF::IndexStatus::ok);
         REQUIRE(status == PF::Protocols::CRCElementReceiver<buffer_size>::Status::ok);
