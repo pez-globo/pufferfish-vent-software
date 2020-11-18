@@ -117,30 +117,6 @@ jobs:
       run: |
         ./clang-tidy-all.sh Clang
 
-  clang-tidy-11:
-    runs-on: ubuntu-20.04
-
-    steps:
-    - uses: actions/checkout@v1
-
-    - name: Install dependencies
-      run: |
-        sudo apt-get install gcc-arm-none-eabi cmake
-        sudo apt-get remove -y libllvm10
-        wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-        sudo add-apt-repository -y -s 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-11 main'
-        sudo apt-get update
-        sudo apt-get install clang-tidy-11
-
-    - name: Run CMake
-      run: |
-        ./cmake.sh Clang /usr/lib /usr/bin
-
-    - name: Run clang-tidy
-      run: |
-        alias clang-tidy="clang-tidy-11"
-        ./clang-tidy-all.sh Clang
-
   catch2-clang-tidy:
     runs-on: ubuntu-20.04
 

@@ -22,7 +22,10 @@ Then you'll need to rename those files back in order to recompile the project:
 
 ## Auto-Formatting
 
-To automatically format all code using clang-format, first install `clang-format`.
+To automatically format all code using clang-format, first install `clang-format`
+at version 10 (which should be the default on Ubuntu 20.04). On macOS with Homebrew
+set up, it will be easiest to install LLVM using Homebrew;, you may not be able to
+install llvm at version 10, in which case you should install it at verson 11 instead.
 
 Then, from this directory, run the `clang-format-all.sh` script with the usual
 options for clang-format (though note that this script will use the configuration
@@ -74,12 +77,16 @@ Clang-based tools), first install `cmake`.
 
 Then find the path where the GCC arm-none-eabi toolchain is available (if you have
 not already installed it into somewhere accessible from the shell), and add it to
-your shell's path. For example, you might have this toolchain provided by the
+your shell's path. For example, on Ubuntu 20.04 you might have this toolchain provided by the
 STM32Cube IDE at
 `/opt/st/stm32cubeide_1.3.0/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.linux64_1.0.0.201904181610/tools/bin/`
 in which case you can save it into the `TOOLCHAIN_PATH` variable:
 ```
 TOOLCHAIN_PATH="/opt/st/stm32cubeide_1.3.0/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.linux64_1.0.0.201904181610/tools"
+```
+while on macOS you might need to use a different value:
+```
+TOOLCHAIN_PATH="/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.7-2018-q2-update.macos64_1.4.0.202007081208/tools"
 ```
 
 To build the project in debug mode with four build threads (and to generate a
@@ -123,7 +130,9 @@ scan-build make -j4
 ```
 
 Note that on Ubuntu 20.04, you may need to install `clang-tools-10` instead of
-`clang-tools`.
+`clang-tools`. On macOS with a Homebrew installation of LLVM, you may not be able
+to install llvm at version 10, in which case you should install it at
+verson 11 instead.
 
 ### Clang-tidy
 
@@ -138,7 +147,9 @@ use CMake to generate a compile commands database for the Clang build type
 Note that this script will delete and rebuild the `cmake-build-debug` directory
 if it already exists, and then it will run clang-tidy to report all warnings.
 Note that on Ubuntu 20.04, you may need to install `clang-tidy-10` instead of
-`clang-tidy`.
+`clang-tidy`. On macOS with a Homebrew installation of LLVM, you may not be able
+to install llvm at version 10, in which case you should install it at
+verson 11 instead.
 
 You can also pass the `clang-tidy-all.sh` script the normal arguments for clang-tidy,
 though you should not use `--` in the arguments (this causes clang-tidy to ignore
