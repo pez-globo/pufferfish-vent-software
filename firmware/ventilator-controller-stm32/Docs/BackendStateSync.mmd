@@ -1,0 +1,18 @@
+sequenceDiagram
+loop while not output_ready
+    main/UARTBackend->>Backend: backend_.input(new_byte)
+    Backend->>BackendReceiver: receiver_.input(new_byte)
+    BackendReceiver->>FrameReceiver: frame_.input(uint8_t new_byte)
+    FrameReceiver->>ChunkSplitter: chunk_splitter_.input(uint8_t new_byte)
+end
+Backend->>BackendReceiver: receiver_.output(message)
+BackendReceiver->>FrameReceiver: frame_.output(ChunkBuffer& temp_buffer1)
+FrameReceiver->>ChunkSplitter: chunk_splitter_.output(ChunkBuffer& temp_buffer)
+ChunkSplitter->>COBSDecoder: cobs_decoder.transform(temp_buffer, output_buffer)
+BackendReceiver->>BackendCRCReceiver: crc_.transform(temp_buffer1, BackendParsedCRC& receive_crc)
+BackendReceiver->>BackendDatagramReceiver: datagram_.transform(temp_buffer2, BackendParsedDatagram& receive_datagram)
+BackendReceiver->>BackendMessageReceiver: message_.transform(temp_buffer3, output_message)
+
+Backend->>BackendStateSynchronizer: synchronizer_.input(message.payload)
+
+main/UARTBackend->>Backend: backend_.output(new_byte)
