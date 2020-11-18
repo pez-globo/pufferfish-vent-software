@@ -302,7 +302,7 @@ int main(void)
 
   // Driver for Interface Board Buttons
   PF::Driver::Button::Debouncer switch_debounce;
-  PF::Driver::Button::EdgeDetector switch_transition;
+  // PF::Driver::Button::EdgeDetector switch_transition;
   PF::Driver::Button::Button button_membrane(button_alarm_en, switch_debounce, time);
 
   // Driver for Solenoid Valves
@@ -424,7 +424,7 @@ int main(void)
   PF::Driver::Serial::Nonin::Sensor nonin_oem(nonin_oem_dev);
 
   // Application State
-  PF::Application::States all_states;
+  PF::Application::States all_states{};
 
   // Driver for Breathing Circuit
   PF::Driver::BreathingCircuit::ParametersServices parameters_service;
@@ -452,10 +452,11 @@ int main(void)
   // Initializables
   auto initializables = PF::Util::make_array<std::reference_wrapper<PF::Driver::Initializable>>(
       sfm3019_air, sfm3019_o2, fdo2, nonin_oem);
-  std::array<PF::InitializableState, initializables.size()> initialization_states;
+  std::array<PF::InitializableState, initializables.size()> initialization_states{};
+  initialization_states.fill(PF::InitializableState::setup);
 
-  int interface_test_state = 0;
-  int interface_test_millis = time.millis();
+  // int interface_test_state = 0;
+  // int interface_test_millis = time.millis();
 
   /* USER CODE END 2 */
 

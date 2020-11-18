@@ -138,6 +138,7 @@ jobs:
 
     - name: Run clang-tidy
       run: |
+        alias clang-tidy="clang-tidy-11"
         ./clang-tidy-all.sh Clang
 
   catch2-clang-tidy:
