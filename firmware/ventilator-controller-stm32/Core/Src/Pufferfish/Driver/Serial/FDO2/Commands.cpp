@@ -72,6 +72,8 @@ template <>
 ParseStatus parse<Vers>(const ChunkBuffer &input_buffer, Vers &response) {
   const char *end = input_buffer.buffer() + input_buffer.size() - 1;
   const char *parse_start = input_buffer.buffer() + Headers::length;
+  // clang-tidy 12 generates a false positive that this declares a variable of type va_list
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
   char *parse_end = nullptr;
   if (*parse_start != arg_delimiter) {
     return ParseStatus::invalid_arg_delimiter;
@@ -135,6 +137,8 @@ template <>
 ParseStatus parse<Mraw>(const ChunkBuffer &input_buffer, Mraw &response) {
   const char *end = input_buffer.buffer() + input_buffer.size() - 1;
   const char *parse_start = input_buffer.buffer() + Headers::length;
+  // clang-tidy 12 generates a false positive that this declares a variable of type va_list
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
   char *parse_end = nullptr;
   if (*parse_start != arg_delimiter) {
     return ParseStatus::invalid_arg_delimiter;
@@ -255,6 +259,8 @@ template <>
 ParseStatus parse<Bcst>(const ChunkBuffer &input_buffer, Bcst &response) {
   const char *end = input_buffer.buffer() + input_buffer.size() - 1;
   const char *parse_start = input_buffer.buffer() + Headers::length;
+  // clang-tidy 12 generates a false positive that this declares a variable of type va_list
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
   char *parse_end = nullptr;
   if (*parse_start != arg_delimiter) {
     return ParseStatus::invalid_arg_delimiter;
@@ -281,6 +287,8 @@ template <>
 ParseStatus parse<Erro>(const ChunkBuffer &input_buffer, Erro &response) {
   const char *end = input_buffer.buffer() + input_buffer.size() - 1;
   const char *parse_start = input_buffer.buffer() + Headers::length;
+  // clang-tidy 12 generates a false positive that this declares a variable of type va_list
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
   char *parse_end = nullptr;
   if (*parse_start != arg_delimiter) {
     return ParseStatus::invalid_arg_delimiter;
