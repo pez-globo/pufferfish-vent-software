@@ -12,7 +12,7 @@
 
 #include "Pufferfish/Protocols/Messages.h"
 #include "Pufferfish/Application/States.h"
-#include "Pufferfish/BackendDefs.h"
+#include "Pufferfish/Test/BackendDefs.h"
 #include "Pufferfish/Protocols/Chunks.h"
 #include "Pufferfish/Util/Vector.h"
 #include "Pufferfish/Util/Array.h"
