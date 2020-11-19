@@ -52,17 +52,19 @@ inline std::string convertByteVectorToHexString(const Pufferfish::Util::ByteVect
     int c1 = ((ch & 0xf0) >> 4);
     if((c1 >= 0) && (c1 <= 9)) {
       output_string += (c1 + '0');
-    }
-    if((c1 >= 10) && (c1 <= 15)) {
-      output_string += (c1 + 'A');
+    }else if((c1 >= 10) && (c1 <= 15)) {
+      output_string += ((c1-10) + 'A');
+    }else{
+      output_string += ('?');
     }
 
     c1 = (ch & 0x0f);
     if((c1 >= 0) && (c1 <= 9)) {
       output_string += (c1 + '0');
-    }
-    if((c1 >= 10) && (c1 <= 15)) {
-      output_string += (c1 + 'A');
+    }else if((c1 >= 10) && (c1 <= 15)) {
+      output_string += ((c1-10) + 'A');
+    }else{
+      output_string += ('?');
     }
   }
   return output_string;
