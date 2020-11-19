@@ -204,8 +204,12 @@ on the native computer (rather than an STM32) and without running STM32Cube IDE,
 first ensure `cmake` is installed.
 
 ### Building the Catch2 Tests
+To run the unit test cases, first ensure that the package `lcov` is installed on your system.
+```
+sudo apt-get install -y lcov
+```
 
-Just run:
+To run the test cases and see the results on the command line, run:
 ```
 ./cmake.sh TestCatch2  # run from the firmware/ventilator-controller-stm32 directory
 cd cmake-build-testcatch2
@@ -213,6 +217,13 @@ make -j4
 ```
 
 Then you can run the tests with `./TestCatch2`.
+
+
+To run the test cases and see the coverage results in a browser, run:
+```
+make TestCatch2_coverage
+```
+Then open the file `./TestCatch2_coverage/index.html` in any browser.
 
 ### Scan-build
 
