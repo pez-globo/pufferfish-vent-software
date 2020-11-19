@@ -4,7 +4,7 @@
  *  Created on: Nov 17, 2020
  *      Author: Renji Panicker
  *
- *  A set of helper functins for test cases
+ *  A set of helper functins for writing and debugging test cases
  */
 
 #pragma once
@@ -41,6 +41,31 @@ inline bool convertStringToByteVector(const std::string& input_string, Pufferfis
     output_buffer.push_back(ch);
   }
   return true;
+}
+
+template <size_t payload_size>
+inline std::string convertByteVectorToHexString(const Pufferfish::Util::ByteVector<payload_size> &input_buffer) {
+  std::string output_string;
+  for(size_t i = 0; i < input_buffer.size(); ++i) {
+    auto& ch = input_buffer[i];
+    output_string += "\\x";
+    int c1 = ((ch & 0xf0) >> 4);
+    if((c1 >= 0) && (c1 <= 9)) {
+      output_string += (c1 + '0');
+    }
+    if((c1 >= 10) && (c1 <= 15)) {
+      output_string += (c1 + 'A');
+    }
+
+    c1 = (ch & 0x0f);
+    if((c1 >= 0) && (c1 <= 9)) {
+      output_string += (c1 + '0');
+    }
+    if((c1 >= 10) && (c1 <= 15)) {
+      output_string += (c1 + 'A');
+    }
+  }
+  return output_string;
 }
 
 }
