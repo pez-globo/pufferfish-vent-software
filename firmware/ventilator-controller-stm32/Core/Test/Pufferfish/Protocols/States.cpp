@@ -29,40 +29,59 @@ using BackendStateSynchronizer = PF::Protocols::StateSynchronizer<
     PF::Driver::Serial::Backend::state_sync_schedule.size()>;
 
 SCENARIO("Protocols::State behaves correctly", "[Datagram]") {
-  GIVEN("A State Synchronizer") {
-    PF::Application::States states;
-    BackendStateSynchronizer synchronizer{states, PF::Driver::Serial::Backend::state_sync_schedule};
+  GIVEN("A Mock Time object") {
+    PF::HAL::MockTime time;
 
     WHEN("the current time is written to it") {
-      PF::HAL::MockTime time;
-      const uint32_t ctime = 7867643;
+      const uint32_t ctime = 0x12345678;
       time.set_millis(ctime);
       auto current_time = time.millis();
-      THEN("the final status should be ok") {
+      THEN("the final time should be the same") {
         REQUIRE(current_time == ctime);
       }
     }
+  }
 
-    WHEN("data is written to it") {
-      PF::HAL::SoftCRC32 crc32c{PF::HAL::crc32c_params};
-      constexpr size_t buffer_size = 256;
-      PF::Protocols::ChunkSplitter<buffer_size, uint8_t> chunks;
-      uint8_t val = 128;
-      PF::Protocols::ChunkInputStatus status;
-      for(uint8_t i = 1; i < 100; ++i) {
-          status = chunks.input(val);
+  GIVEN("A State Synchronizer") {
+    PF::Application::States states;
+
+    WHEN("the current time is written to it") {
+      const uint32_t ctime = 0x12345678;
+      BackendStateSynchronizer synchronizer{states, PF::Driver::Serial::Backend::state_sync_schedule};
+      auto input_status = synchronizer.input(ctime);
+      THEN("the final status should be ok") {
+        REQUIRE(input_status == BackendStateSynchronizer::InputStatus::ok);
       }
+    }
 
-    //   // BackendMessage message;
-    //   // auto output_status = receiver.output(message);
+    WHEN("single state is written to it") {
+      PF::Application::StateSegment input;
+      Alarms alarms;
+      alarms.time = 0x12345678;
+      alarms.alarm_one = true;
+      alarms.alarm_two = false;
+      input.set(alarms);
 
-    //   PF::HAL::MockTime time;
-    //   const uint32_t ctime = 7867643;
-    //   time.set_millis(ctime);
-    //   auto current_time = time.millis();
-    //   THEN("the final status should be ok") {
-    //     REQUIRE(current_time == ctime);
-    //   }
+      BackendStateSynchronizer synchronizer{states, PF::Driver::Serial::Backend::state_sync_schedule};
+
+      uint32_t ctime = 8;
+      auto input_ctime_status1 = synchronizer.input(ctime);
+      auto input_status = synchronizer.input(input);
+
+      PF::Application::StateSegment output;
+      auto output_status1 = synchronizer.output(output);
+
+      ctime += 10;
+      auto input_ctime_status2 = synchronizer.input(ctime);
+      auto output_status2 = synchronizer.output(output);
+
+      THEN("the final status should be ok") {
+        REQUIRE(input_ctime_status1 == BackendStateSynchronizer::InputStatus::ok);
+        REQUIRE(input_status == BackendStateSynchronizer::InputStatus::ok);
+        REQUIRE(output_status1 == BackendStateSynchronizer::OutputStatus::waiting);
+        REQUIRE(input_ctime_status2 == BackendStateSynchronizer::InputStatus::ok);
+        REQUIRE(output_status2 == BackendStateSynchronizer::OutputStatus::available);
+      }
     }
 
   }
