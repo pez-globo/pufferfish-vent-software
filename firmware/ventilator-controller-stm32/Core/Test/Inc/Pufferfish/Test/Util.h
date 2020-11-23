@@ -20,7 +20,7 @@ inline bool operator==(const Pufferfish::Util::ByteVector<payload_size> &lhs, co
     return false;
   }
   for(size_t i = 0; i < lhs.size(); ++i) {
-    if(lhs[i] != rhs.at(i)) {
+    if((uint8_t)lhs[i] != (uint8_t)rhs.at(i)) {
       return false;
     }
   }
