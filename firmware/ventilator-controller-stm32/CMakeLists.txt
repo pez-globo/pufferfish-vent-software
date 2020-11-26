@@ -77,6 +77,7 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "TestCatch2")
         "Core/Src/Pufferfish/Driver/Serial/FDO2/*.*"
         "Core/Src/Pufferfish/HAL/Interfaces/PWM.cpp"
         "Core/Src/Pufferfish/HAL/Mock/MockTime.cpp"
+        "Core/Src/Pufferfish/HAL/Mock/MockI2CDevice.cpp"
         "Core/Src/Pufferfish/Util/*.*"
     )
 
