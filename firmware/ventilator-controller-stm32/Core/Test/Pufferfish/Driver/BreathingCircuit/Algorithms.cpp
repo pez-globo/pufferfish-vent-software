@@ -14,7 +14,6 @@
 #include "Pufferfish/Test/Util.h"
 
 #include "catch2/catch.hpp"
-#include <iostream>
 
 namespace PF = Pufferfish;
 
@@ -22,16 +21,26 @@ SCENARIO("BreathingCircuit::PI behaves correctly", "[Algorithms]") {
   GIVEN("A PI object") {
     Pufferfish::Driver::BreathingCircuit::PI valve_test;
 
-    auto measurement = GENERATE(0.1, 0.2, 0.3);
-    auto setpoint = GENERATE(0.1, 0.2, 0.3);
-    float actuation = 0;
-    valve_test.transform(measurement, setpoint, actuation);
-    std::cout << "V:" << actuation << std::endl;
-
     WHEN("the current time is written to it") {
+      auto measurement = GENERATE(0.1, 0.2, 0.3);
+      auto setpoint = GENERATE(0.1, 0.2, 0.3);
+      float actuation = 0;
+      valve_test.transform(measurement, setpoint, actuation);
+
       THEN("the final time should be the same") {
        REQUIRE(PF::Util::isEqualFloat(actuation, 0.0) == true);
       }
     }
+
+    WHEN("actuation is greater than 1") {
+      auto measurement = GENERATE(0.1, 0.2, 0.3);
+      auto setpoint = GENERATE(0.1, 0.2, 0.3);
+      float actuation = 0;
+      valve_test.transform(measurement, setpoint, actuation);
+
+    }
+
+
+
   }
 }
