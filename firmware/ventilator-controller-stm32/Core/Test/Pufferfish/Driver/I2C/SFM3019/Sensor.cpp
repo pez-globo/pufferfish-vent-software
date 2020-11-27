@@ -25,7 +25,9 @@ SCENARIO("SFM3019: flow sensor behaves properly", "[sensor]") {
 
     GIVEN("A Mock I2C device") {
         auto body = std::string("\x2e\x04\x02\x06\x11", 5);
-        dev.write(body.c_str(), body.size());
+
+        // wrtie to the MOCKI2Cdevice by set_read
+        dev.set_read(body.c_str(), body.size());
         PF::Driver::I2C::SFM3019::Device device{dev, gdev, gas};
 
         WHEN("the device is initialised") {
