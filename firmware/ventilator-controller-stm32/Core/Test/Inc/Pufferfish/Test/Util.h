@@ -10,6 +10,7 @@
 #pragma once
 
 #include <string>
+#include <cmath>
 #include "Pufferfish/Util/Vector.h"
 
 namespace Pufferfish::Util {
@@ -30,6 +31,10 @@ inline bool operator==(const Pufferfish::Util::ByteVector<payload_size> &lhs, co
 template <size_t payload_size>
 inline bool operator!=(const Pufferfish::Util::ByteVector<payload_size> &lhs, const std::string& rhs) {
   return !(lhs == rhs);
+}
+
+inline bool isEqualFloat(const float &lhs, const float& rhs, const float& epsilon = 0.0002) {
+  return std::fabs(rhs - lhs) < epsilon;
 }
 
 template <size_t payload_size>
