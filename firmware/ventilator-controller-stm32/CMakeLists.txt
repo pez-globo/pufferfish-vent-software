@@ -57,6 +57,8 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "TestCatch2")
         GLOB_RECURSE LIBRARY_SOURCES
         "Core/Src/Pufferfish/Driver/Indicators/PulseGenerator.cpp"
         "Core/Src/Pufferfish/Driver/Serial/*.*"
+        "Core/Src/Pufferfish/Driver/BreathingCircuit/*.*"
+        "Core/Src/Pufferfish/Driver/I2C/*.*"
         "Core/Src/Pufferfish/Application/*.*"
         "Core/Src/Pufferfish/Util/*.*"
         "Core/Src/Pufferfish/HAL/CRC.cpp"
