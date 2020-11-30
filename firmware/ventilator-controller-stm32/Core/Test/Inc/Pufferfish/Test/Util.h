@@ -13,6 +13,8 @@
 #include <cmath>
 #include "Pufferfish/Util/Vector.h"
 
+#include "catch2/catch.hpp"
+
 namespace Pufferfish::Util {
 
 template <size_t payload_size>
@@ -35,6 +37,14 @@ inline bool operator!=(const Pufferfish::Util::ByteVector<payload_size> &lhs, co
 
 inline bool isEqualFloat(const float &lhs, const float& rhs, const float& epsilon = 0.0002) {
   return std::fabs(rhs - lhs) < epsilon;
+}
+
+inline bool isLessFloat(const float &lhs, const float& rhs) {
+  Catch::StringMaker<float>::precision = 14;
+  if (isEqualFloat(lhs, rhs)) {
+    return false;
+  }
+  return (lhs < rhs);
 }
 
 template <size_t payload_size>

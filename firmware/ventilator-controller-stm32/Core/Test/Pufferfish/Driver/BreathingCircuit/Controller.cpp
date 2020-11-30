@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, the Pez Globo team and the Pufferfish project contributors
+ * Copyright 2020, the Pez Globo team and the PF project contributors
  *
  * Algorithms.cpp
  *
@@ -12,9 +12,7 @@
 
 #include "Pufferfish/Driver/BreathingCircuit/Controller.h"
 #include "Pufferfish/Test/Util.h"
-
 #include "catch2/catch.hpp"
-#include <iostream>
 
 namespace PF = Pufferfish;
 
@@ -22,26 +20,83 @@ SCENARIO("BreathingCircuit::Controller behaves correctly", "[Controllers]") {
   GIVEN("A Controller object") {
     uint32_t time = 0;
     Parameters parameters;
-    parameters.mode = VentilationMode_hfnc;
-    parameters.fio2 = 21;
+    parameters.mode = VentilationMode_pc_ac;
+    parameters.fio2 = 30;
     parameters.flow = 40;
 
-    Pufferfish::Driver::BreathingCircuit::SensorVars sensor_vars;
+    PF::Driver::BreathingCircuit::SensorVars sensor_vars;
     sensor_vars.flow_o2 = 21;
     sensor_vars.flow_air = 79;
     sensor_vars.po2 = 10;
 
     SensorMeasurements sensor_measurements; // unused
-    Pufferfish::Driver::BreathingCircuit::ActuatorSetpoints actuator_setpoints;
-    Pufferfish::Driver::BreathingCircuit::ActuatorVars actuator_vars;
+    PF::Driver::BreathingCircuit::ActuatorSetpoints actuator_setpoints;
+    PF::Driver::BreathingCircuit::ActuatorVars actuator_vars;
 
-    Pufferfish::Driver::BreathingCircuit::HFNCController controller;
+    PF::Driver::BreathingCircuit::HFNCController controller;
     controller.transform(time, parameters, sensor_vars, sensor_measurements, actuator_setpoints, actuator_vars);
 
-    WHEN("the current time is written to it") {
-      THEN("the final time should be the same") {
-       REQUIRE(PF::Util::isEqualFloat(actuator_setpoints.flow_o2, 0.0) == true);
+    WHEN("the device ventilating mode is not hfnc") {
+      THEN("the final value should be as expected") {
+      //  REQUIRE(PF::Util::isEqualFloat(actuator_setpoints.flow_o2, 0.0) == true);
+       REQUIRE(PF::Util::isEqualFloat(actuator_setpoints.flow_air, 0.0) == true);
       }
     }
+  }
+
+  GIVEN("A Controller object") {
+    uint32_t time = 0;
+    Parameters parameters;
+    parameters.mode = VentilationMode_hfnc;
+    parameters.fio2 = 30;
+    parameters.flow = 40;
+    parameters.ventilating = false;
+
+    PF::Driver::BreathingCircuit::SensorVars sensor_vars;
+    sensor_vars.flow_o2 = 21;
+    sensor_vars.flow_air = 79;
+    sensor_vars.po2 = 10;
+
+    SensorMeasurements sensor_measurements; // unused
+    PF::Driver::BreathingCircuit::ActuatorSetpoints actuator_setpoints;
+    PF::Driver::BreathingCircuit::ActuatorVars actuator_vars;
+
+    PF::Driver::BreathingCircuit::HFNCController controller;
+    controller.transform(time, parameters, sensor_vars, sensor_measurements, actuator_setpoints, actuator_vars);
+
+    WHEN("the device is not ventilating") {
+      THEN("the final value should be as expected") {
+       REQUIRE(PF::Util::isEqualFloat(actuator_setpoints.flow_o2, 0.0) == true);
+       REQUIRE(PF::Util::isEqualFloat(actuator_setpoints.flow_air, 0.0) == true);
+      }
+    }
+  }
+
+  GIVEN("A Controller object") {
+    uint32_t time = 0;
+    Parameters parameters;
+    parameters.mode = VentilationMode_hfnc;
+    parameters.fio2 = 30;
+    parameters.flow = 40;
+    parameters.ventilating = true;
+
+    PF::Driver::BreathingCircuit::SensorVars sensor_vars;
+    sensor_vars.flow_o2 = 21;
+    sensor_vars.flow_air = 79;
+    sensor_vars.po2 = 10;
+
+    SensorMeasurements sensor_measurements; // unused
+    PF::Driver::BreathingCircuit::ActuatorSetpoints actuator_setpoints;
+    PF::Driver::BreathingCircuit::ActuatorVars actuator_vars;
+
+    PF::Driver::BreathingCircuit::HFNCController controller;
+    controller.transform(time, parameters, sensor_vars, sensor_measurements, actuator_setpoints, actuator_vars);
+
+    WHEN("the device is ventilating") {
+      THEN("the final value should be as expected") {
+        // REQUIRE(PF::Util::isEqualFloat(actuator_setpoints.flow_o2, 0.0) == false);
+        // REQUIRE(PF::Util::isEqualFloat(actuator_setpoints.flow_air, 0.0) == false);
+    }
+   }
   }
 }
