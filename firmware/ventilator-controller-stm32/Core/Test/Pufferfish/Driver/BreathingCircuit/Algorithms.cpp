@@ -19,7 +19,7 @@ namespace PF = Pufferfish;
 
 SCENARIO("BreathingCircuit::PI behaves correctly", "[Algorithms]") {
   GIVEN("A PI object") {
-    Pufferfish::Driver::BreathingCircuit::PI valve_test;
+    PF::Driver::BreathingCircuit::PI valve_test;
 
     WHEN("the current time is written to it") {
       auto measurement = GENERATE(0.1, 0.2, 0.3);
@@ -39,8 +39,5 @@ SCENARIO("BreathingCircuit::PI behaves correctly", "[Algorithms]") {
       valve_test.transform(measurement, setpoint, actuation);
 
     }
-
-
-
   }
 }
