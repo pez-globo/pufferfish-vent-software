@@ -1,0 +1,76 @@
+Scenario: Backend Receive Event behaves properly
+Given: A ReceiveEvent object
+When: no data is received
+Then: has_data() is false
+
+Scenario: Backend Receive Event behaves properly
+Given: A ReceiveEvent object
+When: A time event is recieved
+Then: has_data() is True
+
+Scenario: Backend Receive Event behaves properly
+Given: A Receive event object
+When: A serial event is recieved
+Then: has_data() is True
+
+Scenario: backend recieves output event
+Given: A Output event object
+When: no data is received
+Then: has_data() is false
+
+Scenario: backend recieves output event
+Given: A Output event object
+When: A event is recieved
+Then: has_data() is True
+
+Scenario: backend sends announcement message
+Given: a announcement object
+When: backend sends input event
+Then: event has data
+
+#ReceiveFilter
+
+Scenario: Receive filter receives input event
+Given: a receive filter object
+When: a input event is given to backend receive filter
+Then: input has data
+
+Scenario: Receive filter receives input event
+Given: a receive filter object
+When: a input event is given to backend receive filter
+Then: output has data
+
+
+#SendFilter
+
+Scenario : an input is given to send filter
+Given: An announcement object
+When: input is given
+Then: output event is not none
+
+Scenario : an input is given to send filter
+Given: An output event object
+When: no input is given
+Then: output event is none
+
+Scenario : an input is given to send filter
+Given: An output event object
+When: valid input is given
+Then: output has data
+
+#Protocols
+
+Scenario: get_mcu_send function behaves properly
+Given: A output event
+When: mcu output event is passed
+Then: output event has data
+
+Scenario: get_frontend_send function behaves properly
+Given: A output event
+When: frontend output event is passed
+Then: output event has data
+
+Scenario: get_file_send function behaves properly
+Given: A output event
+When: file output event is passed
+Then: output event has data

@@ -1,0 +1,63 @@
+# PCAC simulator
+
+Scenario: PCAC simulator behaves properly
+Given: Given a PCAC simulator object
+When: Parameter request mode is not equal to PCAC
+Then: Parameter values are not updated
+
+Scenario: PCAC simulator behaves properly
+Given: Given a PCAC simulator object
+When: parameters are updated as per the paramater requests at 20ms
+Then: parameters values are equal to parameters request values
+
+Scenario: PCAC simulator behaves properly
+Given: A PCAC simulator object
+When: current time - cycle_start time is greater than cycle period
+Then: sensor measurments and cycle measurments are updated accordingly
+
+Scenario: PCAC simulator behaves properly
+Given: Given a PCAC simulator object
+When: time_step is 0 , time is not initialised
+Then: Parameter values are not updated
+
+Scenario: PCAC simulator behaves properly
+Given: Given a PCAC simulator object
+When: Parameter request mode is not equal to PCAC
+Then: sensor measurment values are not updated
+
+Scenario: PCAC simulator behaves properly
+Given: Given a PCAC simulator object
+When: ventilator is in inspiratory phase
+Then: Sensor measurments are updated in inspiratory phase
+
+Scenario: PCAC simulator behaves properly
+Given: Given a PCAC simulator object
+When: ventilator is in expiratory phase
+Then: sensor measurments are updated in expiratory phase
+
+# HFNC simulator
+
+Scenario: HFNC simulator behaves properly
+Given: Given a HFNC simulator object
+When: Parameter request mode is not equal to HFNC
+Then: Parameter values are not updated
+
+Scenario: HFNC simulator behaves properly
+Given: A HFNC simulator object
+When: parameters are updated as per the paramater requests at 50ms
+Then: Parameters are updated properly
+
+Scenario: HFNC simulator behaves properly
+Given: Given a HFNC simulator object
+When: time_step is 0 , time is not initialised
+Then: sensor measurment values are not updated
+
+Scenario: HFNC simulator behaves properly
+Given: Given a HFNC simulator object
+When: Parameter request mode is not equal to HFNC
+Then: sensor measurment values are not updated
+
+Scenario: HFNC simulator behaves properly
+Given: A HFNC simulator object
+When: Current time - cycle start time is greater than cycle period
+Then: current time and cycle measurment values are updated

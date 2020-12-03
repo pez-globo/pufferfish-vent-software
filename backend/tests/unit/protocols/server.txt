@@ -1,0 +1,39 @@
+Scenario: check if server connects to frontend
+Given: Frontendconnection event object
+When: event is passed at some time
+Then: frontend connection has data
+
+Scenario: check if receive event has data
+Given: A ReceiveRvent object
+When: test data is given to it
+Then: receive event has data
+
+Scenario: check if receive output event has data
+Given: A backend output event object
+When: backend output event is passed to ReceiveOutputEvent
+Then: server output has data
+
+Scenario: check if server output event has data
+Given: A SendOutputEvent object
+When: data is written to it
+Then: server output event has data
+
+Scenario: Check if make serial receive gives receive event object
+Given: example data and times
+When: data is written to it
+Then: receive event is not None
+
+Scenario: websocket receive behaves properly
+Given: example data and times
+When: data is written to it
+Then: receive event is not None
+
+Scenario: Receive Filter behaves properly
+Given: A receive event object or FrontEndConnection event object
+When: event is passed to the filter
+Then: output is of type ReceiveOutputEvent
+
+Scenario: Send Filter behaves properly
+Given: Send Filter object
+When: backend output event object is given to it
+Then: output is of type SendOutputEvent
