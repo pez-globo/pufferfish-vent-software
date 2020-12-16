@@ -30,7 +30,7 @@ SCENARIO("Protocols::CRCElement behaves correctly", "[CRCElement]") {
       auto body = std::string("\x98\xdb\xe3\x55\x01\x05\x01\x02\x03\x04\x05");
       auto expected_payload = std::string("\x01\x05\x01\x02\x03\x04\x05");
       uint32_t expected_crc = 0;
-      PF::Util::read_ntoh(crc.c_str(), expected_crc);
+      PF::Util::read_ntoh((const uint8_t*)crc.c_str(), expected_crc);
 
       TestCRCElementProps::PayloadBuffer payload;
       TestCRCElement crc_element{payload};
@@ -52,7 +52,7 @@ SCENARIO("Protocols::CRCElement behaves correctly", "[CRCElement]") {
       auto crc = std::string("\x124Vx");
       auto body = std::string("\x12\x34\x56\x78\x03\x04\x00\xed\x30\x00");
       uint32_t expected_crc = 0;
-      PF::Util::read_ntoh(crc.c_str(), expected_crc);
+      PF::Util::read_ntoh((const uint8_t*)crc.c_str(), expected_crc);
       auto expected_payload = std::string("\x03\x04\x00\xed\x30\x00");
 
       TestCRCElementProps::PayloadBuffer payload;
