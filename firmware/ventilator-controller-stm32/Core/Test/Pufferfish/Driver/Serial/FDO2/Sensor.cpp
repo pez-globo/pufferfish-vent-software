@@ -23,8 +23,8 @@ SCENARIO("FDO2: flow sensor behaves properly", "[sensor]") {
         constexpr size_t tx_buffer_size = 252UL;
 
         PF::HAL::MockBufferedUART<rx_buffer_size, tx_buffer_size> uart{};
-        auto body = std::string("\x04\x02\x06\x11");
-        uart.write(body.c_str());
+        auto body = std::string("\x04\x02\x00\x06\x11\x00", 6);
+        uart.write((const uint8_t*)body.c_str());
 
         PF::Driver::Serial::FDO2::Device device{uart};
 
@@ -39,10 +39,9 @@ SCENARIO("FDO2: flow sensor behaves properly", "[sensor]") {
 
             auto status = sensor.setup();
 
-            THEN("the final time should be the same") {
+            THEN("the status should be equal to setup") {
                 REQUIRE(current_time == ctime);
-                REQUIRE(status == PF::InitializableState::ok);
-                // will fail as there is no return for request_version command in Mock UART device
+                REQUIRE(status == PF::InitializableState::setup);
             }
         }
     }
@@ -53,11 +52,11 @@ SCENARIO("FDO2: flow sensor behaves properly", "[sensor]") {
 
         PF::HAL::MockBufferedUART<rx_buffer_size, tx_buffer_size> uart{};
         auto body = std::string("\x04\x02\x06\x11");
-        uart.write(body.c_str());
+        uart.write((const uint8_t*)body.c_str());
         PF::HAL::MockTime time;
         PF::Driver::Serial::FDO2::Device device{uart};
 
-        WHEN("the device is initialised") {
+        WHEN("output from the sensor is calculated") {
             const uint32_t ctime = 0x5000;
             time.set_millis(ctime);
 
@@ -71,7 +70,6 @@ SCENARIO("FDO2: flow sensor behaves properly", "[sensor]") {
             THEN("the final status should ok") {
                 REQUIRE(output_status == PF::InitializableState::ok);
                 // Will fail as there is no return for check version in Mock Uart device
-
             }
         }
     }

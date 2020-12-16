@@ -19,14 +19,14 @@ namespace PF = Pufferfish;
 
 SCENARIO("SFM3019: flow sensor driver behaves properly", "[device]") {
     PF::HAL::MockI2CDevice dev;
+    PF::HAL::MockI2CDevice gdev;
     PF::Driver::I2C::SFM3019::GasType gas = PF::Driver::I2C::SFM3019::GasType::air;
 
-    auto body = std::string("\x04\x02\x06\x11");
-    // wrtie to the MOCKI2Cdevice by set_read
-    dev.set_read(body.c_str(), body.size());
+    auto buffer = std::string("\x04\x02\x60\x06\x11\xa9\x12\x24\x74", 9);
+    dev.set_read((const uint8_t*)buffer.c_str(), buffer.size());
 
     GIVEN("A Mock I2C device") {
-        PF::Driver::I2C::SFM3019::Device device{dev, dev, gas};
+        PF::Driver::I2C::SFM3019::Device device{dev, gdev, gas};
 
         WHEN("starts a flow measurment") {
             auto status = device.start_measure();
@@ -37,6 +37,8 @@ SCENARIO("SFM3019: flow sensor driver behaves properly", "[device]") {
 
         WHEN("reading product id") {
             uint32_t product_id = 0x04020611;
+            auto buffer = std::string("\x04\x02\x60\x06\x11\xa9", 6);
+            dev.set_read((const uint8_t*)buffer.c_str(), buffer.size());
 
             auto status = device.read_product_id(product_id);
 
@@ -61,8 +63,11 @@ SCENARIO("SFM3019: flow sensor driver behaves properly", "[device]") {
         }
 
         WHEN("reading conversion factors after 20 us") {
-            PF::Driver::I2C::SFM3019::ConversionFactors conversion_factors;
+            PF::Driver::I2C::SFM3019::ConversionFactors conversion_factors{};
+            conversion_factors.scale_factor = 10;
+            conversion_factors.offset = 5;
             conversion_factors.flow_unit = 10;
+
             auto status = device.read_conversion_factors(conversion_factors);
 
             THEN("status should be ok") {

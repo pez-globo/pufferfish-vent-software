@@ -31,7 +31,7 @@ SCENARIO("Serial::Backend behaves correctly", "[Backend]") {
     PF::HAL::SoftCRC32 crc32c{PF::HAL::crc32c_params};
     Pufferfish::Driver::Serial::Backend::BackendReceiver backend_receiver{crc32c};
 
-    auto body = std::string("\x98\xdb\xe3\x55\x01\x05\x01\x02\x03\x04\x00", 11);
+    auto body = std::string("\x98\xdb\xe3\x55\x01\x05\x01\x02\x03\x04\x05\x00", 12);
 
     PF::Driver::Serial::Backend::BackendReceiver::InputStatus input_status;
 
@@ -40,7 +40,7 @@ SCENARIO("Serial::Backend behaves correctly", "[Backend]") {
           input_status = backend_receiver.input(ch);
         }
 
-      THEN("the final statuses, payload and length should be ok") {
+      THEN("input status should be ok") {
         REQUIRE(input_status == PF::Driver::Serial::Backend::BackendReceiver::InputStatus::output_ready);
       }
     }
@@ -81,6 +81,41 @@ SCENARIO("Serial::Backend behaves correctly", "[Backend]") {
 
       THEN("status should be ok") {
         REQUIRE(status == PF::Driver::Serial::Backend::BackendSender::Status::ok);
+      }
+    }
+  }
+
+  GIVEN("A backend object") {
+    PF::HAL::SoftCRC32 crc32c{PF::HAL::crc32c_params};
+    PF::Application::States states{};
+
+    PF::Driver::Serial::Backend::Backend backend{crc32c, states};
+
+    auto body = std::string("\x98\xdb\xe3\x55\x01\x05\x01\x02\x03\x04\x05\x00", 12);
+
+    WHEN("data is written to it") {
+      PF::Driver::Serial::Backend::Backend::Status status;
+      for(auto& ch : body) {
+        auto status = backend.input(ch);
+      }
+
+      THEN("status should be ok") {
+        REQUIRE(status == PF::Driver::Serial::Backend::Backend::Status::ok);
+      }
+    }
+
+    WHEN("output from backend is taken") {
+      constexpr size_t chunk_max_size = 256;
+      PF::Util::ByteVector<chunk_max_size> chunkBuffer;
+      PF::Driver::Serial::Backend::Backend::Status input_status;
+      for(auto& ch : body) {
+        auto input_status = backend.input(ch);
+      }
+
+      auto status = backend.output(chunkBuffer);
+
+      THEN("output status should be ok") {
+        REQUIRE(status == PF::Driver::Serial::Backend::Backend::Status::ok);
       }
     }
   }

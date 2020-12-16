@@ -32,18 +32,16 @@ SCENARIO("SFM3019: flow sensor behaves properly", "[sensor]") {
         PF::Driver::I2C::SFM3019::Device device{dev, gdev, gas};
 
         WHEN("the device is initialised") {
-            const uint32_t ctime = 0x3200;
+            const uint32_t ctime = 20;
             PF::HAL::MockTime time;
-            time.set_millis(ctime);
+            time.set_micros(ctime);
 
             PF::Driver::I2C::SFM3019::Sensor sensor(device, resetter, time);
-            auto current_time = time.millis();
 
             auto status = sensor.setup();
 
-            THEN("the final time should be the same") {
+            THEN("status should be equal to setup") {
                 REQUIRE(status == PF::InitializableState::setup);
-                // Will fail as there is no return for read_product_id in MOCKI2CDEVICE 
             }
         }
     }
@@ -53,7 +51,7 @@ SCENARIO("SFM3019: flow sensor behaves properly", "[sensor]") {
         PF::Driver::I2C::SFM3019::Device device{dev, gdev, gas};
         PF::Driver::I2C::SFM3019::Sensor sensor(device, resetter, time);
 
-        WHEN("the device is initialised") {
+        WHEN("sensor output is calculated") {
             const uint32_t ctime = 0x5000;
             time.set_millis(ctime);
             auto current_time = time.millis();
@@ -65,7 +63,6 @@ SCENARIO("SFM3019: flow sensor behaves properly", "[sensor]") {
             
             THEN("the final status should ok") {
                 REQUIRE(output_status == PF::InitializableState::ok);
-                // Will fail as there is no return for read_product_id in MOCKI2CDEVICE 
             }
         }
     }

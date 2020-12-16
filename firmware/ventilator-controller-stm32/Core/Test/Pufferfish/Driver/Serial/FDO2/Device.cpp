@@ -23,7 +23,7 @@ SCENARIO("FDO2: SFM3000 flow meter driver behaves properly", "[device]") {
         constexpr size_t tx_buffer_size = 252UL;
 
         PF::HAL::MockBufferedUART<rx_buffer_size, tx_buffer_size> uart{};
-        auto body = std::string("\x04\x02\x06\x11");
+        auto body = std::string("\x04\x02\x06\x11\x00", 6);
         uart.write(body.c_str());
 
         PF::Driver::Serial::FDO2::Device device{uart};
@@ -37,14 +37,14 @@ SCENARIO("FDO2: SFM3000 flow meter driver behaves properly", "[device]") {
 
         WHEN("the device receives response") {
             PF::Driver::Serial::FDO2::Responses::Vers vers{};
-            vers.type = 1;
-            vers.device_id = 2;
-            vers.num_channels = 3;
-            vers.firmware_rev = 123456;
+            vers.device_id = 8;
+            vers.type = 15;
+            vers.num_channels = 1;
+            vers.firmware_rev = 341;
 
             PF::Driver::Serial::FDO2::Response response;
+            response.set(vers);
             response.tag = PF::Driver::Serial::FDO2::CommandTypes::vers;
-            response.value.vers = vers;
 
             auto status = device.receive(response);
             THEN("status should be ok") {
@@ -63,16 +63,20 @@ SCENARIO("FDO2: SFM3000 flow meter driver behaves properly", "[device]") {
             auto status = device.request_version();
             THEN("status should be ok") {
                 REQUIRE(status == PF::Driver::Serial::FDO2::Device::Status::ok);
-                // Fails as the mock uart device should return the firmware version
             }
         }
     }
 
     GIVEN("A Response receiver") {
+        constexpr size_t rx_buffer_size = 252UL;
+        constexpr size_t tx_buffer_size = 252UL;
+
+        PF::HAL::MockBufferedUART<rx_buffer_size, tx_buffer_size> uart{};
         constexpr size_t buffer_size = 252UL;
 
         PF::Driver::Serial::FDO2::ResponseReceiver response_receiver{};
-        auto body = std::string("\x04\x02\x06\x11");
+        auto body = std::string("\x04\x02\x06\x11\x00", 6);
+        uart.write(body.c_str());
 
         WHEN("a response is received") {
             auto status = response_receiver.input(body.c_str());
@@ -85,14 +89,14 @@ SCENARIO("FDO2: SFM3000 flow meter driver behaves properly", "[device]") {
             auto input_status = response_receiver.input(body.c_str());
 
             PF::Driver::Serial::FDO2::Responses::Vers vers{};
-            vers.type = 1;
-            vers.device_id = 2;
-            vers.num_channels = 3;
-            vers.firmware_rev = 123456;
+            vers.device_id = 8;
+            vers.type = 15;
+            vers.num_channels = 1;
+            vers.firmware_rev = 341;
 
             PF::Driver::Serial::FDO2::Response response;
+            response.set(vers);
             response.tag = PF::Driver::Serial::FDO2::CommandTypes::vers;
-            response.value.vers = vers;
 
             auto output_status = response_receiver.output(response);
 

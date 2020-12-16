@@ -39,10 +39,10 @@ SCENARIO("FDO2: SFM3000 flow meter behaves properly", "[commands]") {
         PF::Driver::Serial::FDO2::CommandReceiver command_receiver{};
 
         PF::Driver::Serial::FDO2::Responses::Vers vers{};
-        vers.type = 1;
-        vers.device_id = 2;
-        vers.num_channels = 3;
-        vers.firmware_rev = 123456;
+        vers.device_id = 8;
+        vers.type = 15;
+        vers.num_channels = 1;
+        vers.firmware_rev = 341;
 
         PF::Driver::Serial::FDO2::Response response;
         response.tag = PF::Driver::Serial::FDO2::CommandTypes::vers;
