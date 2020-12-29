@@ -14,6 +14,7 @@
 
 #include "Pufferfish/HAL/CRCChecker.h"
 #include "Pufferfish/Test/Util.h"
+#include "Pufferfish/Util/Endian.h"
 #include "catch2/catch.hpp"
 
 namespace PF = Pufferfish;
@@ -26,9 +27,9 @@ SCENARIO("Protocols::CRCElement behaves correctly", "[CRCElement]") {
     PF::HAL::SoftCRC32 crc32c{PF::HAL::crc32c_params};
 
     WHEN("when good data is given as input") {
-      auto crc = std::string("\x98\xdb\xe3\x55");
-      auto body = std::string("\x98\xdb\xe3\x55\x01\x05\x01\x02\x03\x04\x05");
-      auto expected_payload = std::string("\x01\x05\x01\x02\x03\x04\x05");
+      auto crc = std::string("\x98\xdb\xe3\x55", 4);
+      auto body = std::string("\x98\xdb\xe3\x55\x01\x05\x01\x02\x03\x04\x05", 11);
+      auto expected_payload = std::string("\x01\x05\x01\x02\x03\x04\x05", 7);
       uint32_t expected_crc = 0;
       PF::Util::read_ntoh(crc.c_str(), expected_crc);
 
@@ -39,21 +40,21 @@ SCENARIO("Protocols::CRCElement behaves correctly", "[CRCElement]") {
       PF::Util::convertStringToByteVector(body, input_buffer);
 
       auto parse_status = crc_element.parse(input_buffer);
-      auto crcCheck = crc_element.crc();
-      auto &payloadCheck = crc_element.payload();
+      auto crc_check = crc_element.crc();
+      const auto &payload_check = crc_element.payload();
       THEN("the final status should be ok") {
         REQUIRE(parse_status == PF::IndexStatus::ok);
-        REQUIRE(crcCheck == expected_crc);
-        REQUIRE(payloadCheck == expected_payload);
+        REQUIRE(crc_check == expected_crc);
+        REQUIRE(payload_check == expected_payload);
       }
     }
 
     WHEN("bad data is given as input") {
-      auto crc = std::string("\x124Vx");
-      auto body = std::string("\x12\x34\x56\x78\x03\x04\x00\xed\x30\x00");
+      auto crc = std::string(R"($Vx)");
+      auto body = std::string("\x12\x34\x56\x78\x03\x04\x00\xed\x30\x00", 10);
       uint32_t expected_crc = 0;
       PF::Util::read_ntoh(crc.c_str(), expected_crc);
-      auto expected_payload = std::string("\x03\x04\x00\xed\x30\x00");
+      auto expected_payload = std::string("\x03\x04\x00\xed\x30\x00", 6);
 
       TestCRCElementProps::PayloadBuffer payload;
       TestCRCElement crc_element{payload};
@@ -62,18 +63,18 @@ SCENARIO("Protocols::CRCElement behaves correctly", "[CRCElement]") {
       PF::Util::convertStringToByteVector(body, input_buffer);
 
       auto parse_status = crc_element.parse(input_buffer);
-      auto crcCheck = crc_element.crc();
-      auto payloadCheck = crc_element.payload();
+      auto crc_check = crc_element.crc();
+      auto payload_check = crc_element.payload();
       THEN("the final status should be ok") {
         REQUIRE(parse_status == PF::IndexStatus::ok);
-        REQUIRE(crcCheck != expected_crc);
-        REQUIRE(payloadCheck == expected_payload);
+        REQUIRE(crc_check != expected_crc);
+        REQUIRE(payload_check == expected_payload);
       }
     }
 
     WHEN("data is written to it and parsed back") {
-      auto crc = std::string("\x98\xdb\xe3\x55");
-      auto body = std::string("\x98\xdb\xe3\x55\x01\x05\x01\x02\x03\x04\x05");
+      auto crc = std::string("\x98\xdb\xe3\x55", 4);
+      auto body = std::string("\x98\xdb\xe3\x55\x01\x05\x01\x02\x03\x04\x05", 11);
 
       TestCRCElementProps::PayloadBuffer payload;
       TestCRCElement crc_element{payload};
@@ -100,7 +101,7 @@ SCENARIO("Protocols::CRCElement behaves correctly", "[CRCElement]") {
     PF::Protocols::CRCElementReceiver<buffer_size> crc_element_receiver{crc32c};
 
     WHEN("good data is given as input to receiver") {
-      auto body = std::string("\x98\xdb\xe3\x55\x01\x05\x01\x02\x03\x04\x05");
+      auto body = std::string("\x98\xdb\xe3\x55\x01\x05\x01\x02\x03\x04\x05", 11);
 
       TestCRCElementProps::PayloadBuffer payload;
       TestCRCElement crc_element{payload};
@@ -110,7 +111,7 @@ SCENARIO("Protocols::CRCElement behaves correctly", "[CRCElement]") {
 
       auto write_status = crc_element.write(input_buffer, crc32c);
       auto status = crc_element_receiver.transform(input_buffer, crc_element);
-      auto crcCheck = crc_element.crc();
+      auto crc_check = crc_element.crc();
       THEN("the final status should be ok") {
         REQUIRE(write_status == PF::IndexStatus::ok);
         REQUIRE(status == PF::Protocols::CRCElementReceiver<buffer_size>::Status::ok);
@@ -131,7 +132,7 @@ SCENARIO("Protocols::CRCElement behaves correctly", "[CRCElement]") {
     PF::Protocols::CRCElementSender<buffer_size> crc_element_sender{crc32c};
 
     WHEN("data is written to it") {
-      auto body = std::string("\x98\xdb\xe3\x55\x01\x05\x01\x02\x03\x04\x05");
+      auto body = std::string("\x98\xdb\xe3\x55\x01\x05\x01\x02\x03\x04\x05", 11);
 
       TestCRCElementProps::PayloadBuffer payload;
       TestCRCElement crc_element{payload};

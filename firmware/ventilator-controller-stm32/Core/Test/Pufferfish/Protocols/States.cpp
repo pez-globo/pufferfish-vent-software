@@ -41,7 +41,7 @@ SCENARIO("Protocols::State behaves correctly", "[Datagram]") {
   }
 
   GIVEN("A State Synchronizer") {
-    PF::Application::States states;
+    PF::Application::States states{};
 
     WHEN("the current time is written to it") {
       const uint32_t ctime = 0x12345678;

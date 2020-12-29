@@ -8,7 +8,7 @@ namespace Pufferfish::Driver::Serial::Backend {
 
 // States
 
-static const auto message_descriptors = Util::make_array<Util::ProtobufDescriptor>(
+constexpr auto message_descriptors = Util::make_array<Util::ProtobufDescriptor>(
     // array index should match the type code value
     Util::get_protobuf_descriptor<Util::UnrecognizedMessage>(),  // 0
     Util::get_protobuf_descriptor<SensorMeasurements>(),         // 2
@@ -23,7 +23,7 @@ static const auto message_descriptors = Util::make_array<Util::ProtobufDescripto
 
 using StateOutputScheduleEntry = Protocols::StateOutputScheduleEntry<Application::MessageTypes>;
 
-static const auto state_sync_schedule = Util::make_array<const StateOutputScheduleEntry>(
+constexpr auto state_sync_schedule = Util::make_array<const StateOutputScheduleEntry>(
     StateOutputScheduleEntry{10, Application::MessageTypes::sensor_measurements},
     StateOutputScheduleEntry{10, Application::MessageTypes::parameters},
     StateOutputScheduleEntry{10, Application::MessageTypes::alarm_limits},

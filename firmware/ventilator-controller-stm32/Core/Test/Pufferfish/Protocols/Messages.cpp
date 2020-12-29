@@ -118,6 +118,7 @@ SCENARIO("Protocols::Message behaves correctly", "[messages]") {
       auto parse_status = test_message.parse(buffer, BE::message_descriptors);
 
       THEN("the final status should be invalid_type") {
+        REQUIRE(write_status == PF::Protocols::MessageStatus::ok);
         REQUIRE(parse_status == PF::Protocols::MessageStatus::invalid_type);
       }
     }
@@ -183,9 +184,9 @@ SCENARIO("Protocols::Message behaves correctly", "[messages]") {
           BE::message_descriptors};
 
       PF::Util::ByteVector<buffer_size> buffer;
-      CycleMeasurements cycleMeasurements;
-      cycleMeasurements.ve = 300;
-      test_message.payload.set(cycleMeasurements);
+      CycleMeasurements cycle_measurements;
+      cycle_measurements.ve = 300;
+      test_message.payload.set(cycle_measurements);
       test_message.payload.tag = PF::Application::MessageTypes::cycle_measurements;
 
       auto write_status = test_message.write(buffer, BE::message_descriptors);
@@ -195,6 +196,7 @@ SCENARIO("Protocols::Message behaves correctly", "[messages]") {
       auto transform_status = receiver.transform(buffer, test_message);
 
       THEN("the final status should be ok") {
+        REQUIRE(write_status == PF::Protocols::MessageStatus::ok);
         REQUIRE(transform_status == PF::Protocols::MessageStatus::ok);
       }
     }
@@ -217,6 +219,7 @@ SCENARIO("Protocols::Message behaves correctly", "[messages]") {
       auto transform_status = receiver.transform(buffer, test_message);
 
       THEN("the final status should be ok") {
+        REQUIRE(write_status == PF::Protocols::MessageStatus::ok);
         REQUIRE(transform_status == PF::Protocols::MessageStatus::ok);
       }
     }
@@ -227,9 +230,9 @@ SCENARIO("Protocols::Message behaves correctly", "[messages]") {
           BE::message_descriptors};
 
       PF::Util::ByteVector<buffer_size> buffer;
-      CycleMeasurements cycleMeasurements;
-      cycleMeasurements.ve = 300;
-      test_message.payload.set(cycleMeasurements);
+      CycleMeasurements cycle_measurements;
+      cycle_measurements.ve = 300;
+      test_message.payload.set(cycle_measurements);
       test_message.payload.tag = PF::Application::MessageTypes::cycle_measurements;
 
       auto write_status = test_message.write(buffer, BE::message_descriptors);
@@ -239,6 +242,7 @@ SCENARIO("Protocols::Message behaves correctly", "[messages]") {
       auto transform_status = receiver.transform(buffer, test_message);
 
       THEN("the final status should be ok") {
+        REQUIRE(write_status == PF::Protocols::MessageStatus::ok);
         REQUIRE(transform_status == PF::Protocols::MessageStatus::ok);
       }
     }
@@ -261,6 +265,7 @@ SCENARIO("Protocols::Message behaves correctly", "[messages]") {
       auto transform_status = receiver.transform(buffer, test_message);
 
       THEN("the final status should be ok") {
+        REQUIRE(write_status == PF::Protocols::MessageStatus::ok);
         REQUIRE(transform_status == PF::Protocols::MessageStatus::ok);
       }
     }
@@ -271,9 +276,9 @@ SCENARIO("Protocols::Message behaves correctly", "[messages]") {
           BE::message_descriptors};
 
       PF::Util::ByteVector<buffer_size> buffer;
-      ParametersRequest parametersRequest;
-      parametersRequest.fio2 = 60;
-      test_message.payload.set(parametersRequest);
+      ParametersRequest parameters_request;
+      parameters_request.fio2 = 60;
+      test_message.payload.set(parameters_request);
       test_message.payload.tag = PF::Application::MessageTypes::parameters_request;
 
       auto write_status = test_message.write(buffer, BE::message_descriptors);
@@ -283,6 +288,7 @@ SCENARIO("Protocols::Message behaves correctly", "[messages]") {
       auto transform_status = receiver.transform(buffer, test_message);
 
       THEN("the final status should be ok") {
+        REQUIRE(write_status == PF::Protocols::MessageStatus::ok);
         REQUIRE(transform_status == PF::Protocols::MessageStatus::ok);
       }
     }
@@ -312,6 +318,7 @@ SCENARIO("Protocols::Message behaves correctly", "[messages]") {
       auto transform_status = receiver.transform(buffer, test_message);
 
       THEN("the final status should be ok") {
+        REQUIRE(write_status == PF::Protocols::MessageStatus::ok);
         REQUIRE(transform_status == PF::Protocols::MessageStatus::ok);
       }
     }

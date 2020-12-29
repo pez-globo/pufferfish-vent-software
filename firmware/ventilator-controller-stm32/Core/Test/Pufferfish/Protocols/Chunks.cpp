@@ -66,7 +66,10 @@ SCENARIO(
       for (size_t i = 0; i < buffer_size; ++i) {
         status = chunks.input(val);
       }
-      status = chunks.input(val);
+
+      for (size_t i = 0; i < buffer_size; ++i) {
+        status = chunks.input(val);
+      }
 
       THEN("the final status should be invalid_length") {
         REQUIRE(status == PF::Protocols::ChunkInputStatus::invalid_length);
@@ -136,14 +139,14 @@ SCENARIO("Protocols::ChunkMerger behaves correctly(30 bytes)", "[chunks]") {
     WHEN("the input data is within bounds") {
       uint8_t val = 128;
       PF::Util::Vector<char, buffer_size> buffer;
-      PF::IndexStatus indexStatus;
+      PF::IndexStatus index_status;
       for (size_t i = 0; i < buffer_size - 1; ++i) {
-        indexStatus = buffer.push_back(val);
+        index_status = buffer.push_back(val);
       }
       PF::Protocols::ChunkOutputStatus status = chunks.transform<buffer_size, char>(buffer);
 
       THEN("the final status should be ok") {
-        REQUIRE(indexStatus == PF::IndexStatus::ok);
+        REQUIRE(index_status == PF::IndexStatus::ok);
         REQUIRE(status == PF::Protocols::ChunkOutputStatus::ok);
       }
     }
@@ -158,14 +161,14 @@ SCENARIO("Protocols::ChunkMerger behaves correctly (256 bytes)", "[chunks]") {
     WHEN("the input data exceeds bounds") {
       uint8_t val = 128;
       PF::Util::Vector<uint8_t, buffer_size> buffer;
-      PF::IndexStatus indexStatus;
+      PF::IndexStatus index_status;
       for (size_t i = 0; i < buffer_size; ++i) {
-        indexStatus = buffer.push_back(val);
+        index_status = buffer.push_back(val);
       }
       PF::Protocols::ChunkOutputStatus status = chunks.transform<buffer_size, uint8_t>(buffer);
 
       THEN("the final status should be invalid_length") {
-        REQUIRE(indexStatus == PF::IndexStatus::ok);
+        REQUIRE(index_status == PF::IndexStatus::ok);
         REQUIRE(status == PF::Protocols::ChunkOutputStatus::invalid_length);
       }
     }
