@@ -11,15 +11,15 @@
  */
 
 #include "Pufferfish/Protocols/Messages.h"
-#include "Pufferfish/Application/States.h"
-#include "Pufferfish/Test/BackendDefs.h"
-#include "Pufferfish/Protocols/Chunks.h"
-#include "Pufferfish/Util/Vector.h"
-#include "Pufferfish/Util/Array.h"
-#include "nanopb/pb.h"
-#include "Pufferfish/Application/mcu_pb.h"
 
+#include "Pufferfish/Application/States.h"
+#include "Pufferfish/Application/mcu_pb.h"
+#include "Pufferfish/Protocols/Chunks.h"
+#include "Pufferfish/Test/BackendDefs.h"
+#include "Pufferfish/Util/Array.h"
+#include "Pufferfish/Util/Vector.h"
 #include "catch2/catch.hpp"
+#include "nanopb/pb.h"
 
 namespace PF = Pufferfish;
 namespace BE = PF::Driver::Serial::Backend;
@@ -29,10 +29,7 @@ static constexpr size_t num_descriptors = 7;
 SCENARIO("Protocols::Message behaves correctly", "[messages]") {
   GIVEN("A protocol-buffer message") {
     constexpr size_t payload_max_size = 252UL;
-    using TestMessage = PF::Protocols::Message<
-      PF::Application::StateSegment,
-      payload_max_size
-    >;
+    using TestMessage = PF::Protocols::Message<PF::Application::StateSegment, payload_max_size>;
     TestMessage test_message;
 
     WHEN("the regular parameters request data is written to the buffer") {
@@ -40,18 +37,16 @@ SCENARIO("Protocols::Message behaves correctly", "[messages]") {
       PF::Util::ByteVector<buffer_size> buffer;
 
       ParametersRequest parameters_request;
-      parameters_request.ventilating=true;
-      parameters_request.fio2=40;
-      parameters_request.mode=VentilationMode_hfnc;
-      parameters_request.flow=60;
+      parameters_request.ventilating = true;
+      parameters_request.fio2 = 40;
+      parameters_request.mode = VentilationMode_hfnc;
+      parameters_request.flow = 60;
       test_message.payload.set(parameters_request);
-      test_message.payload.tag= PF::Application::MessageTypes::parameters_request;
+      test_message.payload.tag = PF::Application::MessageTypes::parameters_request;
 
       auto status = test_message.write(buffer, BE::message_descriptors);
 
-      THEN("the final status should be ok") {
-        REQUIRE(status == PF::Protocols::MessageStatus::ok);
-      }
+      THEN("the final status should be ok") { REQUIRE(status == PF::Protocols::MessageStatus::ok); }
     }
 
     WHEN("the unknown data is written to the buffer") {
@@ -80,16 +75,17 @@ SCENARIO("Protocols::Message behaves correctly", "[messages]") {
       constexpr size_t buffer_size = 253UL;
 
       ParametersRequest parameters_request;
-      parameters_request.ventilating=true;
-      parameters_request.fio2=40;
-      parameters_request.mode=VentilationMode_hfnc;
-      parameters_request.flow=60;
+      parameters_request.ventilating = true;
+      parameters_request.fio2 = 40;
+      parameters_request.mode = VentilationMode_hfnc;
+      parameters_request.flow = 60;
       test_message.payload.set(parameters_request);
-      test_message.payload.tag= PF::Application::MessageTypes::parameters_request;
+      test_message.payload.tag = PF::Application::MessageTypes::parameters_request;
 
       PF::Util::ByteVector<buffer_size> buffer;
       auto write_status = test_message.write(buffer, BE::message_descriptors);
-      buffer[TestMessage::type_offset] = static_cast<uint8_t>(PF::Application::MessageTypes::parameters_request);
+      buffer[TestMessage::type_offset] =
+          static_cast<uint8_t>(PF::Application::MessageTypes::parameters_request);
       auto parse_status = test_message.parse(buffer, BE::message_descriptors);
 
       THEN("the final status should be ok") {
@@ -103,7 +99,8 @@ SCENARIO("Protocols::Message behaves correctly", "[messages]") {
       test_message.payload.tag = PF::Application::MessageTypes::alarm_limits;
       PF::Util::ByteVector<buffer_size> buffer;
       buffer.resize(buffer_size);
-      buffer[TestMessage::type_offset] = static_cast<uint8_t>(PF::Application::MessageTypes::alarm_limits);
+      buffer[TestMessage::type_offset] =
+          static_cast<uint8_t>(PF::Application::MessageTypes::alarm_limits);
       auto status = test_message.parse(buffer, BE::message_descriptors);
 
       THEN("the final status should be ok") {
@@ -116,7 +113,8 @@ SCENARIO("Protocols::Message behaves correctly", "[messages]") {
       test_message.payload.tag = PF::Application::MessageTypes::alarm_limits;
       PF::Util::ByteVector<buffer_size> buffer;
       auto write_status = test_message.write(buffer, BE::message_descriptors);
-      buffer[TestMessage::type_offset] = static_cast<uint8_t>(PF::Application::MessageTypes::unknown);
+      buffer[TestMessage::type_offset] =
+          static_cast<uint8_t>(PF::Application::MessageTypes::unknown);
       auto parse_status = test_message.parse(buffer, BE::message_descriptors);
 
       THEN("the final status should be invalid_type") {
@@ -129,12 +127,12 @@ SCENARIO("Protocols::Message behaves correctly", "[messages]") {
       PF::Protocols::MessageSender<TestMessage, num_descriptors> sender{BE::message_descriptors};
 
       Parameters parameters;
-      parameters.fio2=60;
-      parameters.flow=40;
-      parameters.mode=VentilationMode_hfnc;
-      parameters.rr=20;
+      parameters.fio2 = 60;
+      parameters.flow = 40;
+      parameters.mode = VentilationMode_hfnc;
+      parameters.rr = 20;
       test_message.payload.set(parameters);
-      test_message.payload.tag= PF::Application::MessageTypes::parameters;
+      test_message.payload.tag = PF::Application::MessageTypes::parameters;
 
       PF::Util::ByteVector<buffer_size> buffer;
       auto transform_status = sender.transform(test_message, buffer);
@@ -149,11 +147,11 @@ SCENARIO("Protocols::Message behaves correctly", "[messages]") {
       PF::Protocols::MessageSender<TestMessage, num_descriptors> sender{BE::message_descriptors};
 
       SensorMeasurements sensor_measurments;
-      sensor_measurments.flow=30;
-      sensor_measurments.spo2=92;
-      sensor_measurments.fio2=50;
+      sensor_measurments.flow = 30;
+      sensor_measurments.spo2 = 92;
+      sensor_measurments.fio2 = 50;
       test_message.payload.set(sensor_measurments);
-      test_message.payload.tag= PF::Application::MessageTypes::sensor_measurements;
+      test_message.payload.tag = PF::Application::MessageTypes::sensor_measurements;
 
       PF::Util::ByteVector<buffer_size> buffer;
       auto transform_status = sender.transform(test_message, buffer);
@@ -165,11 +163,13 @@ SCENARIO("Protocols::Message behaves correctly", "[messages]") {
 
     WHEN("bad data is written into the buffer") {
       constexpr size_t buffer_size = 253UL;
-      PF::Protocols::MessageReceiver<TestMessage, num_descriptors> receiver{BE::message_descriptors};
+      PF::Protocols::MessageReceiver<TestMessage, num_descriptors> receiver{
+          BE::message_descriptors};
 
       PF::Util::ByteVector<buffer_size> buffer;
 
-      buffer[TestMessage::type_offset] = static_cast<uint8_t>(PF::Application::MessageTypes::unknown);
+      buffer[TestMessage::type_offset] =
+          static_cast<uint8_t>(PF::Application::MessageTypes::unknown);
 
       auto transform_status = receiver.transform(buffer, test_message);
       THEN("the final status should be invalid_length") {
@@ -179,7 +179,8 @@ SCENARIO("Protocols::Message behaves correctly", "[messages]") {
 
     WHEN("the regular cycle measurments data is written into the buffer") {
       constexpr size_t buffer_size = 253UL;
-      PF::Protocols::MessageReceiver<TestMessage, num_descriptors> receiver{BE::message_descriptors};
+      PF::Protocols::MessageReceiver<TestMessage, num_descriptors> receiver{
+          BE::message_descriptors};
 
       PF::Util::ByteVector<buffer_size> buffer;
       CycleMeasurements cycleMeasurements;
@@ -188,7 +189,8 @@ SCENARIO("Protocols::Message behaves correctly", "[messages]") {
       test_message.payload.tag = PF::Application::MessageTypes::cycle_measurements;
 
       auto write_status = test_message.write(buffer, BE::message_descriptors);
-      buffer[TestMessage::type_offset] = static_cast<uint8_t>(PF::Application::MessageTypes::cycle_measurements);
+      buffer[TestMessage::type_offset] =
+          static_cast<uint8_t>(PF::Application::MessageTypes::cycle_measurements);
 
       auto transform_status = receiver.transform(buffer, test_message);
 
@@ -199,7 +201,8 @@ SCENARIO("Protocols::Message behaves correctly", "[messages]") {
 
     WHEN("sensor measurments data is written into the buffer") {
       constexpr size_t buffer_size = 253UL;
-      PF::Protocols::MessageReceiver<TestMessage, num_descriptors> receiver{BE::message_descriptors};
+      PF::Protocols::MessageReceiver<TestMessage, num_descriptors> receiver{
+          BE::message_descriptors};
 
       PF::Util::ByteVector<buffer_size> buffer;
       SensorMeasurements sensor;
@@ -208,7 +211,8 @@ SCENARIO("Protocols::Message behaves correctly", "[messages]") {
       test_message.payload.tag = PF::Application::MessageTypes::sensor_measurements;
 
       auto write_status = test_message.write(buffer, BE::message_descriptors);
-      buffer[TestMessage::type_offset] = static_cast<uint8_t>(PF::Application::MessageTypes::sensor_measurements);
+      buffer[TestMessage::type_offset] =
+          static_cast<uint8_t>(PF::Application::MessageTypes::sensor_measurements);
 
       auto transform_status = receiver.transform(buffer, test_message);
 
@@ -219,7 +223,8 @@ SCENARIO("Protocols::Message behaves correctly", "[messages]") {
 
     WHEN("cycle measurments data is written into the buffer") {
       constexpr size_t buffer_size = 253UL;
-      PF::Protocols::MessageReceiver<TestMessage, num_descriptors> receiver{BE::message_descriptors};
+      PF::Protocols::MessageReceiver<TestMessage, num_descriptors> receiver{
+          BE::message_descriptors};
 
       PF::Util::ByteVector<buffer_size> buffer;
       CycleMeasurements cycleMeasurements;
@@ -228,19 +233,20 @@ SCENARIO("Protocols::Message behaves correctly", "[messages]") {
       test_message.payload.tag = PF::Application::MessageTypes::cycle_measurements;
 
       auto write_status = test_message.write(buffer, BE::message_descriptors);
-      buffer[TestMessage::type_offset] = static_cast<uint8_t>(PF::Application::MessageTypes::cycle_measurements);
+      buffer[TestMessage::type_offset] =
+          static_cast<uint8_t>(PF::Application::MessageTypes::cycle_measurements);
 
       auto transform_status = receiver.transform(buffer, test_message);
 
       THEN("the final status should be ok") {
         REQUIRE(transform_status == PF::Protocols::MessageStatus::ok);
       }
-
     }
 
     WHEN("parameters data is written into the buffer") {
       constexpr size_t buffer_size = 253UL;
-      PF::Protocols::MessageReceiver<TestMessage, num_descriptors> receiver{BE::message_descriptors};
+      PF::Protocols::MessageReceiver<TestMessage, num_descriptors> receiver{
+          BE::message_descriptors};
 
       PF::Util::ByteVector<buffer_size> buffer;
       Parameters parameters;
@@ -249,7 +255,8 @@ SCENARIO("Protocols::Message behaves correctly", "[messages]") {
       test_message.payload.tag = PF::Application::MessageTypes::parameters;
 
       auto write_status = test_message.write(buffer, BE::message_descriptors);
-      buffer[TestMessage::type_offset] = static_cast<uint8_t>(PF::Application::MessageTypes::parameters);
+      buffer[TestMessage::type_offset] =
+          static_cast<uint8_t>(PF::Application::MessageTypes::parameters);
 
       auto transform_status = receiver.transform(buffer, test_message);
 
@@ -260,7 +267,8 @@ SCENARIO("Protocols::Message behaves correctly", "[messages]") {
 
     WHEN("parameters request data is written into the buffer") {
       constexpr size_t buffer_size = 253UL;
-      PF::Protocols::MessageReceiver<TestMessage, num_descriptors> receiver{BE::message_descriptors};
+      PF::Protocols::MessageReceiver<TestMessage, num_descriptors> receiver{
+          BE::message_descriptors};
 
       PF::Util::ByteVector<buffer_size> buffer;
       ParametersRequest parametersRequest;
@@ -269,7 +277,8 @@ SCENARIO("Protocols::Message behaves correctly", "[messages]") {
       test_message.payload.tag = PF::Application::MessageTypes::parameters_request;
 
       auto write_status = test_message.write(buffer, BE::message_descriptors);
-      buffer[TestMessage::type_offset] = static_cast<uint8_t>(PF::Application::MessageTypes::parameters_request);
+      buffer[TestMessage::type_offset] =
+          static_cast<uint8_t>(PF::Application::MessageTypes::parameters_request);
 
       auto transform_status = receiver.transform(buffer, test_message);
 
@@ -280,23 +289,25 @@ SCENARIO("Protocols::Message behaves correctly", "[messages]") {
 
     WHEN("alarm limits data is written into the buffer") {
       constexpr size_t buffer_size = 253UL;
-      PF::Protocols::MessageReceiver<TestMessage, num_descriptors> receiver{BE::message_descriptors};
+      PF::Protocols::MessageReceiver<TestMessage, num_descriptors> receiver{
+          BE::message_descriptors};
       Range range1;
-      range1.lower=50;
-      range1.upper=70;
+      range1.lower = 50;
+      range1.upper = 70;
 
       Range range2;
-      range2.lower=30;
-      range2.upper=60;
+      range2.lower = 30;
+      range2.upper = 60;
 
       PF::Util::ByteVector<buffer_size> buffer;
       AlarmLimits alarm_limits;
-      alarm_limits.fio2=range1;
-      alarm_limits.flow=range2;
+      alarm_limits.fio2 = range1;
+      alarm_limits.flow = range2;
       test_message.payload.set(alarm_limits);
 
       auto write_status = test_message.write(buffer, BE::message_descriptors);
-      buffer[TestMessage::type_offset] = static_cast<uint8_t>(PF::Application::MessageTypes::alarm_limits);
+      buffer[TestMessage::type_offset] =
+          static_cast<uint8_t>(PF::Application::MessageTypes::alarm_limits);
 
       auto transform_status = receiver.transform(buffer, test_message);
 
@@ -304,6 +315,5 @@ SCENARIO("Protocols::Message behaves correctly", "[messages]") {
         REQUIRE(transform_status == PF::Protocols::MessageStatus::ok);
       }
     }
-
   }
 }

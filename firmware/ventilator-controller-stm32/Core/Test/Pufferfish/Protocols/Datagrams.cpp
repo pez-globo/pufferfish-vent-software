@@ -11,8 +11,8 @@
  */
 
 #include "Pufferfish/Protocols/Datagrams.h"
-#include "Pufferfish/Test/Util.h"
 
+#include "Pufferfish/Test/Util.h"
 #include "catch2/catch.hpp"
 
 namespace PF = Pufferfish;
@@ -120,7 +120,8 @@ SCENARIO("Protocols::Datagram behaves correctly", "[Datagram]") {
       auto receive_status = datagram_receiver.transform(input_buffer, datagram);
       THEN("the final status should be an error code, and length should not match") {
         REQUIRE(convert_status == true);
-        REQUIRE(receive_status == PF::Protocols::DatagramReceiver<buffer_size>::Status::invalid_length);
+        REQUIRE(
+            receive_status == PF::Protocols::DatagramReceiver<buffer_size>::Status::invalid_length);
         REQUIRE(payload == expected_payload);
         REQUIRE(datagram.length() != expected_payload.length());
       }
@@ -154,5 +155,4 @@ SCENARIO("Protocols::Datagram behaves correctly", "[Datagram]") {
       }
     }
   }
-
 }

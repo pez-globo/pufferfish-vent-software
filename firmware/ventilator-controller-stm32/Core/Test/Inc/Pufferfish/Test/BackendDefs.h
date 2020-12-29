@@ -33,4 +33,4 @@ static const auto state_sync_schedule = Util::make_array<const StateOutputSchedu
     StateOutputScheduleEntry{10, Application::MessageTypes::sensor_measurements},
     StateOutputScheduleEntry{10, Application::MessageTypes::parameters_request},
     StateOutputScheduleEntry{10, Application::MessageTypes::cycle_measurements});
-}
+}  // namespace Pufferfish::Driver::Serial::Backend

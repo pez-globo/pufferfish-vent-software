@@ -11,13 +11,13 @@
  */
 
 #include "Pufferfish/Protocols/States.h"
-#include "Pufferfish/Protocols/Chunks.h"
+
 #include "Pufferfish/Application/States.h"
+#include "Pufferfish/HAL/CRCChecker.h"
+#include "Pufferfish/HAL/Mock/MockTime.h"
+#include "Pufferfish/Protocols/Chunks.h"
 #include "Pufferfish/Test/BackendDefs.h"
 #include "Pufferfish/Util/Array.h"
-#include "Pufferfish/HAL/Mock/MockTime.h"
-#include "Pufferfish/HAL/CRCChecker.h"
-
 #include "catch2/catch.hpp"
 
 namespace PF = Pufferfish;
@@ -36,9 +36,7 @@ SCENARIO("Protocols::State behaves correctly", "[Datagram]") {
       const uint32_t ctime = 0x12345678;
       time.set_millis(ctime);
       auto current_time = time.millis();
-      THEN("the final time should be the same") {
-        REQUIRE(current_time == ctime);
-      }
+      THEN("the final time should be the same") { REQUIRE(current_time == ctime); }
     }
   }
 
@@ -47,7 +45,8 @@ SCENARIO("Protocols::State behaves correctly", "[Datagram]") {
 
     WHEN("the current time is written to it") {
       const uint32_t ctime = 0x12345678;
-      BackendStateSynchronizer synchronizer{states, PF::Driver::Serial::Backend::state_sync_schedule};
+      BackendStateSynchronizer synchronizer{
+          states, PF::Driver::Serial::Backend::state_sync_schedule};
       auto input_status = synchronizer.input(ctime);
       THEN("the final status should be ok") {
         REQUIRE(input_status == BackendStateSynchronizer::InputStatus::ok);
@@ -57,20 +56,21 @@ SCENARIO("Protocols::State behaves correctly", "[Datagram]") {
     WHEN("single state is written to it") {
       PF::Application::StateSegment input;
       ParametersRequest parameters_request;
-      parameters_request.ventilating=true;
-      parameters_request.fio2=40;
-      parameters_request.mode=VentilationMode_hfnc;
-      parameters_request.flow=60;
-      input.tag=PF::Application::MessageTypes::parameters_request;
+      parameters_request.ventilating = true;
+      parameters_request.fio2 = 40;
+      parameters_request.mode = VentilationMode_hfnc;
+      parameters_request.flow = 60;
+      input.tag = PF::Application::MessageTypes::parameters_request;
 
-      BackendStateSynchronizer synchronizer{states, PF::Driver::Serial::Backend::state_sync_schedule};
+      BackendStateSynchronizer synchronizer{
+          states, PF::Driver::Serial::Backend::state_sync_schedule};
 
       uint32_t ctime = 8;
       auto input_ctime_status1 = synchronizer.input(ctime);
       auto input_status = synchronizer.input(input);
 
       PF::Application::StateSegment output;
-      output.tag= PF::Application::MessageTypes::parameters_request;
+      output.tag = PF::Application::MessageTypes::parameters_request;
       auto output_status1 = synchronizer.output(output);
 
       ctime += 10;
@@ -87,7 +87,5 @@ SCENARIO("Protocols::State behaves correctly", "[Datagram]") {
         REQUIRE(output_status2 == BackendStateSynchronizer::OutputStatus::available);
       }
     }
-
   }
-
 }

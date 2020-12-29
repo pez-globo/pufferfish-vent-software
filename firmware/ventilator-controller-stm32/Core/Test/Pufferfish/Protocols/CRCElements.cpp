@@ -11,9 +11,9 @@
  */
 
 #include "Pufferfish/Protocols/CRCElements.h"
+
 #include "Pufferfish/HAL/CRCChecker.h"
 #include "Pufferfish/Test/Util.h"
-
 #include "catch2/catch.hpp"
 
 namespace PF = Pufferfish;
@@ -41,14 +41,14 @@ SCENARIO("Protocols::CRCElement behaves correctly", "[CRCElement]") {
       auto parse_status = crc_element.parse(input_buffer);
       auto crcCheck = crc_element.crc();
       auto &payloadCheck = crc_element.payload();
-       THEN("the final status should be ok") {
+      THEN("the final status should be ok") {
         REQUIRE(parse_status == PF::IndexStatus::ok);
         REQUIRE(crcCheck == expected_crc);
         REQUIRE(payloadCheck == expected_payload);
       }
     }
 
-    WHEN("bad data is given as input"){
+    WHEN("bad data is given as input") {
       auto crc = std::string("\x124Vx");
       auto body = std::string("\x12\x34\x56\x78\x03\x04\x00\xed\x30\x00");
       uint32_t expected_crc = 0;
@@ -71,7 +71,6 @@ SCENARIO("Protocols::CRCElement behaves correctly", "[CRCElement]") {
       }
     }
 
-
     WHEN("data is written to it and parsed back") {
       auto crc = std::string("\x98\xdb\xe3\x55");
       auto body = std::string("\x98\xdb\xe3\x55\x01\x05\x01\x02\x03\x04\x05");
@@ -89,7 +88,6 @@ SCENARIO("Protocols::CRCElement behaves correctly", "[CRCElement]") {
         REQUIRE(parse_status == PF::IndexStatus::ok);
       }
     }
-
   }
 
   GIVEN("A CRC element receiver") {
@@ -149,5 +147,4 @@ SCENARIO("Protocols::CRCElement behaves correctly", "[CRCElement]") {
       }
     }
   }
-
 }
