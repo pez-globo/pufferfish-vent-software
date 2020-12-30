@@ -11,8 +11,8 @@
  */
 
 #include "Pufferfish/Driver/BreathingCircuit/Algorithms.h"
-#include "Pufferfish/Test/Util.h"
 
+#include "Pufferfish/Test/Util.h"
 #include "catch2/catch.hpp"
 
 namespace PF = Pufferfish;
@@ -28,7 +28,7 @@ SCENARIO("BreathingCircuit::PI behaves correctly", "[Algorithms]") {
       valve_test.transform(measurement, setpoint, actuation);
 
       THEN("the final time should be the same") {
-       REQUIRE(PF::Util::isEqualFloat(actuation, 0.0) == true);
+        REQUIRE(PF::Util::isEqualFloat(actuation, 0.0) == true);
       }
     }
 
@@ -37,7 +37,6 @@ SCENARIO("BreathingCircuit::PI behaves correctly", "[Algorithms]") {
       auto setpoint = GENERATE(0.1, 0.2, 0.3);
       float actuation = 0;
       valve_test.transform(measurement, setpoint, actuation);
-
     }
   }
 }

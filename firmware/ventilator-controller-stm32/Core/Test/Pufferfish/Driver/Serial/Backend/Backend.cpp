@@ -11,18 +11,15 @@
  */
 
 #include "Pufferfish/Driver/Serial/Backend/Backend.h"
+
 #include "Pufferfish/HAL/CRCChecker.h"
 #include "Pufferfish/Test/Util.h"
-
 #include "catch2/catch.hpp"
 
 namespace PF = Pufferfish;
 
 constexpr size_t payload_max_size = 252UL;
-using TestMessage = PF::Protocols::Message<
-  PF::Application::StateSegment,
-  payload_max_size
->;
+using TestMessage = PF::Protocols::Message<PF::Application::StateSegment, payload_max_size>;
 
 TestMessage test_message;
 
@@ -36,32 +33,35 @@ SCENARIO("Serial::Backend behaves correctly", "[Backend]") {
     PF::Driver::Serial::Backend::BackendReceiver::InputStatus input_status;
 
     WHEN("a valid body is parsed") {
-        for (auto& ch : body) {
-          input_status = backend_receiver.input(ch);
-        }
+      for (auto& ch : body) {
+        input_status = backend_receiver.input(ch);
+      }
 
       THEN("input status should be ok") {
-        REQUIRE(input_status == PF::Driver::Serial::Backend::BackendReceiver::InputStatus::output_ready);
+        REQUIRE(
+            input_status ==
+            PF::Driver::Serial::Backend::BackendReceiver::InputStatus::output_ready);
       }
     }
 
     AND_WHEN("input status is output ready") {
-        for (auto& ch : body) {
-          input_status = backend_receiver.input(ch);
-        }
+      for (auto& ch : body) {
+        input_status = backend_receiver.input(ch);
+      }
 
-        ParametersRequest parameters_request;
-        parameters_request.fio2 = 40;
-        parameters_request.flow = 60;
-        parameters_request.ventilating = true;
-        parameters_request.mode = VentilationMode_hfnc;
-        test_message.payload.tag = PF::Application::MessageTypes::parameters_request;
-        test_message.payload.set(parameters_request);
+      ParametersRequest parameters_request;
+      parameters_request.fio2 = 40;
+      parameters_request.flow = 60;
+      parameters_request.ventilating = true;
+      parameters_request.mode = VentilationMode_hfnc;
+      test_message.payload.tag = PF::Application::MessageTypes::parameters_request;
+      test_message.payload.set(parameters_request);
 
-        auto output_status = backend_receiver.output(test_message);
+      auto output_status = backend_receiver.output(test_message);
 
       THEN("output status should be ok") {
-        REQUIRE(output_status == PF::Driver::Serial::Backend::BackendReceiver::OutputStatus::available);
+        REQUIRE(
+            output_status == PF::Driver::Serial::Backend::BackendReceiver::OutputStatus::available);
       }
     }
   }
@@ -106,7 +106,7 @@ SCENARIO("Serial::Backend behaves correctly", "[Backend]") {
       //   status = backend.input(ch);
       // }
       for (uint8_t index = 0; index < 5; index++) {
-          input_status = backend.input(input_data[index]);
+        input_status = backend.input(input_data[index]);
       }
 
       THEN("status should be ok") {
@@ -117,7 +117,7 @@ SCENARIO("Serial::Backend behaves correctly", "[Backend]") {
       PF::Driver::Serial::Backend::Backend::Status input_status;
 
       for (uint8_t index = 0; index < 3; index++) {
-          input_status = backend.input(input_data[index]);
+        input_status = backend.input(input_data[index]);
       }
 
       THEN("status should be ok") {
@@ -129,7 +129,7 @@ SCENARIO("Serial::Backend behaves correctly", "[Backend]") {
       constexpr size_t chunk_max_size = 256;
       PF::Util::ByteVector<chunk_max_size> chunkBuffer;
       PF::Driver::Serial::Backend::Backend::Status input_status;
-      for(auto& ch : body) {
+      for (auto& ch : body) {
         auto input_status = backend.input(ch);
       }
 

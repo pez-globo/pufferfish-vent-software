@@ -11,6 +11,7 @@
  */
 
 #include "Pufferfish/Driver/BreathingCircuit/Controller.h"
+
 #include "Pufferfish/Test/Util.h"
 #include "catch2/catch.hpp"
 
@@ -29,17 +30,18 @@ SCENARIO("BreathingCircuit::Controller behaves correctly", "[Controllers]") {
     sensor_vars.flow_air = 79;
     sensor_vars.po2 = 10;
 
-    SensorMeasurements sensor_measurements; // unused
+    SensorMeasurements sensor_measurements;  // unused
     PF::Driver::BreathingCircuit::ActuatorSetpoints actuator_setpoints;
     PF::Driver::BreathingCircuit::ActuatorVars actuator_vars;
 
     PF::Driver::BreathingCircuit::HFNCController controller;
-    controller.transform(time, parameters, sensor_vars, sensor_measurements, actuator_setpoints, actuator_vars);
+    controller.transform(
+        time, parameters, sensor_vars, sensor_measurements, actuator_setpoints, actuator_vars);
 
     WHEN("the device ventilating mode is not hfnc") {
       THEN("the final value should be as expected") {
-      //  REQUIRE(PF::Util::isEqualFloat(actuator_setpoints.flow_o2, 0.0) == true);
-       REQUIRE(PF::Util::isEqualFloat(actuator_setpoints.flow_air, 0.0) == true);
+        //  REQUIRE(PF::Util::isEqualFloat(actuator_setpoints.flow_o2, 0.0) == true);
+        REQUIRE(PF::Util::isEqualFloat(actuator_setpoints.flow_air, 0.0) == true);
       }
     }
   }
@@ -57,17 +59,18 @@ SCENARIO("BreathingCircuit::Controller behaves correctly", "[Controllers]") {
     sensor_vars.flow_air = 79;
     sensor_vars.po2 = 10;
 
-    SensorMeasurements sensor_measurements; // unused
+    SensorMeasurements sensor_measurements;  // unused
     PF::Driver::BreathingCircuit::ActuatorSetpoints actuator_setpoints;
     PF::Driver::BreathingCircuit::ActuatorVars actuator_vars;
 
     PF::Driver::BreathingCircuit::HFNCController controller;
-    controller.transform(time, parameters, sensor_vars, sensor_measurements, actuator_setpoints, actuator_vars);
+    controller.transform(
+        time, parameters, sensor_vars, sensor_measurements, actuator_setpoints, actuator_vars);
 
     WHEN("the device is not ventilating") {
       THEN("the final value should be as expected") {
-       REQUIRE(PF::Util::isEqualFloat(actuator_setpoints.flow_o2, 0.0) == true);
-       REQUIRE(PF::Util::isEqualFloat(actuator_setpoints.flow_air, 0.0) == true);
+        REQUIRE(PF::Util::isEqualFloat(actuator_setpoints.flow_o2, 0.0) == true);
+        REQUIRE(PF::Util::isEqualFloat(actuator_setpoints.flow_air, 0.0) == true);
       }
     }
   }
@@ -85,18 +88,19 @@ SCENARIO("BreathingCircuit::Controller behaves correctly", "[Controllers]") {
     sensor_vars.flow_air = 79;
     sensor_vars.po2 = 10;
 
-    SensorMeasurements sensor_measurements; // unused
+    SensorMeasurements sensor_measurements;  // unused
     PF::Driver::BreathingCircuit::ActuatorSetpoints actuator_setpoints;
     PF::Driver::BreathingCircuit::ActuatorVars actuator_vars;
 
     PF::Driver::BreathingCircuit::HFNCController controller;
-    controller.transform(time, parameters, sensor_vars, sensor_measurements, actuator_setpoints, actuator_vars);
+    controller.transform(
+        time, parameters, sensor_vars, sensor_measurements, actuator_setpoints, actuator_vars);
 
     WHEN("the device is ventilating") {
       THEN("the final value should be as expected") {
         // REQUIRE(PF::Util::isEqualFloat(actuator_setpoints.flow_o2, 0.0) == false);
         // REQUIRE(PF::Util::isEqualFloat(actuator_setpoints.flow_air, 0.0) == false);
+      }
     }
-   }
   }
 }
