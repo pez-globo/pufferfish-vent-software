@@ -87,5 +87,27 @@ SCENARIO("Protocols::State behaves correctly", "[Datagram]") {
         REQUIRE(output_status2 == BackendStateSynchronizer::OutputStatus::available);
       }
     }
+
+    WHEN("input is of invalid message type") {
+      PF::Application::StateSegment input;
+      Parameters parameters;
+      parameters.fio2 = 60;
+      parameters.flow = 40;
+      parameters.mode = VentilationMode_hfnc;
+      parameters.rr = 20;
+      input.tag = PF::Application::MessageTypes::parameters;
+
+      BackendStateSynchronizer synchronizer{
+          states, PF::Driver::Serial::Backend::state_sync_schedule};
+
+      uint32_t ctime = 8;
+      auto input_ctime_status1 = synchronizer.input(ctime);
+      auto input_status = synchronizer.input(input);
+
+      THEN("input status should be of invalid type") {
+        REQUIRE(input_ctime_status1 == BackendStateSynchronizer::InputStatus::ok);
+        REQUIRE(input_status == BackendStateSynchronizer::InputStatus::invalid_type);
+      }
+    }
   }
 }
