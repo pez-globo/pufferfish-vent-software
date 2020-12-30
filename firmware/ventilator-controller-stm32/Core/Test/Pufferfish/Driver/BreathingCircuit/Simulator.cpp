@@ -38,7 +38,6 @@ SCENARIO("Simulator:: PCAC simulator behaves properly in inspiratory phase", "[S
             parameters.flow = 40;
             parameters.rr = 2.0;
             parameters.ventilating = true;
-            simulators.transform(2, parameters, sensor_vars, sensor_measurements, cycle_measurments);
             simulators.transform(12, parameters, sensor_vars, sensor_measurements, cycle_measurments);
             simulators.transform(14, parameters, sensor_vars, sensor_measurements, cycle_measurments);
             THEN("sensor_measurments time is equal to current time") {
@@ -56,9 +55,6 @@ SCENARIO("Simulator:: PCAC simulator behaves properly in inspiratory phase", "[S
             parameters.rr = 2.0;
             parameters.ventilating = true;
 
-            PF::Driver::BreathingCircuit::PCACSimulator pcac_simulator{};
-
-            pcac_simulator.transform(parameters, sensor_vars, sensor_measurements, cycle_measurments);
             THEN("sensor_measurments time is not equal to current time") {
                 REQUIRE(sensor_measurements.time != current_time);
             }
@@ -72,9 +68,6 @@ SCENARIO("Simulator:: PCAC simulator behaves properly in inspiratory phase", "[S
             parameters.rr = 2.0;
             parameters.ventilating = false;
 
-            PF::Driver::BreathingCircuit::PCACSimulator pcac_simulator{};
-
-            pcac_simulator.transform(parameters, sensor_vars, sensor_measurements, cycle_measurments);
             THEN("sensor_measurments time is not equal to current time") {
                 REQUIRE(sensor_measurements.time != current_time);
             }
@@ -88,9 +81,6 @@ SCENARIO("Simulator:: PCAC simulator behaves properly in inspiratory phase", "[S
             parameters.rr = 2.0;
             parameters.ventilating = true;
 
-            PF::Driver::BreathingCircuit::PCACSimulator pcac_simulator{};
-
-            pcac_simulator.transform(parameters, sensor_vars, sensor_measurements, cycle_measurments);
             THEN("airway is inspiratory") {
                 REQUIRE(PF::Util::isLessFloat(cycle_measurments.rr, parameters.rr) == true);
             }
@@ -104,9 +94,6 @@ SCENARIO("Simulator:: PCAC simulator behaves properly in inspiratory phase", "[S
             parameters.rr = 2.0;
             parameters.ventilating = true;
 
-            PF::Driver::BreathingCircuit::PCACSimulator pcac_simulator{};
-
-            pcac_simulator.transform(parameters, sensor_vars, sensor_measurements, cycle_measurments);
             THEN("sensor measurments paw is greater than 0") {
                 REQUIRE(PF::Util::isLessFloat(sensor_measurements.paw, 0) == false);
 
@@ -121,9 +108,6 @@ SCENARIO("Simulator:: PCAC simulator behaves properly in inspiratory phase", "[S
             parameters.rr = 2.0;
             parameters.ventilating = true;
 
-            PF::Driver::BreathingCircuit::PCACSimulator pcac_simulator{};
-
-            pcac_simulator.transform(parameters, sensor_vars, sensor_measurements, cycle_measurments);
             THEN("sensor measuremnts fio2 should not be equal to 0") {
                 REQUIRE(PF::Util::isLessFloat(sensor_measurements.fio2, 0) == false);
             }
@@ -153,7 +137,6 @@ SCENARIO("Simulator:: PCAC simulator behaves properly in expiratory phase", "[Si
 
             PF::Driver::BreathingCircuit::Simulators simulators{};
 
-            simulators.transform(10, parameters, sensor_vars, sensor_measurements, cycle_measurments);
             simulators.transform(20, parameters, sensor_vars, sensor_measurements, cycle_measurments);
             simulators.transform(1200, parameters, sensor_vars, sensor_measurements, cycle_measurments);
             THEN("sensor_measurments time is equal to current time") {
@@ -176,9 +159,6 @@ SCENARIO("Simulator:: PCAC simulator behaves properly in expiratory phase", "[Si
             sensor_vars.flow_air = 79;
             sensor_vars.po2 = 10;
 
-            PF::Driver::BreathingCircuit::PCACSimulator pcac_simulator{};
-
-            pcac_simulator.transform(parameters, sensor_vars, sensor_measurements, cycle_measurments);
             THEN("airway is expiratory") {
                 // not gonna work with the current value of time
                 REQUIRE(PF::Util::isLessFloat(sensor_measurements.paw, 0) == false);
@@ -198,9 +178,6 @@ SCENARIO("Simulator:: PCAC simulator behaves properly in expiratory phase", "[Si
             sensor_vars.flow_air = 79;
             sensor_vars.po2 = 10;
 
-            PF::Driver::BreathingCircuit::PCACSimulator pcac_simulator{};
-
-            pcac_simulator.transform(parameters, sensor_vars, sensor_measurements, cycle_measurments);
             THEN("sensor measuremnts fio2 should be ") {
                 // not gonna work with the current value of time
                 REQUIRE(PF::Util::isLessFloat(sensor_measurements.fio2, 0) == false);
@@ -230,7 +207,6 @@ SCENARIO("Simulator:: HFNC simulator properly", "[Simulator]") {
 
         PF::Driver::BreathingCircuit::Simulators simulators{};
 
-        simulators.transform(10, parameters, sensor_vars, sensor_measurements, cycle_measurments);
         simulators.transform(20, parameters, sensor_vars, sensor_measurements, cycle_measurments);
         simulators.transform(50, parameters, sensor_vars, sensor_measurements, cycle_measurments);
 
@@ -245,10 +221,6 @@ SCENARIO("Simulator:: HFNC simulator properly", "[Simulator]") {
             sensor_vars.flow_o2 = 21;
             sensor_vars.flow_air = 79;
             sensor_vars.po2 = 10;
-
-            PF::Driver::BreathingCircuit::HFNCSimulator hfnc_simulator{};
-
-            hfnc_simulator.transform(parameters, sensor_vars, sensor_measurements, cycle_measurments);
 
             THEN("Cycle measurments rr is equal to parameters rr") {
                 REQUIRE(PF::Util::isEqualFloat(cycle_measurments.rr, 4000) == true);
@@ -269,10 +241,6 @@ SCENARIO("Simulator:: HFNC simulator properly", "[Simulator]") {
 
             uint32_t current_time;
 
-            PF::Driver::BreathingCircuit::HFNCSimulator hfnc_simulator{};
-
-            hfnc_simulator.transform(parameters, sensor_vars, sensor_measurements, cycle_measurments);
-
             THEN("sensor_measurments time is not equal to current time") {
                 REQUIRE(sensor_measurements.time != current_time);
             }
@@ -292,9 +260,6 @@ SCENARIO("Simulator:: HFNC simulator properly", "[Simulator]") {
 
             uint32_t current_time;
 
-            PF::Driver::BreathingCircuit::HFNCSimulator hfnc_simulator{};
-
-            hfnc_simulator.transform(parameters, sensor_vars, sensor_measurements, cycle_measurments);
             THEN("sensor_measurments time is not equal to current time") {
                 REQUIRE(sensor_measurements.time != current_time);
             }
@@ -319,12 +284,8 @@ SCENARIO("Simulator:: HFNC simulator properly", "[Simulator]") {
 
             PF::Driver::BreathingCircuit::Simulators simulators{};
 
-            simulators.transform(10, parameters, sensor_vars, sensor_measurements, cycle_measurments);
             simulators.transform(20, parameters, sensor_vars, sensor_measurements, cycle_measurments);
             simulators.transform(50, parameters, sensor_vars, sensor_measurements, cycle_measurments);
-            PF::Driver::BreathingCircuit::HFNCSimulator hfnc_simulator{};
-
-            hfnc_simulator.transform(parameters, sensor_vars, sensor_measurements, cycle_measurments);
         
             THEN("Cycle measurments rr is equal to parameters rr") {            
                 REQUIRE(PF::Util::isEqualFloat(parameters.rr, cycle_measurments.rr) == false);
@@ -338,10 +299,6 @@ SCENARIO("Simulator:: HFNC simulator properly", "[Simulator]") {
             sensor_vars.po2 = 0;
             float expected_fio2 = 0.188932;
 
-            PF::Driver::BreathingCircuit::HFNCSimulator hfnc_simulator{};
-
-            hfnc_simulator.transform(parameters, sensor_vars, sensor_measurements, cycle_measurments);
-
             THEN("sensor measurments fio2 is of certain value") {
                 REQUIRE(PF::Util::isEqualFloat(sensor_measurements.fio2, expected_fio2) == true);            
             }
@@ -352,11 +309,6 @@ SCENARIO("Simulator:: HFNC simulator properly", "[Simulator]") {
             sensor_vars.flow_o2 = 21;
             sensor_vars.flow_air = 79;
             sensor_vars.po2 = 0;
-            float expected_fio2 = 0.188932;
-
-            PF::Driver::BreathingCircuit::HFNCSimulator hfnc_simulator{};
-
-            hfnc_simulator.transform(parameters, sensor_vars, sensor_measurements, cycle_measurments);
 
             THEN("spo2 is less than spo2_min") {
                 // given our values spo2 is less than spo2_min
@@ -383,12 +335,8 @@ SCENARIO("Simulator:: HFNC simulator properly", "[Simulator]") {
 
             PF::Driver::BreathingCircuit::Simulators simulators{};
 
-            simulators.transform(10, parameters, sensor_vars, sensor_measurements, cycle_measurments);
             simulators.transform(20, parameters, sensor_vars, sensor_measurements, cycle_measurments);
             simulators.transform(50, parameters, sensor_vars, sensor_measurements, cycle_measurments);
-            PF::Driver::BreathingCircuit::HFNCSimulator hfnc_simulator{};
-
-            hfnc_simulator.transform(parameters, sensor_vars, sensor_measurements, cycle_measurments);
         
             THEN("Cycle measurments rr is equal to parameters rr") {            
                 REQUIRE(PF::Util::isEqualFloat(parameters.rr, cycle_measurments.rr) == false);
@@ -402,10 +350,6 @@ SCENARIO("Simulator:: HFNC simulator properly", "[Simulator]") {
             sensor_vars.po2 = 10;
             float expected_fio2 = 0.00098692;
 
-            PF::Driver::BreathingCircuit::HFNCSimulator hfnc_simulator{};
-
-            hfnc_simulator.transform(parameters, sensor_vars, sensor_measurements, cycle_measurments);
-
             THEN("sensor measurments fio2 is of certain value") {
                 REQUIRE(PF::Util::isEqualFloat(sensor_measurements.fio2, expected_fio2) == true);
             }
@@ -416,10 +360,6 @@ SCENARIO("Simulator:: HFNC simulator properly", "[Simulator]") {
             sensor_vars.flow_o2 = 21;
             sensor_vars.flow_air = 79;
             sensor_vars.po2 = 10;
-
-            PF::Driver::BreathingCircuit::HFNCSimulator hfnc_simulator{};
-
-            hfnc_simulator.transform(parameters, sensor_vars, sensor_measurements, cycle_measurments);
 
             THEN("spo2 is less than spo2_min") {
                 // given our values spo2 is less than spo2_min
