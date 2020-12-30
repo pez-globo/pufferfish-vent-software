@@ -10,7 +10,6 @@ from ventserver.protocols import server,backend,file
 from ventserver.protocols.protobuf import mcu_pb as pb
 
 example_messages_good = [
-    (43.000230,pb.Alarms(alarm_one=True)),
     (35.065809,pb.SensorMeasurements(paw=20)),
     (58.719322,pb.CycleMeasurements(ve=300)),
     (58.719322,pb.Parameters(fio2=80)),

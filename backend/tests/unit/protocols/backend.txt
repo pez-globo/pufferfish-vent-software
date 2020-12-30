@@ -1,76 +1,91 @@
-Scenario: Backend Receive Event behaves properly
+Scenario: Backend receive event behaves properly
 Given: A ReceiveEvent object
-When: no data is received
-Then: has_data() is false
+When: ReceiveEvent class is initialised without data
+Then: has_data function returns false   
 
-Scenario: Backend Receive Event behaves properly
+Scenario: Backend receive event behaves properly
 Given: A ReceiveEvent object
-When: A time event is recieved
-Then: has_data() is True
+When: time is passed as input
+Then: has_data function returns true
 
-Scenario: Backend Receive Event behaves properly
-Given: A Receive event object
-When: A serial event is recieved
-Then: has_data() is True
+Scenario: Backend receive event behaves properly
+Given: A ReceiveEvent object
+When: mcu event is passed as input
+Then: has_data function returns true
 
-Scenario: backend recieves output event
-Given: A Output event object
-When: no data is received
-Then: has_data() is false
+Scenario: Backend receive event behaves properly
+Given: A ReceiveEvent object
+When: frontend data is passed as input
+Then: has_data function returns true
 
-Scenario: backend recieves output event
-Given: A Output event object
-When: A event is recieved
-Then: has_data() is True
+Scenario: Backend receive event behaves properly
+Given: A OutputEvent object
+When: ouptut event has no data
+Then: has_data function returns false
 
-Scenario: backend sends announcement message
+Scenario: Backend receive event behaves properly
+Given: A OutputEvent object
+When: output event has data
+Then: has_data function returns true
+
+Scenario: Backend send event behaves properly
 Given: a announcement object
-When: backend sends input event
-Then: event has data
+When: backend recieves announcement strings as input
+Then: has_data function returns true
 
 #ReceiveFilter
 
-Scenario: Receive filter receives input event
-Given: a receive filter object
-When: a input event is given to backend receive filter
-Then: input has data
+Scenario: Receive Filter behaves properly
+Given: receive event with no data
+When: empty receive event is passed as input to receive filter
+Then: output of receive filter None
 
-Scenario: Receive filter receives input event
-Given: a receive filter object
-When: a input event is given to backend receive filter
-Then: output has data
+Scenario: Receive Filter behaves properly
+Given: mcu receive event
+When: mcu receive event is passed as input to receive filter
+Then: output of receive filter is not None
+
+Scenario: Receive Filter behaves properly
+Given: frontend receive event
+When: frontend receive event is passed as input to receive filter
+Then: output of receive filter is not None
+
+Scenario: Receive Filter behaves properly
+Given: file object receive event
+When: file receive event is passed as input to receive filter
+Then: output of receive filter is not None
 
 
 #SendFilter
 
-Scenario : an input is given to send filter
-Given: An announcement object
-When: input is given
-Then: output event is not none
+Scenario : Send Filter behaves properly
+Given: An Event of type SendEvent with no data
+When: empty send event is passed as input to send filter
+Then: output of send filter is None
 
-Scenario : an input is given to send filter
-Given: An output event object
-When: no input is given
-Then: output event is none
+Scenario : Send Filter behaves properly
+Given: An event of type announcement
+When: announcement event is passed as input to send filter
+Then: output of send filter is not None
 
-Scenario : an input is given to send filter
-Given: An output event object
-When: valid input is given
-Then: output has data
+Scenario : Send Filter behaves properly
+Given: An Event of type SendEvent with data
+When: Given event is passed as input to send filter
+Then: output of send filter is not None
 
 #Protocols
 
 Scenario: get_mcu_send function behaves properly
-Given: A output event
-When: mcu output event is passed
-Then: output event has data
+Given: A OutputEvent from mcu
+When: given event is passed to get_mcu_send function
+Then: output of the function is not None 
 
 Scenario: get_frontend_send function behaves properly
-Given: A output event
-When: frontend output event is passed
-Then: output event has data
+Given: A OutputEvent from frontend
+When: given event is passed to get_frontend_send function
+Then: output of the function is not None 
 
 Scenario: get_file_send function behaves properly
-Given: A output event
-When: file output event is passed
-Then: output event has data
+Given: A OutputEvent from file io
+When: given event is passed to get_file_send function
+Then: output of the function is not None 
