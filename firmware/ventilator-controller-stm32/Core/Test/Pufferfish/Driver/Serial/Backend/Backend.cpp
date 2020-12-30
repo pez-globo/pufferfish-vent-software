@@ -50,10 +50,13 @@ SCENARIO("Serial::Backend behaves correctly", "[Backend]") {
           input_status = backend_receiver.input(ch);
         }
 
-        Alarms alarms;
-        alarms.alarm_one = true;
-        test_message.payload.tag = PF::Application::MessageTypes::alarms;
-        test_message.payload.set(alarms);
+        ParametersRequest parameters_request;
+        parameters_request.fio2 = 40;
+        parameters_request.flow = 60;
+        parameters_request.ventilating = true;
+        parameters_request.mode = VentilationMode_hfnc;
+        test_message.payload.tag = PF::Application::MessageTypes::parameters_request;
+        test_message.payload.set(parameters_request);
 
         auto output_status = backend_receiver.output(test_message);
 
@@ -71,10 +74,13 @@ SCENARIO("Serial::Backend behaves correctly", "[Backend]") {
 
     PF::Util::ByteVector<chunk_max_size> chunkBuffer;
 
-    Alarms alarms;
-    alarms.alarm_one = true;
-    test_message.payload.tag = PF::Application::MessageTypes::alarms;
-    test_message.payload.set(alarms);
+    ParametersRequest parameters_request;
+    parameters_request.fio2 = 40;
+    parameters_request.flow = 60;
+    parameters_request.ventilating = true;
+    parameters_request.mode = VentilationMode_hfnc;
+    test_message.payload.tag = PF::Application::MessageTypes::parameters_request;
+    test_message.payload.set(parameters_request);
 
     WHEN("data is given to sender") {
       auto status = backend_sender.transform(test_message, chunkBuffer);
@@ -92,15 +98,30 @@ SCENARIO("Serial::Backend behaves correctly", "[Backend]") {
     PF::Driver::Serial::Backend::Backend backend{crc32c, states};
 
     auto body = std::string("\x98\xdb\xe3\x55\x01\x05\x01\x02\x03\x04\x05\x00", 12);
+    auto input_data = PF::Util::make_array<uint8_t>(0x01, 0x00, 0x83, 0x01, 0x80, 0x00, 0x05);
 
     WHEN("data is written to it") {
-      PF::Driver::Serial::Backend::Backend::Status status;
-      for(auto& ch : body) {
-        auto status = backend.input(ch);
+      PF::Driver::Serial::Backend::Backend::Status input_status;
+      // for(auto& ch : body) {
+      //   status = backend.input(ch);
+      // }
+      for (uint8_t index = 0; index < 5; index++) {
+          input_status = backend.input(input_data[index]);
       }
 
       THEN("status should be ok") {
-        REQUIRE(status == PF::Driver::Serial::Backend::Backend::Status::ok);
+        REQUIRE(input_status == PF::Driver::Serial::Backend::Backend::Status::waiting);
+      }
+    }
+    AND_WHEN("BLAH") {
+      PF::Driver::Serial::Backend::Backend::Status input_status;
+
+      for (uint8_t index = 0; index < 3; index++) {
+          input_status = backend.input(input_data[index]);
+      }
+
+      THEN("status should be ok") {
+        REQUIRE(input_status == PF::Driver::Serial::Backend::Backend::Status::ok);
       }
     }
 
@@ -115,6 +136,7 @@ SCENARIO("Serial::Backend behaves correctly", "[Backend]") {
       auto status = backend.output(chunkBuffer);
 
       THEN("output status should be ok") {
+        REQUIRE(input_status == PF::Driver::Serial::Backend::Backend::Status::ok);
         REQUIRE(status == PF::Driver::Serial::Backend::Backend::Status::ok);
       }
     }

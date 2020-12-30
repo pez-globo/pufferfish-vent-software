@@ -64,7 +64,7 @@ SCENARIO("Serial::Frames behaves correctly", "[Backend]") {
     constexpr size_t buffer_size = 254UL;
     PF::HAL::SoftCRC32 crc32c{PF::HAL::crc32c_params};
     PF::Driver::Serial::Backend::FrameReceiver frame_receiver{};
-    auto input_data = PF::Util::make_array<uint8_t>(0x01, 0x83, 0x01, 0x80, 0x00);
+    auto input_data = PF::Util::make_array<uint8_t>(0x01, 0x83, 0x01, 0x80, 0x00, 0x04);
 
     WHEN("On input of 4 bytes of INPUT_DATA to FrameReceiver ") {
         PF::Driver::Serial::Backend::FrameProps::InputStatus input_status;
