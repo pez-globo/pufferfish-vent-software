@@ -1,0 +1,41 @@
+Scenario: PCAC simulator behaves properly
+Given: A PCAC simulator service
+When: ventilation mode is not equal to pc_ac
+Then: sensor measurements time is unchanged
+
+Scenario: PCAC simulator behaves properly
+Given: A PCAC simulator service
+When: parameter ventilating value is false
+Then: sensor measurements time is unchanged
+
+Scenario: PCAC simulator behaves properly
+Given: A PCAC simulator service
+When: time_step function returns 0
+Then: sensor measurments flow is unchanged
+
+Scenario: PCAC simulator behaves properly
+Given: A PCAC simulator service
+When: ventilator is in inspiratory phase
+Then: Sensor measurments are updated in inspiratory phase
+
+# HFNC simulator
+
+Scenario: HFNC simulator behaves properly
+Given: A HFNC simulator service
+When: ventilation mode is not equal to hfnc
+Then: sensor measurements time is unchanged
+
+Scenario: HFNC simulator behaves properly
+Given: A HFNC simulator service
+When: parameter ventilating value is false
+Then: sensor measurements time is unchanged
+
+Scenario: HFNC simulator behaves properly
+Given: A HFNC simulator service
+When: time_step function returns 0
+Then: sensor measurements time is unchanged
+
+Scenario: HFNC simulator behaves properly
+Given: A HFNC simulator service
+WHen: parameter service is equal to HFNC
+Then: Sensor measurements fio2, flow, spo2 are updated

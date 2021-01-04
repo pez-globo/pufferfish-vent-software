@@ -1,0 +1,34 @@
+Scenario: Alarm Limit services behave properly
+Given: A PCAC Alarm Limit service
+When: parameter service is not equal to pc_ac or HFNC
+Then: Alarm Limits are not updated as per Alarm Limit requests
+
+Scenario: Alarm Limit services behave properly
+Given: A PCAC Alarm Limit service
+When: parameter service is equal to pc_ac
+Then: Alarm Limits are updated as per Alarm Limit requests
+
+Scenario: Alarm Limit services behave properly
+Given: A PCAC Alarm Limit service
+When: Requested alarm limit lower value is lesser than defined lower value
+Then: Alarm Limits are not updated as per Alarm Limit requests
+
+Scenario: Alarm Limit services behave properly
+Given: A PCAC Alarm Limit service
+When: Requested alarm limit upper value is greater than defined upper value
+Then: Alarm Limits are not updated as per Alarm Limit requests
+
+Scenario: Alarm Limit services behave properly
+Given: A HFNC Alarm Limit service
+When: parameter service is equal to HFNC
+Then: Alarm Limits are not updated as per Alarm Limit requests
+
+Scenario: Alarm Limit services behave properly
+Given: A HFNC Alarm Limit service
+When: Requested alarm limit lower value is lesser than defined lower value
+Then: Alarm Limits are not updated as per Alarm Limit requests
+
+Scenario: Alarm Limit services behave properly
+Given: A HFNC Alarm Limit service
+When: Requested alarm limit upper value is greater than defined upper value
+Then: Alarm Limits are not updated as per Alarm Limit requests

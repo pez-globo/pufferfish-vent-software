@@ -1,0 +1,29 @@
+Scenario: parameters services behaves properly
+Given: A PCAC parameter service
+When: parameter mode is not equal to pc_ac
+Then: parameters are not updated as per the parameter requests
+
+Scenario: parameters services behaves properly
+Given: A PCAC parameter service
+When: parameter mode is equal to pc_ac
+Then: parameters are updated as per the parameter requests
+
+Scenario: parameters services behaves properly
+Given: A PCAC parameter service
+When: parameter request fio2 is less than fio2_min
+Then: parameters are not updated as per the parameter requests
+
+Scenario: parameters services behaves properly
+Given: A HFNC parameter service
+When: parameter mode is not equal to HFNC
+Then: parameters are not updated as per the parameter requests
+
+Scenario: parameters services behaves properly
+Given: A HFNC parameter service
+When: parameter mode is equal to HFNC
+Then: parameters are updated as per the parameter requests
+
+Scenario: parameters services behaves properly
+Given: A HFNC parameter service
+When: parameter request flow is greater than flow_max
+Then: parameters are not updated as per the parameter requests
