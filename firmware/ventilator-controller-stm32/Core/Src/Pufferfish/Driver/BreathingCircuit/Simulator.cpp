@@ -109,7 +109,7 @@ void HFNCSimulator::transform(
     const Parameters &parameters,
     const SensorVars &sensor_vars,
     SensorMeasurements &sensor_measurements,
-    CycleMeasurements &cycle_measurements) {
+    CycleMeasurements & /*cycle_measurements*/) {
   if (!update_needed()) {
     return;
   }
