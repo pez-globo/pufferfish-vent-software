@@ -114,7 +114,7 @@ PF::HAL::HALCRC32 crc32c(hcrc);
 PF::HAL::HALTime time;
 
 // Buffered UARTs
-volatile Pufferfish::HAL::LargeBufferedUART backend_uart(huart3, time);
+volatile Pufferfish::HAL::LargeBufferedUART backend_uart(huart1, time);
 volatile Pufferfish::HAL::LargeBufferedUART fdo2_uart(huart7, time);
 volatile Pufferfish::HAL::ReadOnlyBufferedUART nonin_oem_uart(huart4, time);
 
@@ -147,9 +147,12 @@ PF::HAL::HALDigitalOutput ser_input(
     SER_IN_Pin,  // @suppress("C-Style cast instead of C++ cast")
     true);
 
-PF::HAL::HALDigitalOutput board_led1(
+/*PF::HAL::HALDigitalOutput board_led1(
     *LD1_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
-    LD1_Pin);  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+    LD1_Pin);  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)*/
+PF::HAL::HALDigitalOutput board_led1(
+    *LED1_EN_GPIO_Port,  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+    LED1_EN_Pin);  // @suppress("C-Style cast instead of C++ cast") // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
 static const uint32_t flash_period = 50;
 static const uint32_t blink_period = 500;
 static const uint32_t dim_period = 8;
@@ -309,7 +312,7 @@ PF::Driver::Serial::Nonin::Sensor nonin_oem(nonin_oem_dev);
 // Initializables
 
 auto initializables = PF::Util::make_array<std::reference_wrapper<PF::Driver::Initializable>>(
-    sfm3019_air, sfm3019_o2, fdo2, nonin_oem);
+    /*sfm3019_air, sfm3019_o2, fdo2,*/ nonin_oem);
 std::array<PF::InitializableState, initializables.size()> initialization_states;
 
 /*
@@ -1496,7 +1499,7 @@ static void MX_USART1_UART_Init(void)
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
   huart1.Init.Mode = UART_MODE_TX_RX;
-  huart1.Init.HwFlowCtl = UART_HWCONTROL_RTS_CTS;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   huart1.Init.OverSampling = UART_OVERSAMPLING_16;
   huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
   huart1.Init.ClockPrescaler = UART_PRESCALER_DIV1;
