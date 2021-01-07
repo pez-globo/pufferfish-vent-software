@@ -1,0 +1,34 @@
+Scenario: alarm services behaving properly
+Given: a pc_ac alarm service object 
+When: parameter mode is not equal to pc_ac
+Then: alarms are not updated for parameters
+
+Scenario: alarm services behaving properly
+Given: a pc_ac alarm service object 
+When: parameter ventilating mode is false
+Then: alarms are not updated for parameters
+
+Scenario: alarm services behaving properly
+Given: a pc_ac alarm service object 
+When: sensor measurments spo2 is less than lower alarm_limit for spo2
+Then: alarm for spo2 too low is triggered
+
+Scenario: alarm services behaving properly
+Given: a pc_ac alarm service object 
+When: sensor measurments spo2 is greater than upper alarm_limit for spo2
+Then: alarm for spo2 too low is triggered
+
+Scenario: alarm services behaving properly
+Given: a pc_ac alarm service object 
+When: sensor measurments fio2 is less than lower alarm_limit for fio2
+Then: alarm for fio2 too high is triggered
+
+Scenario: alarm services behaving properly
+Given: a pc_ac alarm service object 
+When: sensor measurments fio2 is greater than upper alarm_limit for fio2
+Then: alarm for fio2 too high is triggered
+
+Scenario: alarm services behaving properly
+Given: a hfnc alarm service object 
+When: sensor measurments spo2 is less than lower alarm_limit for spo2
+Then: alarm for spo2 too low is triggered

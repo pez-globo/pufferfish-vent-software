@@ -134,7 +134,7 @@ def test_pcac_sensors_time_step(
     state.get(pb.SensorMeasurements))
 
     # Then: sensor measurments flow is unchanged
-    assert isclose(sensor_measurements.flow, 20, abs_tol=0.0002)
+    assert isclose(sensor_measurements.flow, 20, abs_tol=0.002)
 
 @pt.mark.parametrize('state', state_pcac)
 def test_pcac_update_sensors_insp(
