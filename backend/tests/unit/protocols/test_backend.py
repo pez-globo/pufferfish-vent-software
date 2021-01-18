@@ -1,6 +1,6 @@
 """Test the functionality of protocols.backend classes."""
 
-import pytest as pt # type: ignore
+import pytest as pt  # type: ignore
 import hypothesis as hp
 import hypothesis.strategies as st
 import betterproto
@@ -27,43 +27,46 @@ example_announcement = [
 
 # Events
 
+
 @hp.given(example_time=st.times())
 def test_receive_event_has_data(example_time: float) -> None:
     """
     Scenario: Backend receive event behaves properly
     """
     # Given: A ReceiveEvent object
-    # When: ReceiveEvent class is initialised without data
+    # When: the object is initialised without data
     receive_event = backend.ReceiveEvent()
     # Then: has_data function returns false
     assert receive_event.has_data() is False
-    # And When: time is passed as input
+    # And When: time is given as input
     receive_event = backend.ReceiveEvent(time=example_time)
     # Then: has_data function returns true
     assert receive_event.has_data() is True
 
+
 @hp.given(time=st.floats(min_value=0, max_value=10, allow_nan=False))
 @pt.mark.parametrize('payload', example_good)
 def test_receive_mcu_event_has_data(
-    time:float, payload: betterproto.Message) -> None:
+        time: float, payload: betterproto.Message) -> None:
     """
     Scenario: Backend receive event behaves properly
     """
     # Given: A ReceiveEvent object
-    # When: mcu event is passed as input
+    # When: mcu event is given as input
     receive_event = backend.ReceiveEvent(time, payload)
     # Then: has_data function returns true
     assert receive_event.has_data() is True
-    # And When: frontend data is passed as input
+    # And When: frontend data is given as input
     receive_event = backend.ReceiveEvent(time, payload, payload)
     # Then: has_data function returns true
     assert receive_event.has_data() is True
 
+
 @pt.mark.parametrize('payload', example_good)
 def test_output_event_received(
-    payload: betterproto.Message) -> None:
+        payload: betterproto.Message) -> None:
     """
-    Scenario: Backend receive event behaves properly
+    Scenario: The backend's output event behaves properly
     """
     # Given: A Output event object
     output_event = backend.OutputEvent()
@@ -76,12 +79,13 @@ def test_output_event_received(
     # Then: event has data
     assert output_event.has_data() is True
 
+
 @pt.mark.parametrize('message', example_announcement)
 def test_announcement_has_data(
     message: bytes
-    ) -> None:
+) -> None:
     """
-    Scenario: Backend send event behaves properly
+    Scenario: The backend's output event behaves properly
     """
     # Given: a announcement object
     # When: backend recieves announcement strings as input
@@ -92,10 +96,12 @@ def test_announcement_has_data(
 # FIlters
 
 # Receive filter
+
+
 @hp.given(time=st.floats(min_value=0, max_value=10, allow_nan=False))
 @pt.mark.parametrize('payload', example_good)
 def test_receive_filter_mcu_input(
-    time: float, payload: betterproto.Message) -> None:
+        time: float, payload: betterproto.Message) -> None:
     """
     Scenario: Receive filter receives input event
     """
@@ -108,10 +114,11 @@ def test_receive_filter_mcu_input(
     # Then: output of receive filter is not None
     assert output is not None
 
+
 @hp.given(time=st.floats(min_value=0, max_value=10, allow_nan=False))
 @pt.mark.parametrize('mcu', example_good)
 def test_filter_frontend_input(
-    time: float, mcu: betterproto.Message) -> None:
+        time: float, mcu: betterproto.Message) -> None:
     """
     Scenario: Receive filter receives input event
     """
@@ -125,19 +132,20 @@ def test_filter_frontend_input(
     # Then: output of receive filter is not None
     assert output is not None
 
+
 @hp.given(time=st.floats(min_value=0, max_value=10, allow_nan=False))
 @pt.mark.parametrize('payload', example_good)
 def test_receive_filter_output(
-    time: float, payload: betterproto.Message) -> None:
+        time: float, payload: betterproto.Message) -> None:
     """
     Scenario: Receive filter receives input event
     """
-    # Given: receive event with no data
+    # Given: a `ReceiveFilter` object which has not yet received any events
     receive_filter = backend.ReceiveFilter()
-    # When: empty receive event is passed as input to receive filter
+    # When: a ReceiveEvent with no data is passed as input to the receive filter
     output_event = backend.ReceiveEvent()
     receive_filter.input(output_event)
-    # Then: output of receive filter is None
+    # Then: the output of the receive filter is None
     assert receive_filter.output() is None
 
     # Given: file object receive event
@@ -148,9 +156,11 @@ def test_receive_filter_output(
     assert receive_filter.output() is not None
 
 # Send filter
+
+
 @pt.mark.parametrize('message', example_announcement)
 def test_send_filter_output(
-    message: bytes) -> None:
+        message: bytes) -> None:
     """
     Scenario : Send Filter behaves properly
     """
@@ -162,9 +172,10 @@ def test_send_filter_output(
     # Then: output of send filter is Not None
     assert send_filter.output() is not None
 
+
 @pt.mark.parametrize('payload', example_good)
 def test_send_filter_input(
-    payload: betterproto.Message) -> None:
+        payload: betterproto.Message) -> None:
     """
     Scenario : an input is given to send filter
     """
@@ -184,43 +195,49 @@ def test_send_filter_input(
     assert send_filter.output is not None
 
 # Protocols
+
+
 @pt.mark.parametrize('payload', example_good)
 def test_get_mcu_send(
-    payload: betterproto.Message) -> None:
+        payload: betterproto.Message) -> None:
     """
     Scenario: get_mcu_send function behaves properly
     """
-    # Given: A OutputEvent from mcu
+    # Given: The get_mcu_send function
     output_event = backend.OutputEvent(payload)
-    # When: given event is passed to get_mcu_send function
+    # When: OutputEvent object containing data in mcu_send field is passed
     output = backend.get_mcu_send(output_event)
     # Then:  output of the function is not None
     assert output is not None
     assert output == payload
 
+
 @pt.mark.parametrize('payload', example_good)
 def test_get_frontend_send(
-    payload: betterproto.Message) -> None:
+        payload: betterproto.Message) -> None:
     """
     Scenario: get_frontend_send function behaves properly
     """
-    # Given: A OutputEvent from frontend
+    # Given: The get_frontend_send function
     output_event = backend.OutputEvent(payload, payload)
-    # When: given event is passed to get_frontend_send function
+    # When:
+    # OutputEvent object containing data in frontend_send field is passed
     output = backend.get_frontend_send(output_event)
     # Then: output of the function is not None
     assert output is not None
     assert output == payload
 
+
 @pt.mark.parametrize('payload', example_good)
 def test_get_file_send(
-    payload: betterproto.Message) -> None:
+        payload: betterproto.Message) -> None:
     """
     Scenario: get_file_send function behaves properly
     """
-    # Given: A OutputEvent from file io
+    # Given: The get_file_send function
     output_event = backend.OutputEvent(payload, payload, payload)
-    # When: given event is passed to get_file_send function
+    # When:
+    # OutputEvent object containing data in file_send field is passed
     output = backend.get_file_send(output_event)
     # then: output of the function is not None
     assert output is not None
