@@ -52,9 +52,6 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "TestCatch2")
     # instead of for the whole project
     set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fpermissive")
 
-    set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -DSTM32H743xx=1")
-    set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -DSTM32H743xx=1")
-
     setup_target_for_coverage_lcov(
         NAME ${CMAKE_BUILD_TYPE}_coverage
         EXECUTABLE ${CMAKE_BUILD_TYPE}
@@ -68,22 +65,12 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "TestCatch2")
         "Core/Src/Pufferfish/Application/*.*"
         "Core/Src/Pufferfish/Util/*.*"
         "Core/Src/Pufferfish/HAL/CRC.cpp"
-        "Core/Src/Pufferfish/HAL/Mock/MockTime.cpp"
-        "Core/Src/nanopb/pb_encode.c"
-        "Core/Src/nanopb/pb_decode.c"
-        "Core/Src/nanopb/pb_common.c"
-        "Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_crc.c"
-        "Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_crc_ex.c"
+        "Core/Src/Pufferfish/HAL/Mock/*.cpp"
+        "Core/Src/nanopb/*.c"
     )
     add_library(Pufferfish ${LIBRARY_SOURCES})
 
-    file(GLOB_RECURSE EXECUTABLE_SOURCES
-        "Core/Test/*.*"
-        "Core/Src/nanopb/*.c"
-        "Core/Src/Pufferfish/Application/*.*"
-        "Core/Src/Pufferfish/HAL/Mock/MockTime.cpp"
-        "Core/Src/Pufferfish/Util/*.*"
-    )
+    file(GLOB_RECURSE EXECUTABLE_SOURCES "Core/Test/*.*")
 
     add_executable(${CMAKE_BUILD_TYPE} ${EXECUTABLE_SOURCES})
     include_directories("Core/Inc")
