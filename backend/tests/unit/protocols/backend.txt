@@ -1,76 +1,91 @@
-Scenario: Backend receive event behaves properly
-Given: A ReceiveEvent object
-When: the object is initialised without data
+Scenario: The backend receiver's input event correctly reports whether it has data
+Given: A ReceiveEvent object constructed with default parameters
+When: the object is not modified
 Then: has_data function returns false   
 
-Scenario: Backend receive event behaves properly
-Given: A ReceiveEvent object
-When: time is given as input
+Scenario: The backend receiver's input event correctly reports whether it has data
+Given:  A ReceiveEvent object constructed with a value for the time parameter
+When: a new value is set for the time field of the object
 Then: has_data function returns true
 
-Scenario: Backend receive event behaves properly
-Given: A ReceiveEvent object
-When: mcu event is given as input
+Scenario: The backend receiver's input event correctly reports whether it has data
+Given: A ReceiveEvent object constructed with values for time and mcu parameter
+When: a new value is set for the mcu field of the object
 Then: has_data function returns true
 
-Scenario: Backend receive event behaves properly
-Given: A ReceiveEvent object
-When: frontend data is given as input
+Scenario: The backend receiver's input event correctly reports whether it has data
+Given: A ReceiveEvent object constructed with values for time, mcu and frontend parameter
+When: a new value is set for the frontend field of the object
 Then: has_data function returns true
 
-Scenario: The backend's output event behaves properly
-Given: A OutputEvent object
-When: ouptut event has no data
+Scenario: The backend's output event correctly reports whether it has data
+Given: A OutputEvent object constructed with default parameters
+When: the object is not modified
 Then: has_data function returns false
 
-Scenario: The backend receiver's input event behaves properly
-Given: A OutputEvent object
-When: output event has data
+Scenario: The backend's output event correctly reports whether it has data
+Given: A OutputEvent object constructed with a value for the mcu parameter
+When: a new value is set for the mcu field of the object
 Then: has_data function returns true
 
-Scenario: The backend's output event behaves properly
-Given: a announcement object
-When: backend recieves announcement strings as input
+Scenario: The backend's output event correctly reports whether it has data
+Given: A OutputEvent object constructed with a value for the mcu and frontend parameter
+When: a new value is set for the frontend field of the object
+Then: has_data function returns true
+
+Scenario: The backend's output event correctly reports whether it has data
+Given: A OutputEvent object constructed with a value for the mcu, frontend and file parameter
+When: a new value is set for the file field of the object
+Then: has_data function returns true
+
+Scenario: The input event sent by backend correctly reports whether it has data
+Given: a announcement object constructed with default parameters
+When: the object is not modified
+Then: has_data function returns false
+
+Scenario: The input event sent by backend correctly reports whether it has data
+Given: a announcement object constructed a value for the message field
+When: a new value is set for the message field of the object
 Then: has_data function returns true
 
 #ReceiveFilter
 
-Scenario: Receive Filter behaves properly
-Given: a `ReceiveFilter` object which has not yet received any events
+Scenario: The receive filter's output correctly reports whether it has data
+Given: a ReceiveFilter object which has not yet received any events
 When: a receive event with no data is passed as input to the receive filter
 Then: the output of the receive filter is None
 
-Scenario: Receive Filter behaves properly
-Given: mcu receive event
-When: mcu receive event is passed as input to receive filter
+Scenario: The receive filter's output correctly reports whether it has data
+Given: A ReceiveEvent object constructed with values for the time and mcu parameter
+When: the object is given as input to the filter
 Then: output of receive filter is not None
 
-Scenario: Receive Filter behaves properly
-Given: frontend receive event
-When: frontend receive event is passed as input to receive filter
+Scenario: The receive filter's output correctly reports whether it has data
+Given: A ReceiveEvent object constructed with values for the time, mcu and frontend parameter
+When: the object is given as input to the filter
 Then: output of receive filter is not None
 
-Scenario: Receive Filter behaves properly
-Given: file object receive event
-When: file receive event is passed as input to receive filter
+Scenario: The receive filter's output correctly reports whether it has data
+Given: A ReceiveEvent object constructed with values for the time, mcu, frontend and file parameter
+When: the object is given as input to the filter
 Then: output of receive filter is not None
 
 
 #SendFilter
 
-Scenario : Send Filter behaves properly
-Given: An Event of type SendEvent with no data
-When: empty send event is passed as input to send filter
+Scenario : The send filter's output correctly reports whether it has data
+Given: A OutputEvent object constructed with default parameters
+When: The object is not modified and given as input to the send_filter
 Then: output of send filter is None
 
-Scenario : Send Filter behaves properly
-Given: An event of type announcement
-When: announcement event is passed as input to send filter
+Scenario : The send filter's output correctly reports whether it has data
+Given: A Announcement object is constructed with values for the message parameter
+When: the object is given as input to the send_filter
 Then: output of send filter is not None
 
-Scenario : Send Filter behaves properly
-Given: An Event of type SendEvent with data
-When: Given event is passed as input to send filter
+Scenario : The send filter's output correctly reports whether it has data
+Given: A OutputEvent object constructed with a value for the mcu parameter
+When: the object is given as input to the send_filter
 Then: output of send filter is not None
 
 #Protocols
