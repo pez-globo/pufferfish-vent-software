@@ -336,12 +336,17 @@ SCENARIO("Protocols::CRCElement behaves correctly", "[CRCElement]") {
   GIVEN("A CRC element sender") {
     constexpr size_t buffer_size = 254UL;
     using TestCRCElementProps = PF::Protocols::CRCElementProps<buffer_size>;
+    using TestCRCElementSender = PF::Protocols::CRCElementSender<buffer_size>;
 
     PF::HAL::SoftCRC32 crc32c{PF::HAL::crc32c_params};
-    PF::Protocols::CRCElementSender<buffer_size> crc_element_sender{crc32c};
+    TestCRCElementSender crc_element_sender{crc32c};
 
-    WHEN("input buffer with valid crc and payload is given") {
-      auto body = std::string("\x98\xdb\xe3\x55\x01\x05\x01\x02\x03\x04\x05", 11);
+    WHEN("input buffer with valid payload is given") {
+      auto body = std::string("\x13\x03\x05\x06\x23", 5);
+
+      // Calculated using the Sunshine Online CRC Calculator
+      uint32_t expected_crc = 0x81FC3457;
+      auto expected_output = std::string("\x81\xfc\x34\x57\x13\x03\x05\x06\x23", 9);
 
       TestCRCElementProps::PayloadBuffer input_payload;
       PF::Util::convertStringToByteVector(body, input_payload);
@@ -349,10 +354,40 @@ SCENARIO("Protocols::CRCElement behaves correctly", "[CRCElement]") {
       PF::Util::ByteVector<buffer_size> output_buffer;
 
       auto transform_status = crc_element_sender.transform(input_payload, output_buffer);
-      auto output = PF::Util::convertByteVectorToHexString(output_buffer);
 
       THEN("the transform status is ok") {
-        REQUIRE(transform_status == PF::Protocols::CRCElementSender<buffer_size>::Status::ok);
+        REQUIRE(transform_status == TestCRCElementSender::Status::ok);
+      }
+
+      THEN("output buffer is as expected, equal to (crc + input_buffer)") {
+        REQUIRE(output_buffer == expected_output);
+      }
+    }
+  }
+
+  GIVEN("A CRC element sender") {
+    constexpr size_t buffer_size = 20UL;
+    using TestCRCElementProps = PF::Protocols::CRCElementProps<buffer_size>;
+    using TestCRCElementSender = PF::Protocols::CRCElementSender<buffer_size>;
+
+    PF::HAL::SoftCRC32 crc32c{PF::HAL::crc32c_params};
+    TestCRCElementSender crc_element_sender{crc32c};
+
+    WHEN("input buffer is of inavlid length") {
+      auto body = std::string("\x81\xfc\x34\x57\x13\x03\x05\x06\x23\x01\x09", 11);
+      constexpr size_t output_buffer_size = 10UL;
+
+      TestCRCElementProps::PayloadBuffer input_payload;
+      for (auto& data : body) {
+        input_payload.push_back(data);
+      }
+
+      PF::Util::ByteVector<output_buffer_size> output_buffer;
+
+      auto transform_status = crc_element_sender.transform(input_payload, output_buffer);
+
+      THEN("the transform status is equal to invalid_length") {
+        REQUIRE(transform_status == TestCRCElementSender::Status::invalid_length);
       }
     }
   }
