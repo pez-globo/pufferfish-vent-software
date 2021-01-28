@@ -11,6 +11,7 @@ namespace Pufferfish::Driver::Serial::Backend {
 constexpr auto message_descriptors = Util::make_array<Util::ProtobufDescriptor>(
     // array index should match the type code value
     Util::get_protobuf_descriptor<Util::UnrecognizedMessage>(),  // 0
+    Util::get_protobuf_descriptor<Util::UnrecognizedMessage>(),  // 1
     Util::get_protobuf_descriptor<SensorMeasurements>(),         // 2
     Util::get_protobuf_descriptor<CycleMeasurements>(),          // 3
     Util::get_protobuf_descriptor<Parameters>(),                 // 4

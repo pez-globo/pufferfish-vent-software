@@ -154,18 +154,15 @@ SCENARIO("Protocols::CRCElement behaves correctly", "[CRCElement]") {
     TestCRCElement crc_element{input_payload};
 
     WHEN("given payload data is written to it") {
-      auto body = std::string("\x6D\x55\x1f\x4c\x03\x04\x00\xed\x30\x00", 10);
-
       // Calculated using the Sunshine Online CRC Calculator
       uint32_t expected_crc = 0x6D551F4C;
 
       PF::Util::ByteVector<buffer_size> input_buffer;
-      PF::Util::convertStringToByteVector(body, input_buffer);
 
       auto write_status = crc_element.write(input_buffer, crc32c);
       auto crc_payload = crc_element.crc();
-      THEN("CRC is equal to the crc computed from initial payload") {
-        REQUIRE(crc_payload == 0); // is it supposed to be 0 ?
+      THEN("CRC is equal to 0") {
+        REQUIRE(crc_payload == 0);
       }
     }
   }

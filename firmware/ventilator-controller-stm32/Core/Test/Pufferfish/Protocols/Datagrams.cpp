@@ -453,7 +453,7 @@ SCENARIO("Protocols::Datagram Sender behaves correctly", "[DatagramSender]") {
     using TestDatagramSender = PF::Protocols::DatagramSender<buffer_size>;
     TestDatagramSender datagram_sender{};
 
-    WHEN("The output datagram is too small to fit input payload") {
+    WHEN("The output datagram cannot hold enough data") {
       using TestDatagramProps = PF::Protocols::DatagramProps<buffer_size>;
       using TestDatagram = PF::Protocols::Datagram<TestDatagramProps::PayloadBuffer>;
 

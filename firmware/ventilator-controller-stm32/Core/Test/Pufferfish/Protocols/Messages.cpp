@@ -24,7 +24,7 @@
 namespace PF = Pufferfish;
 namespace BE = PF::Driver::Serial::Backend;
 
-static constexpr size_t num_descriptors = 7;
+static constexpr size_t num_descriptors = 8;
 
 SCENARIO("Protocols::Message behaves correctly", "[messages]") {
   GIVEN("A protocol-buffer message") {
