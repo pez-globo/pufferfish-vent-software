@@ -1,102 +1,209 @@
-# Services( PCAC )
+### Service (PCAC)
 
-Scenario: The Active service parameter in services class is not equal to HFNC or PCAC
+# Sp02 Lower Limit
+
+Scenario: The service class correctly handles PCAC alarm limits for Spo2
+Given: A PCAC Alarm Limit Service object is constructed with default parameters
+When: The requested lower value for the SpO2 alarm limits range is lesser than the maximum allowed lower value for the range.
+Then: Spo2 Alarm Limits are updated to the new range
+
+Scenario: The service class correctly handles PCAC alarm limits for Spo2
+Given: A PCAC Alarm Limit Service object is constructed with default parameters
+When: The requested lower value for the SpO2 alarm limits range is greater than the maximum allowed lower value for the range.
+Then: Spo2 Alarm Limits are not updated
+
+# Sp02 upper Limit
+
+Scenario: The service class correctly handles PCAC alarm limits for Spo2
+Given: A PCAC Alarm Limit Service object is constructed with default parameters
+When: The requested upper value for the SpO2 alarm limits range is lesser than the maximum allowed upper value for the range.
+Then: Spo2 Alarm Limits are not updated
+
+Scenario: The service class correctly handles PCAC alarm limits for Spo2
+Given: A PCAC Alarm Limit Service object is constructed with default parameters
+When: The requested upper value for the SpO2 alarm limits range is greater than the maximum allowed upper value for the range.
+Then: Spo2 Alarm Limits are updated to the new range
+
+# fio2 Lower Limit
+
+Scenario: The service class correctly handles PCAC alarm limits for fio2
+Given: A PCAC Alarm Limit Service object is constructed with default parameters
+When: The requested lower value for the fio2 alarm limits range is lesser than the maximum allowed lower value for the range.
+Then: fio2 Alarm Limits are updated to the new range
+
+Scenario: The service class correctly handles PCAC alarm limits for fio2
+Given: A PCAC Alarm Limit Service object is constructed with default parameters
+When: The requested lower value for the fio2 alarm limits range is greater than the maximum allowed lower value for the range.
+Then: fio2 Alarm Limits are not updated
+
+# fio2 upper Limit
+
+Scenario: The service class correctly handles PCAC alarm limits for fio2
+Given: A PCAC Alarm Limit Service object is constructed with default parameters
+When: The requested upper value for the fio2 alarm limits range is greater than the maximum allowed upper value for the range.
+Then: fio2 Alarm Limits are updated to the new range
+
+Scenario: The service class correctly handles PCAC alarm limits for fio2
+Given: A PCAC Alarm Limit Service object is constructed with default parameters
+When: The requested upper value for the fio2 alarm limits range is lesser than the maximum allowed upper value for the range.
+Then: fio2 Alarm Limits are not updated
+
+### Service (HFNC)
+
+# Sp02 Lower Limit
+
+Scenario: The service class correctly handles HFNC alarm limits for Spo2
+Given: A HFNC Alarm Limit Service object is constructed with default parameters
+When: The requested lower value for the SpO2 alarm limits range is lesser than the maximum allowed lower value for the range.
+Then: Spo2 Alarm Limits are updated to the new range
+
+Scenario: The service class correctly handles HFNC alarm limits for Spo2
+Given: A HFNC Alarm Limit Service object is constructed with default parameters
+When: The requested lower value for the SpO2 alarm limits range is greater than the maximum allowed lower value for the range.
+Then: Spo2 Alarm Limits are not updated
+
+# Sp02 upper Limit
+
+Scenario: The service class correctly handles HFNC alarm limits for Spo2
+Given: A HFNC Alarm Limit Service object is constructed with default parameters
+When: The requested upper value for the SpO2 alarm limits range is lesser than the maximum allowed upper value for the range.
+Then: Spo2 Alarm Limits are not updated
+
+Scenario: The service class correctly handles HFNC alarm limits for Spo2
+Given: A HFNC Alarm Limit Service object is constructed with default parameters
+When: The requested upper value for the SpO2 alarm limits range is greater than the maximum allowed upper value for the range.
+Then: Spo2 Alarm Limits are updated to the new range
+
+# fio2 Lower Limit
+
+Scenario: The service class correctly handles HFNC alarm limits for fio2
+Given: A HFNC Alarm Limit Service object is constructed with default parameters
+When: The requested lower value for the fio2 alarm limits range is lesser than the maximum allowed lower value for the range.
+Then: fio2 Alarm Limits are updated to the new range
+
+Scenario: The service class correctly handles HFNC alarm limits for fio2
+Given: A HFNC Alarm Limit Service object is constructed with default parameters
+When: The requested lower value for the fio2 alarm limits range is greater than the maximum allowed lower value for the range.
+Then: fio2 Alarm Limits are not updated
+
+# fio2 upper Limit
+
+Scenario: The service class correctly handles HFNC alarm limits for fio2
+Given: A HFNC Alarm Limit Service object is constructed with default parameters
+When: The requested upper value for the fio2 alarm limits range is greater than the maximum allowed upper value for the range.
+Then: fio2 Alarm Limits are updated to the new range
+
+Scenario: The service class correctly handles HFNC alarm limits for fio2
+Given: A HFNC Alarm Limit Service object is constructed with default parameters
+When: The requested upper value for the fio2 alarm limits range is lesser than the maximum allowed upper value for the range.
+Then: fio2 Alarm Limits are not updated
+
+### Services( PCAC )
+
+Scenario: The services class correctly handles pcac alarm limits
 Given: A Services class object is constructed with default all_states parameter
 When: parameter service value in parameter class of all_states is not equal to pc_ac or HFNC
-Then: Alarm Limits are not updated as per Alarm Limit requests
+Then: Alarm Limits are not updated
 
-Scenario: The Active service parameter in services class is equal to PCAC
+# Sp02 Lower Limit
+
+Scenario: The services class correctly handles PCAC alarm limits for SpO2
+Given: A Services class object is constructed with Active service equal to PCAC
+When: The requested lower value for the SpO2 alarm limits range is lesser than the maximum allowed lower value for the range.
+Then: Spo2 Alarm Limits are updated to the new range
+
+Scenario: The services class correctly handles PCAC alarm limits for SpO2
+Given: A Services class object is constructed with Active service equal to PCAC
+When: The requested lower value for the SpO2 alarm limits range is greater than the maximum allowed lower value for the range.
+Then: Spo2 Alarm Limits are not updated
+
+# Sp02 upper Limit
+
+Scenario: The services class correctly handles PCAC alarm limits for SpO2
+Given: A Services class object is constructed with Active service equal to PCAC
+When: The requested upper value for the SpO2 alarm limits range is lesser than the maximum allowed upper value for the range.
+Then: Spo2 Alarm Limits are not updated
+
+Scenario: The services class correctly handles PCAC alarm limits for SpO2
+Given: A Services class object is constructed with Active service equal to PCAC
+When: The requested upper value for the SpO2 alarm limits range is greater than the maximum allowed upper value for the range.
+Then: Spo2 Alarm Limits are updated to the new range
+
+# fio2 Lower Limit
+
+Scenario: The services class correctly handles PCAC alarm limits for fio2
+Given: A Services class object is constructed with Active service equal to PCAC
+When: The requested lower value for the SpO2 alarm limits range is lesser than the maximum allowed lower value for the range.
+Then: fio2 Alarm Limits are updated to the new range
+
+Scenario: The services class correctly handles PCAC alarm limits for fio2
+Given: A Services class object is constructed with Active service equal to PCAC
+When: The requested lower value for the fio2 alarm limits range is greater than the maximum allowed lower value for the range.
+Then: fio2 Alarm Limits are not updated
+
+# fio2 upper Limit
+
+Scenario: The services class correctly handles PCAC alarm limits for fio2
+Given: A Services class object is constructed with Active service equal to PCAC
+When: The requested upper value for the SpO2 alarm limits range is greater than the maximum allowed upper value for the range.
+Then: fio2 Alarm Limits are updated to the new range
+
+Scenario: The services class correctly handles PCAC alarm limits for fio2
+Given: A Services class object is constructed with Active service equal to PCAC
+When: The requested upper value for the fio2 alarm limits range is lesser than the maximum allowed upper value for the range.
+Then: fio2 Alarm Limits are not updated
+
+### Services( HFNC )
+
+Scenario: The services class correctly handles HFNC alarm limits
 Given: A Services class object is constructed with default all_states parameter
-When: parameter service value in parameter class of all_states is equal to pc_ac
-Then: Alarm Limits are updated for PCAC service class
+When: parameter service value in parameter class of all_states is not equal to HFNC
+Then: Alarm Limits are not updated
 
-Scenario: The Alarm limits are updated for SpO2 when Active service is equal to PCAC
-Given: A Services class object is constructed with Active service equal to PCAC
-When: The requested lower value for the SpO2 alarm limits range is lesser than the maximum allowed lower value for the range.
-Then: Alarm Limits are not updated as per Alarm Limit requests
+# Sp02 Lower Limit
 
-Scenario: The Alarm limits are updated for SpO2 when Active service is equal to PCAC
-Given: A Services class object is constructed with Active service equal to PCAC
-When: The requested upper value for the SpO2 alarm limits range is greater than the maximum allowed upper value for the range.
-Then: Alarm Limits are not updated as per Alarm Limit requests
-
-Scenario: The Alarm limits are updated for fio2 when Active service is equal to PCAC
-Given: A Services class object is constructed with Active service equal to PCAC
-When: The requested lower value for the fio2 alarm limits range is lesser than the maximum allowed lower value for the range.
-Then: Alarm Limits are not updated as per Alarm Limit requests
-
-Scenario: The Alarm limits are updated for fio2 when Active service is equal to PCAC
-Given: A Services class object is constructed with Active service equal to PCAC
-When: The requested upper value for the fio2 alarm limits range is greater than the maximum allowed upper value for the range.
-Then: Alarm Limits are not updated as per Alarm Limit requests
-
-# Services( HFNC )
-
-Scenario: The Active service parameter in services class is equal to HFNC
-Given: A Services class object is constructed with default all_states parameter
-When: parameter service value in parameter class of all_states is equal to HFNC
-Then: Alarm Limits are updated for PCAC service class
-
-Scenario: The Alarm limits are updated for SpO2 when Active service is equal to HFNC
+Scenario: The services class correctly handles HFNC alarm limits for SpO2
 Given: A Services class object is constructed with Active service equal to HFNC
 When: The requested lower value for the SpO2 alarm limits range is lesser than the maximum allowed lower value for the range.
-Then: Alarm Limits are not updated as per Alarm Limit requests
+Then: Spo2 Alarm Limits are updated to the new range
 
-Scenario: The Alarm limits are updated for SpO2 when Active service is equal to HFNC
+Scenario: The services class correctly handles HFNC alarm limits for SpO2
+Given: A Services class object is constructed with Active service equal to HFNC
+When: The requested lower value for the SpO2 alarm limits range is greater than the maximum allowed lower value for the range.
+Then: Spo2 Alarm Limits are not updated
+
+# Sp02 upper Limit
+
+Scenario: The services class correctly handles HFNC alarm limits for SpO2
+Given: A Services class object is constructed with Active service equal to HFNC
+When: The requested upper value for the SpO2 alarm limits range is lesser than the maximum allowed upper value for the range.
+Then: Spo2 Alarm Limits are not updated
+
+Scenario: The services class correctly handles HFNC alarm limits for SpO2
 Given: A Services class object is constructed with Active service equal to HFNC
 When: The requested upper value for the SpO2 alarm limits range is greater than the maximum allowed upper value for the range.
-Then: Alarm Limits are not updated as per Alarm Limit requests
+Then: Spo2 Alarm Limits are updated to the new range
 
-Scenario: The Alarm limits are updated for fio2 when Active service is equal to HFNC
+# fio2 Lower Limit
+
+Scenario: The services class correctly handles HFNC alarm limits for fio2
 Given: A Services class object is constructed with Active service equal to HFNC
-When: The requested lower value for the fio2 alarm limits range is lesser than the maximum allowed lower value for the range.
-Then: Alarm Limits are not updated as per Alarm Limit requests
-
-Scenario: The Alarm limits are updated for fio2 when Active service is equal to HFNC
-Given: A Services class object is constructed with Active service equal to HFNC
-When: The requested upper value for the fio2 alarm limits range is greater than the maximum allowed upper value for the range.
-Then: Alarm Limits are not updated as per Alarm Limit requests
-
-# Service (HFNC)
-
-Scenario: HFNC Service class updates alarm limits for Sp02 correctly
-Given: A HFNC Alarm Limit Service is constructed with default parameters
 When: The requested lower value for the SpO2 alarm limits range is lesser than the maximum allowed lower value for the range.
-Then: Alarm Limits are not updated as per Alarm Limit requests
+Then: fio2 Alarm Limits are updated to the new range
 
-Scenario: HFNC Service class updates alarm limits for Sp02 correctly
-Given: A HFNC Alarm Limit Service is constructed with default parameters
+Scenario: The services class correctly handles HFNC alarm limits for fio2
+Given: A Services class object is constructed with Active service equal to HFNC
+When: The requested lower value for the fio2 alarm limits range is greater than the maximum allowed lower value for the range.
+Then: fio2 Alarm Limits are not updated
+
+# fio2 upper Limit
+
+Scenario: The services class correctly handles HFNC alarm limits for fio2
+Given: A Services class object is constructed with Active service equal to HFNC
 When: The requested upper value for the SpO2 alarm limits range is greater than the maximum allowed upper value for the range.
-Then: Alarm Limits are not updated as per Alarm Limit requests
+Then: fio2 Alarm Limits are updated to the new range
 
-Scenario: HFNC Service class updates alarm limits for fio2 correctly
-Given: A HFNC Alarm Limit Service is constructed with default parameters
-When: The requested lower value for the fio2 alarm limits range is lesser than the maximum allowed lower value for the range.
-Then: Alarm Limits are not updated as per Alarm Limit requests
-
-Scenario: HFNC Service class updates alarm limits for fio2 correctly
-Given: A HFNC Alarm Limit Service is constructed with default parameters
-When: The requested upper value for the fio2 alarm limits range is greater than the maximum allowed upper value for the range.
-Then: Alarm Limits are not updated as per Alarm Limit requests
-
-# Service (PCAC)
-
-Scenario: PCAC Service class updates alarm limits for Sp02 correctly
-Given: A PCAC Alarm Limit Service is constructed with default parameters
-When: The requested lower value for the SpO2 alarm limits range is lesser than the maximum allowed lower value for the range.
-Then: Alarm Limits are not updated as per Alarm Limit requests
-
-Scenario: PCAC Service class updates alarm limits for Sp02 correctly
-Given: A PCAC Alarm Limit Service is constructed with default parameters
-When: The requested upper value for the SpO2 alarm limits range is greater than the maximum allowed upper value for the range.
-Then: Alarm Limits are not updated as per Alarm Limit requests
-
-Scenario: PCAC Service class updates alarm limits for fio2 correctly
-Given: A PCAC Alarm Limit Service is constructed with default parameters
-When: The requested lower value for the fio2 alarm limits range is lesser than the maximum allowed lower value for the range.
-Then: Alarm Limits are not updated as per Alarm Limit requests
-
-Scenario: PCAC Service class updates alarm limits for fio2 correctly
-Given: A PCAC Alarm Limit Service is constructed with default parameters
-When: The requested upper value for the fio2 alarm limits range is greater than the maximum allowed upper value for the range.
-Then: Alarm Limits are not updated as per Alarm Limit requests
+Scenario: The services class correctly handles HFNC alarm limits for fio2
+Given: A Services class object is constructed with Active service equal to HFNC
+When: The requested upper value for the fio2 alarm limits range is lesser than the maximum allowed upper value for the range.
+Then: fio2 Alarm Limits are not updated

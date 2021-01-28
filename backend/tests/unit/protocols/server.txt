@@ -1,39 +1,50 @@
-Scenario: check if server connects to frontend
-Given: Frontendconnection event object
-When: event is passed at some time
-Then: frontend connection has data
+Scenario: The server's Frontendconnection event correctly reports whether it has data
+Given: A Frontendconnection event object is constructed with default parameters
+When: The object is not modified
+Then: has_data function returns false
+And_When: A new value is set for the time field of the object
+Then: has_data function returns true
 
-Scenario: check if receive event has data
-Given: A ReceiveRvent object
-When: test data is given to it
-Then: receive event has data
+Scenario: The server receives various input events properly and reports whether event has data
+Given: A ReceiveEvent object is constructed with default parameters
+When: A new value is set for the time field of the object
+Then: has_data function returns true
 
-Scenario: check if receive output event has data
-Given: A backend output event object
-When: backend output event is passed to ReceiveOutputEvent
-Then: server output has data
+Scenario: The server receives output event and reports correctly whether event has data
+Given: A ReceiveOutputEvent object is constructed with default parameters
+When: The object is not modified
+Then: has_data function returns false
+And_When: The server receives output event with data
+Then: has_data function returns true
 
-Scenario: check if server output event has data
-Given: A SendOutputEvent object
-When: data is written to it
-Then: server output event has data
+Scenario: The server sends output event properly and reports whether event has data
+Given: A SendOutputEvent object is constructed with default parameters
+When: The data is sent via serial
+Then: has_data function returns true
 
-Scenario: Check if make serial receive gives receive event object
-Given: example data and times
-When: data is written to it
-Then: receive event is not None
+Scenario: The make_serial_receive function creates a ReceiveEvent object correctly
+Given: The make_serial_receive function
+When: The data received from serial is given to the function
+Then: A event of type ReceiveEvent is obtained with data received from serial
 
-Scenario: websocket receive behaves properly
-Given: example data and times
-When: data is written to it
-Then: receive event is not None
+Scenario: The make_websocket_receive function creates a ReceiveEvent object correctly
+Given: The make_websocket_receive function
+When: The data received from websocket is given to the function
+Then: A event of type ReceiveEvent is obtained with data received from websocket
 
-Scenario: Receive Filter behaves properly
-Given: A receive event object or FrontEndConnection event object
-When: event is passed to the filter
-Then: output is of type ReceiveOutputEvent
+Scenario: The make_rotary_encoder_receive function creates a ReceiveEvent object correctly
+Given: The make_rotary_encoder_receive function
+When: The data received from rotary encoder is given to the function
+Then: A event of type ReceiveEvent is obtained with data received from rotary encoder
 
-Scenario: Send Filter behaves properly
-Given: Send Filter object
-When: backend output event object is given to it
-Then: output is of type SendOutputEvent
+# Filters
+
+Scenario: The receive filter properly transforms input data into an OutputEvent with data
+Given: A ReceiveEvent object constructed with data received from serial, websocket, rotary and file
+When: The object is given as input to the filter
+Then: The output of the filter is a event of type ReceiveOutputEvent with data
+
+Scenario: The send filter properly transforms input data into an OutputEvent with data
+Given: A backend OutputEvent object constructed with data 
+When: The object is given as input to the filter
+Then: The output of the filter is a event of type SendOutputEvent with data

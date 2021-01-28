@@ -1,34 +1,209 @@
-Scenario: alarm services behaving properly
-Given: a pc_ac alarm service object 
-When: parameter mode is not equal to pc_ac
-Then: alarms are not updated for parameters
+# Service (PCAC)
 
-Scenario: alarm services behaving properly
-Given: a pc_ac alarm service object 
-When: parameter ventilating mode is false
-Then: alarms are not updated for parameters
+Scenario: The Service class correctly handles alarms
+Given: A PCAC Service class object is constructed with default parameters
+When: The ventilation mode in parameters class is not equal to either pcac or hfnc
+Then: The alarms are not updated for any parameters
 
-Scenario: alarm services behaving properly
-Given: a pc_ac alarm service object 
-When: sensor measurments spo2 is less than lower alarm_limit for spo2
-Then: alarm for spo2 too low is triggered
+Scenario: The Service class correctly handles alarms
+Given: A PCAC Service class object is constructed with default parameters
+When: The ventilating value in parameter class is false
+Then: All Active alarms are deactivated
 
-Scenario: alarm services behaving properly
-Given: a pc_ac alarm service object 
-When: sensor measurments spo2 is greater than upper alarm_limit for spo2
-Then: alarm for spo2 too low is triggered
+Scenario: The Service class correctly handles pcac alarms for SpO2
+Given: A PCAC Service class object is constructed with default parameters
+When: The sensor measurments value for Spo2 is lesser than the minimum alarm_limit for spo2
+Then: The alarm for spo2 too low is triggered
 
-Scenario: alarm services behaving properly
-Given: a pc_ac alarm service object 
-When: sensor measurments fio2 is less than lower alarm_limit for fio2
-Then: alarm for fio2 too high is triggered
+Scenario: The Service class correctly handles pcac alarms for SpO2
+Given: A PCAC Service class object is constructed with default parameters
+When: The sensor measurments value for Spo2 is greater than the minimum alarm_limit for spo2
+Then: The Alarm for Spo2 too low is deactivated
 
-Scenario: alarm services behaving properly
-Given: a pc_ac alarm service object 
-When: sensor measurments fio2 is greater than upper alarm_limit for fio2
-Then: alarm for fio2 too high is triggered
+Scenario: The Service class correctly handles pcac alarms for SpO2
+Given: A PCAC Service class object is constructed with default parameters
+When: The sensor measurments value for Spo2 is greater than the maximum alarm_limit for spo2
+Then: The alarm for spo2 too high is triggered
 
-Scenario: alarm services behaving properly
-Given: a hfnc alarm service object 
-When: sensor measurments spo2 is less than lower alarm_limit for spo2
-Then: alarm for spo2 too low is triggered
+Scenario: The Service class correctly handles pcac alarms for SpO2
+Given: A PCAC Service class object is constructed with default parameters
+When: The sensor measurments value for Spo2 is lesser than the maximum alarm_limit for spo2
+Then: The Alarm for Spo2 too high is deactivated
+
+Scenario: The Service class correctly handles HFNC alarms for fio2
+Given: A PCAC Service class object is constructed with default parameters
+When: The sensor measurments value for fio2 is lesser than the minimum alarm_limit for fio2
+Then: The alarm for fio2 too low is triggered
+
+Scenario: The Service class correctly handles HFNC alarms for fio2
+Given: A PCAC Service class object is constructed with default parameters
+When: The sensor measurments value for fio2 is greater than the minimum alarm_limit for fio2
+Then: The alarm for fio2 too low is deactivated
+
+Scenario: The Service class correctly handles HFNC alarms for fio2
+Given: A PCAC Service class object is constructed with default parameters
+When: The sensor measurments value for fio2 is greater than the maximum alarm_limit for fio2
+Then: The alarm for fio2 too high is triggered
+
+Scenario: The Service class correctly handles HFNC alarms for fio2
+Given: A PCAC Service class object is constructed with default parameters
+When: The sensor measurments value for fio2 is lesser than the maximum alarm_limit for fio2
+Then: The alarm for fio2 too high is deactivated
+
+
+# Service (HFNC)
+
+Scenario: The Service class correctly handles alarms
+Given: A HFNC Service class object is constructed with default parameters
+When: The ventilation mode in parameters class is not equal to either pcac or hfnc
+Then: The alarms are not updated for any parameters
+
+Scenario: The Service class correctly handles alarms
+Given: A HFNC Service class object is constructed with default parameters
+When: The ventilating value in parameter class is false
+Then: All Active alarms are deactivated
+
+Scenario: The Service class correctly handles HFNC alarms for SpO2
+Given: A HFNC Service class object is constructed with default parameters
+When: The sensor measurments value for Spo2 is lesser than the minimum alarm_limit for spo2
+Then: The alarm for spo2 too low is triggered
+
+Scenario: The Service class correctly handles HFNC alarms for SpO2
+Given: A HFNC Service class object is constructed with default parameters
+When: The sensor measurments value for Spo2 is greater than the minimum alarm_limit for spo2
+Then: The Alarm for Spo2 too low is deactivated
+
+Scenario: The Service class correctly handles HFNC alarms for SpO2
+Given: A HFNC Service class object is constructed with default parameters
+When: The sensor measurments value for Spo2 is greater than the maximum alarm_limit for spo2
+Then: The alarm for spo2 too high is triggered
+
+Scenario: The Service class correctly handles HFNC alarms for SpO2
+Given: A HFNC Service class object is constructed with default parameters
+When: The sensor measurments value for Spo2 is lesser than the maximum alarm_limit for spo2
+Then: The Alarm for Spo2 too high is deactivated
+
+Scenario: The Service class correctly handles HFNC alarms for fio2
+Given: A HFNC Service class object is constructed with default parameters
+When: The sensor measurments value for fio2 is lesser than the minimum alarm_limit for fio2
+Then: The alarm for fio2 too low is triggered
+
+Scenario: The Service class correctly handles HFNC alarms for fio2
+Given: A HFNC Service class object is constructed with default parameters
+When: The sensor measurments value for fio2 is greater than the minimum alarm_limit for fio2
+Then: The alarm for fio2 too low is deactivated
+
+Scenario: The Service class correctly handles HFNC alarms for fio2
+Given: A HFNC Service class object is constructed with default parameters
+When: The sensor measurments value for fio2 is greater than the maximum alarm_limit for fio2
+Then: The alarm for fio2 too high is triggered
+
+Scenario: The Service class correctly handles HFNC alarms for fio2
+Given: A HFNC Service class object is constructed with default parameters
+When: The sensor measurments value for fio2 is lesser than the maximum alarm_limit for fio2
+Then: The alarm for fio2 too high is deactivated
+
+
+# Services (PCAC)
+
+Scenario: The services class correctly handles alarms
+Given: A services class object is constructed with Active service equal to pcac
+When: The ventilation mode in parameters class is not equal to either pcac or hfnc
+Then: The alarms are not updated for any parameters
+
+Scenario: The services class correctly handles alarms
+Given: A services class object is constructed with Active service equal to pcac
+When: The ventilating value in parameter class is false
+Then: All Active alarms are deactivated
+
+Scenario: The services class correctly handles pcac alarms for SpO2
+Given: A services class object is constructed with Active service equal to pcac
+When: The sensor measurments value for Spo2 is lesser than the minimum alarm_limit for spo2
+Then: The alarm for spo2 too low is triggered
+
+Scenario: The services class correctly handles pcac alarms for SpO2
+Given: A services class object is constructed with Active service equal to pcac
+When: The sensor measurments value for Spo2 is greater than the minimum alarm_limit for spo2
+Then: The Alarm for Spo2 too low is deactivated
+
+Scenario: The services class correctly handles pcac alarms for SpO2
+Given: A services class object is constructed with Active service equal to pcac
+When: The sensor measurments value for Spo2 is greater than the maximum alarm_limit for spo2
+Then: The alarm for spo2 too high is triggered
+
+Scenario: The services class correctly handles pcac alarms for SpO2
+Given: A services class object is constructed with Active service equal to pcac
+When: The sensor measurments value for Spo2 is lesser than the maximum alarm_limit for spo2
+Then: The Alarm for Spo2 too high is deactivated
+
+Scenario: The services class correctly handles HFNC alarms for fio2
+Given: A services class object is constructed with Active service equal to pcac
+When: The sensor measurments value for fio2 is lesser than the minimum alarm_limit for fio2
+Then: The alarm for fio2 too low is triggered
+
+Scenario: The services class correctly handles HFNC alarms for fio2
+Given: A services class object is constructed with Active service equal to pcac
+When: The sensor measurments value for fio2 is greater than the minimum alarm_limit for fio2
+Then: The alarm for fio2 too low is deactivated
+
+Scenario: The services class correctly handles HFNC alarms for fio2
+Given: A services class object is constructed with Active service equal to pcac
+When: The sensor measurments value for fio2 is greater than the maximum alarm_limit for fio2
+Then: The alarm for fio2 too high is triggered
+
+Scenario: The services class correctly handles HFNC alarms for fio2
+Given: A services class object is constructed with Active service equal to pcac
+When: The sensor measurments value for fio2 is lesser than the maximum alarm_limit for fio2
+Then: The alarm for fio2 too high is deactivated
+
+# Services (HFNC)
+
+Scenario: The services class correctly handles alarms
+Given: A services class object is constructed with Active service equal to HFNC
+When: The ventilation mode in parameters class is not equal to either pcac or hfnc
+Then: The alarms are not updated for any parameters
+
+Scenario: The services class correctly handles alarms
+Given: A services class object is constructed with Active service equal to HFNC
+When: The ventilating value in parameter class is false
+Then: All Active alarms are deactivated
+
+Scenario: The services class correctly handles HFNC alarms for SpO2
+Given: A services class object is constructed with Active service equal to HFNC
+When: The sensor measurments value for Spo2 is lesser than the minimum alarm_limit for spo2
+Then: The alarm for spo2 too low is triggered
+
+Scenario: The services class correctly handles HFNC alarms for SpO2
+Given: A services class object is constructed with Active service equal to HFNC
+When: The sensor measurments value for Spo2 is greater than the minimum alarm_limit for spo2
+Then: The Alarm for Spo2 too low is deactivated
+
+Scenario: The services class correctly handles HFNC alarms for SpO2
+Given: A services class object is constructed with Active service equal to HFNC
+When: The sensor measurments value for Spo2 is greater than the maximum alarm_limit for spo2
+Then: The alarm for spo2 too high is triggered
+
+Scenario: The services class correctly handles HFNC alarms for SpO2
+Given: A services class object is constructed with Active service equal to HFNC
+When: The sensor measurments value for Spo2 is lesser than the maximum alarm_limit for spo2
+Then: The Alarm for Spo2 too high is deactivated
+
+Scenario: The services class correctly handles HFNC alarms for fio2
+Given: A services class object is constructed with Active service equal to HFNC
+When: The sensor measurments value for fio2 is lesser than the minimum alarm_limit for fio2
+Then: The alarm for fio2 too low is triggered
+
+Scenario: The services class correctly handles HFNC alarms for fio2
+Given: A services class object is constructed with Active service equal to HFNC
+When: The sensor measurments value for fio2 is greater than the minimum alarm_limit for fio2
+Then: The alarm for fio2 too low is deactivated
+
+Scenario: The services class correctly handles HFNC alarms for fio2
+Given: A services class object is constructed with Active service equal to HFNC
+When: The sensor measurments value for fio2 is greater than the maximum alarm_limit for fio2
+Then: The alarm for fio2 too high is triggered
+
+Scenario: The services class correctly handles HFNC alarms for fio2
+Given: A services class object is constructed with Active service equal to HFNC
+When: The sensor measurments value for fio2 is lesser than the maximum alarm_limit for fio2
+Then: The alarm for fio2 too high is deactivated

@@ -1,29 +1,138 @@
-Scenario: parameters services behaves properly
-Given: A PCAC parameter service
-When: parameter mode is not equal to pc_ac
+# Service (HFNC)
+
+Scenario: The parameters Service class correctly updates HFNC parameters
+Given: A Service class constructed with default parameters
+When: parameter service value in parameter class of all_states is not equal to HFNC or PCAC
 Then: parameters are not updated as per the parameter requests
 
-Scenario: parameters services behaves properly
-Given: A PCAC parameter service
-When: parameter mode is equal to pc_ac
-Then: parameters are updated as per the parameter requests
+Scenario: The parameters Service class correctly updates HFNC parameters
+Given: A HFNC Service class constructed with default parameters
+When: parameter service value in parameter class of all_states is equal to HFNC
+Then: The value for ventilating in parameters is updated as per parameter request
 
-Scenario: parameters services behaves properly
-Given: A PCAC parameter service
-When: parameter request fio2 is less than fio2_min
+Scenario: The parameters Service class correctly updates HFNC parameters
+Given: A HFNC Service class constructed with default parameters
+When: The current parameter value for fio2 is greater than fio2_min and the requested value for fio2 is less than fio2_min
+Then: The parameter value is updated to fio2_min
+
+Scenario: The parameters Service class correctly updates HFNC parameters
+Given: A HFNC Service class constructed with default parameters
+When: The current parameter value for fio2 is less than fio2_max and the requested value for fio2 is greater than fio2_max
+Then: The parameter value is updated to fio2_max
+
+Scenario: The parameters Service class correctly updates HFNC parameters
+Given: A HFNC Service class constructed with default parameters
+When: The parameter request value for flow is greater than 0 and less than 80
+Then: The parameter value for flow is updated with requested value
+
+Scenario: The parameters Service class correctly updates HFNC parameters
+Given: A HFNC Service class constructed with default parameters
+When: The parameter request value for flow is less than 0 or greater than 80
+Then: The parameter value for flow is Unchanged
+
+# Service (PCAC)
+
+Scenario: The parameters Service class correctly updates pcac parameters
+Given: A Service class constructed with default parameters
+When: parameter service value in parameter class of all_states is not equal to HFNC or PCAC
 Then: parameters are not updated as per the parameter requests
 
-Scenario: parameters services behaves properly
-Given: A HFNC parameter service
-When: parameter mode is not equal to HFNC
+Scenario: The parameters Service class correctly updates PCAC parameters
+Given: A PCAC Service class constructed with default parameters
+When: parameter service value in parameter class of all_states is equal to PCAC
+Then: The value for ventilating in parameters is updated as per parameter request
+
+Scenario: The parameters Service class correctly updates pcac parameters
+Given: A PCAC Service class constructed with default parameters
+When: The value for parameter request rr is greater than zero
+Then: The parameter value for rr is updated with requested value
+
+Scenario: The parameters Service class correctly updates pcac parameters
+Given: A PCAC Service class constructed with default parameters
+When: The value for parameter request ie is greater than zero
+Then: The parameter value for ie is updated with requested value
+
+Scenario: The parameters Service class correctly updates pcac parameters
+Given: A PCAC Service class constructed with default parameters
+When: The value for parameter request pip is greater than zero
+Then: The parameter value for pip is updated with requested value
+
+Scenario: The parameters Service class correctly updates pcac parameters
+Given: A PCAC Service class constructed with default parameters
+When: The current parameter value for fio2 is greater than fio2_min and the requested value for fio2 is less than fio2_min
+Then: The parameter value is updated to fio2_min
+
+Scenario: The parameters Service class correctly updates pcac parameters
+Given: A PCAC Service class constructed with default parameters
+When: The current parameter value for fio2 is less than fio2_max and the requested value for fio2 is greater than fio2_max
+Then: The parameter value is updated to fio2_max
+
+
+# Services (PCAC)
+
+Scenario: The parameters Services class correctly updates pcac parameters
+Given: A Services class constructed with default parameters
+When: parameter service value in parameter class of all_states is not equal to HFNC or PCAC
 Then: parameters are not updated as per the parameter requests
 
-Scenario: parameters services behaves properly
-Given: A HFNC parameter service
-When: parameter mode is equal to HFNC
-Then: parameters are updated as per the parameter requests
+Scenario: The parameters Services class correctly updates PCAC parameters
+Given: A Services class constructed with Active service equal to PCAC
+When: parameter service value in parameter class of all_states is equal to PCAC
+Then: The value for ventilating in parameters is updated as per parameter request
 
-Scenario: parameters services behaves properly
-Given: A HFNC parameter service
-When: parameter request flow is greater than flow_max
+Scenario: The parameters Services class correctly updates pcac parameters
+Given: A Services class constructed with Active service equal to PCAC
+When: The value for parameter request rr is greater than zero
+Then: The parameter value for rr is updated with requested value
+
+Scenario: The parameters Services class correctly updates pcac parameters
+Given: A Services class constructed with Active service equal to PCAC
+When: The value for parameter request ie is greater than zero
+Then: The parameter value for ie is updated with requested value
+
+Scenario: The parameters Services class correctly updates pcac parameters
+Given: A Services class constructed with Active service equal to PCAC
+When: The value for parameter request pip is greater than zero
+Then: The parameter value for pip is updated with requested value
+
+Scenario: The parameters Services class correctly updates pcac parameters
+Given: A Services class constructed with Active service equal to PCAC
+When: The current parameter value for fio2 is greater than fio2_min and the requested value for fio2 is less than fio2_min
+Then: The parameter value is updated to fio2_min
+
+Scenario: The parameters Services class correctly updates pcac parameters
+Given: A Services class constructed with Active service equal to PCAC
+When: The current parameter value for fio2 is less than fio2_max and the requested value for fio2 is greater than fio2_max
+Then: The parameter value is updated to fio2_max
+
+# Services (HFNC)
+
+Scenario: The parameters Services class correctly updates HFNC parameters
+Given: A Services class constructed with Active service equal to HFNC
+When: parameter service value in parameter class of all_states is not equal to HFNC or PCAC
 Then: parameters are not updated as per the parameter requests
+
+Scenario: The parameters Services class correctly updates HFNC parameters
+Given: A Services class constructed with Active service equal to HFNC
+When: parameter service value in parameter class of all_states is equal to HFNC
+Then: The value for ventilating in parameters is updated as per parameter request
+
+Scenario: The parameters Services class correctly updates HFNC parameters
+Given: A Services class constructed with Active service equal to HFNC
+When: The current parameter value for fio2 is greater than fio2_min and the requested value for fio2 is less than fio2_min
+Then: The parameter value is updated to fio2_min
+
+Scenario: The parameters Services class correctly updates HFNC parameters
+Given: A Services class constructed with Active service equal to HFNC
+When: The current parameter value for fio2 is less than fio2_max and the requested value for fio2 is greater than fio2_max
+Then: The parameter value is updated to fio2_max
+
+Scenario: The parameters Services class correctly updates HFNC parameters
+Given: A Services class constructed with Active service equal to HFNC
+When: The parameter request value for flow is greater than 0 and less than 80
+Then: The parameter value for flow is updated with requested value
+
+Scenario: The parameters Services class correctly updates HFNC parameters
+Given: A Services class constructed with Active service equal to HFNC
+When: The parameter request value for flow is less than 0 or greater than 80
+Then: The parameter value for flow is Unchanged
