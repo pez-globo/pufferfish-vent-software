@@ -36,6 +36,26 @@ inline bool operator!=(
 }
 
 template <size_t payload_size>
+inline bool operator==(
+    const Pufferfish::Util::ByteVector<payload_size>& lhs, const Pufferfish::Util::ByteVector<payload_size>& rhs) {
+  if (lhs.size() != rhs.size()) {
+    return false;
+  }
+  for (size_t i = 0; i < lhs.size(); ++i) {
+    if ((uint8_t)lhs[i] != (uint8_t)rhs[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+template <size_t payload_size>
+inline bool operator!=(
+    const Pufferfish::Util::ByteVector<payload_size>& lhs, const Pufferfish::Util::ByteVector<payload_size>& rhs) {
+  return !(lhs == rhs);
+}
+
+template <size_t payload_size>
 inline bool convertStringToByteVector(
     const std::string& input_string, Pufferfish::Util::ByteVector<payload_size>& output_buffer) {
   if (input_string.size() >= payload_size) {

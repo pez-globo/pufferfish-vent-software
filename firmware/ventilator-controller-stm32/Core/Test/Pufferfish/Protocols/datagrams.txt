@@ -1,0 +1,106 @@
+/* Write function
+
+Scenario: The write function correctly writes sequence, length and payload to the output buffer
+  GIVEN("A Datagram with 0 bytes payload and 0 sequence")
+    WHEN("payload of 0 bytes is written into the output buffer")
+      THEN("The write status is equal to ok")
+      THEN("The length of output datagram is equal to 0")
+
+  GIVEN("A Datagram with internal payload and 0 sequence")
+    WHEN("The datagram is written to the output buffer")
+      THEN("The write status is equal to ok")
+      THEN("The length of output buffer payload is equal to input payload length")
+      THEN("The payload of datagran is equal to as expected")
+      THEN("output datagram sequence is equal to 0")
+      THEN("The output buffer is as expected")
+
+  GIVEN("A Datagram with internal payload and non-zero sequence")
+    WHEN("The datagram is written to the output buffer")
+      THEN("The write status is equal to ok")
+      THEN("The length of output buffer payload is equal to input payload length")
+      THEN("The payload of output buffer is equal to as expected")
+      THEN("output buffer sequence is equal to 10")
+      THEN("The output buffer is as expected")
+
+  GIVEN("A Datagram with internal payload and 255 sequence")
+    WHEN("The payload is written to the output buffer")
+      THEN("The write status is equal to ok")
+      THEN("The length of output buffer payload is equal to input payload length")
+      THEN("The payload of output buffer is equal to as expected")
+      THEN("output buffer sequence is equal to 255")
+      THEN("The output buffer is as expected")
+
+  GIVEN("A Datagram with internal payload and 0 sequence")
+    WHEN("The output buffer cannot hold the input buffer data")
+      THEN("The write status is equal to out of bounds")
+
+/* Parse function
+
+Scenario: The parse function correctly updates internal length, sequence and payload fields from input buffer
+  GIVEN("A Datagram with 0 byte payload and 0 sequence")
+    WHEN("Input buffer of 0 payload, sequence and length is parsed")
+      THEN("The parse status is equal to out of bounds")
+      THEN("The length of datagram is equal to 0")
+      THEN("The sequence of datagram is equal to 0")
+
+  GIVEN("A Datagram with payload of length 5 bytes and 0 sequence")
+    WHEN("An Input buffer of non empty payload buffer, length and non zero sequence is parsed")
+      THEN("The parse status is equal to ok")
+      THEN("The payload of the datagram is equal to the payload from the input buffer")
+      THEN("The length of the datagram is equal to the length of the payload from the input buffer")
+      THEN("The sequence of datagram is equal to sequence in the input buffer")
+
+    WHEN("An input buffer of 0 payload and length is parsed")
+      THEN("The parse status is equal to ok")
+      THEN("The payload of the datagram is equal to the initial payload")
+      THEN("The length of the datagram is equal to the length of the payload from the input buffer")
+      THEN("The sequence of datagram is equal to sequence in the input buffer")
+
+    WHEN("An input buffer of invalid length is parsed")
+      THEN("The parse status is equal to ok")
+      THEN("The payload of the datagram is equal to the initial payload")
+      THEN("The length of the datagram is equal to 0")
+      THEN("The sequence of datagram is equal to sequence in the input buffer")
+
+    WHEN("An input buffer of invalid sequence is parsed")
+      THEN("The parse status is equal to ok")
+      THEN("The payload of the datagram is equal to payload of the input buffer")
+      THEN("The length of the datagram is equal to the length in the input buffer")
+      THEN("The sequence of datagram is equal 0")
+
+/* Datagram Receiver
+
+Scenario: Datagram Receiver correctly parses datagrams into payloads
+  GIVEN("A Datagram receiver of buffer size 254 bytes")
+    WHEN("The input buffer is of invalid length")
+      THEN("The transform status is equal to invalid parse")
+
+    WHEN("The input buffer length is not equal to the actual length of the payload")
+      THEN("The transform status is equal to invalid parse")
+      THEN("The output datagram payload is equal to the input buffer paylaod")
+      THEN("The output datagram length is not equal to the input buffer payload length")
+
+    WHEN("The input buffer sequence is not equal to 0")
+      THEN("The transform status is equal to invalid parse")
+      THEN("The output datagram payload is equal to the input buffer paylaod")
+      THEN("The output datagram length is equal to the input buffer payload length")
+
+    WHEN("The input buffer has valid length, sequence and payload")
+      THEN("The transform status is equal to invalid parse")
+      THEN("The output datagram payload is equal to the input buffer paylaod")
+      THEN("The output datagram length is equal to the input buffer payload length")
+
+  // other tests similar to parse function
+
+/* Datagram sender
+
+Scenario: Datagram Sender correctly generates datagrams from payloads
+  GIVEN("A Datagram sender of buffer size 254 bytes")
+    WHEN("A valid payload is given as input to datagram sender")
+      THEN("The transform status is equal to ok")
+      THEN("The output datagram is as expected")
+
+    WHEN("The output datagram cannot hold enough data")
+      THEN("The transform status is equal to invalid length")
+  
+  // other tests similar to write function

@@ -1,0 +1,118 @@
+/* Index
+* test cases for write function
+* test cases for parse function
+* test cases for Message Receiver
+* test cases for Message Sender
+/*
+
+/* Write function
+Scenario: The Messages class correctly writes to the output buffer
+
+  GIVEN("A Message object constructed with StateSegment Taggedunion and a payload of size 252 bytes")
+    WHEN("The index of payload tag is greater than the message descriptor array size")
+      THEN("The status of the write function returns invalid type")
+
+    WHEN("The payload tag is of Unknown message type")
+      THEN("The status of the write function returns invalid type")
+
+    WHEN("The output buffer cannot hold the input data")
+      THEN("The status of the write function returns invalid length")
+
+    WHEN("The output buffer is of length 0 bytes")
+      THEN("The status of the write function returns invalid length")
+
+# Write function for each of the message types
+
+    WHEN("The payload tag is equal to the Sensor Measurements message type")
+    AND("The Sensor Measurements flow value is equal to 50")
+      THEN("The status of write function returns ok")
+      // assertions
+      - buffer[0] == 0x02
+
+    WHEN("The payload tag is equal to the cycle Measurements message type")
+    AND("The cycle Measurements rr value is equal to 50")
+      THEN("The status of write function returns ok")
+      // assertions
+      - buffer[0] == 0x03
+
+    WHEN("The payload tag is equal to the parameters message type")
+    AND("The parameters fi02 value is equal to 60")
+      THEN("The status of write function returns ok")
+      // assertions
+      - buffer[0] == 0x04
+
+    WHEN("The payload tag is equal to the parameters request message type")
+    AND("The parameters request mode is equal to HFNC")
+      THEN("The status of write function returns ok")
+      // assertions
+      - buffer[0] == 0x05
+
+    WHEN("The payload tag is equal to the alarm limits message type")
+    AND("The alarm limits fio2 range is from 21 to 100")
+      THEN("The status of write function returns ok")
+      // assertions
+      - buffer[0] == 0x06
+
+    WHEN("The payload tag is equal to the alarm limits request message type")
+    AND("The alarm limits request spo2 range is from 92 to 100")
+      THEN("The status of write function returns ok")
+      // assertions
+      - buffer[0] == 0x07
+
+/* Parse function
+
+Scenario: The Messages class correctly parses the input buffer and updates type and payload fields
+
+  GIVEN("A Message object constructed with StateSegment Taggedunion and a payload of size 252 bytes")
+    WHEN("The value at zero index of the input buffer is equal to 0")
+      THEN("The status of parse function returns invalid type")
+      // assertions
+      - payload.tag = Unknown
+
+    WHEN("The value of the zero index of the input buffer is greater than the descriptor array size")
+      THEN("NOT PROPERLY HANDLED IN CODE")
+
+    WHEN("The input buffer size is greater than the payload max size")
+      THEN("The status of the parse function returns invalid encoding")
+
+// roundtrip
+    WHEN("The parameters request message type and payload is written to the output buffer")
+      THEN("The status of the write function returns ok")
+      // assertions
+      - buffer[0] = 0x05
+    And_WHEN("The output buffer is parsed ")
+      THEN("The status of the parse function returns ok")
+      // assertions
+      - payload.tag = parameters request
+      - payload values = as given initially
+
+// test cases for parse functions for each message type
+    WHEN("The buffer of {Message type} is parsed")
+      THEN("The status of the parse function returns ok")
+      // assertions
+      - payload.value for each field is as given in the buffer
+
+/* Message Receiver
+
+Scenario: The Message Receiver class correctly transforms messages into payloads")
+  GIVEN("A MessageReceiver object is constructed with default parameters")
+    WHEN("The input buffer is parsed")
+      THEN("The status of the transform function returns ok")
+      // assertions
+      - tag of the message is equal to the value of input_buffer[0]
+      - payload values of the message are updated as per the input buffer
+
+// other tests similar to parse function
+
+/* Message Sender
+
+Scenario: The Message Sender class correctly transforms payloads into messages")
+  GIVEN("A MessageSender object is constructed with default parameters")
+    WHEN("The input message tag is equal to the {Message type} message type")
+    AND("The values of the {Message type} {parameters} equal to ...")
+      THEN("The status of the transform function returns ok")
+      // assertions
+      - zero index of the output buffer is equal to the message type index
+      - output buffer is as expected according to the values set in the input message
+
+// other tests similar to write function
