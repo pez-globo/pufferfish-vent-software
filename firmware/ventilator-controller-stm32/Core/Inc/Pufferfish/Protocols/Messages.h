@@ -35,13 +35,13 @@ class Message {
   // NOLINTNEXTLINE(bugprone-dynamic-static-initializers)
   static const size_t payload_max_size = max_size - header_size;
 
-  uint8_t type = 0;
+  mutable uint8_t type = 0;
   TaggedUnion payload{};
 
   template <size_t output_size, size_t num_descriptors>
   MessageStatus write(
       Util::ByteVector<output_size> &output_buffer,
-      const Util::ProtobufDescriptors<num_descriptors> &pb_protobuf_descriptors) const;
+      const Util::ProtobufDescriptors<num_descriptors> &pb_protobuf_descriptors) const; // updates type field
 
   template <size_t input_size, size_t num_descriptors>
   MessageStatus parse(
