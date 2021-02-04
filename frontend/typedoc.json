@@ -1,0 +1,10 @@
+{
+  "name": "Pufferfish Frontend Document",
+  "out": "docs",
+  "disableOutputCheck": true,
+  "listInvalidSymbolLinks": false,
+  "logger": true,
+  "entryPoints": [
+    "./src"
+  ]
+}
