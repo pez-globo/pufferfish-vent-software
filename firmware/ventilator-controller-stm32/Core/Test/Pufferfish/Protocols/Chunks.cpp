@@ -31,7 +31,7 @@ SCENARIO(
         input_status = chunks.input(val);
         THEN("the input status is equal to ok") {
           REQUIRE(input_status == PF::Protocols::ChunkInputStatus::ok);
-        }          
+        }
       }
 
       PF::Util::Vector<char, buffer_size> buffer;
@@ -39,9 +39,7 @@ SCENARIO(
       THEN("the output status is equal to waiting") {
         REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::waiting);
       }
-      THEN("the output buffer is empty") {
-        REQUIRE(buffer.empty() == true);
-      }
+      THEN("the output buffer is empty") { REQUIRE(buffer.empty() == true); }
 
       auto final_status = chunks.input(val);
       THEN("the final input status is equal to invalid_length") {
@@ -145,7 +143,9 @@ SCENARIO(
     }
   }
 
-  GIVEN("A chunk splitter of buffer size equal to 256 bytes, that is filled completely with input data") {
+  GIVEN(
+      "A chunk splitter of buffer size equal to 256 bytes, that is filled completely with input "
+      "data") {
     constexpr size_t buffer_size = 156;
     PF::Protocols::ChunkSplitter<buffer_size, uint8_t> chunks;
     uint8_t val = 128;
@@ -169,7 +169,8 @@ SCENARIO(
     }
   }
 
-  GIVEN("A uint8_t chunk splitter with internal buffer of 256 bytes, with delimeter equal to 0x01") {
+  GIVEN(
+      "A uint8_t chunk splitter with internal buffer of 256 bytes, with delimeter equal to 0x01") {
     constexpr size_t buffer_size = 156;
     uint8_t delimeter = 0x01;
     PF::Protocols::ChunkSplitter<buffer_size, uint8_t> chunks{delimeter};
@@ -204,7 +205,9 @@ SCENARIO(
     }
   }
 
-  GIVEN("A uint8_t chunk splitter with internal buffer of 256 bytes, with delimeter equal to 255 bytes") {
+  GIVEN(
+      "A uint8_t chunk splitter with internal buffer of 256 bytes, with delimeter equal to 255 "
+      "bytes") {
     constexpr size_t buffer_size = 156;
     uint8_t delimeter = 0xff;
     PF::Protocols::ChunkSplitter<buffer_size, uint8_t> chunks{delimeter};
@@ -239,7 +242,9 @@ SCENARIO(
     }
   }
 
-  GIVEN("A uint8_t chunk splitter with internal buffer of 256 bytes, with include_delimeter bool equal to true") {
+  GIVEN(
+      "A uint8_t chunk splitter with internal buffer of 256 bytes, with include_delimeter bool "
+      "equal to true") {
     constexpr size_t buffer_size = 156;
     uint8_t delimeter = 1;
     PF::Protocols::ChunkSplitter<buffer_size, uint8_t> chunks{delimeter, true};
@@ -321,9 +326,7 @@ SCENARIO("Protocols::ChunkMerger behaves correctly", "[chunks]") {
       PF::IndexStatus index_status;
       for (size_t i = 0; i < buffer_size - 1; ++i) {
         index_status = buffer.push_back(val);
-        THEN("the index status should be ok") {
-          REQUIRE(index_status == PF::IndexStatus::ok);
-        }
+        THEN("the index status should be ok") { REQUIRE(index_status == PF::IndexStatus::ok); }
       }
       PF::Protocols::ChunkOutputStatus status = chunks.transform<buffer_size, char>(buffer);
 
@@ -343,9 +346,7 @@ SCENARIO("Protocols::ChunkMerger behaves correctly", "[chunks]") {
       PF::IndexStatus index_status;
       for (size_t i = 0; i < buffer_size; ++i) {
         index_status = buffer.push_back(val);
-        THEN("the index status should be ok") {
-          REQUIRE(index_status == PF::IndexStatus::ok);
-        }
+        THEN("the index status should be ok") { REQUIRE(index_status == PF::IndexStatus::ok); }
       }
       PF::Protocols::ChunkOutputStatus status = chunks.transform<buffer_size, uint8_t>(buffer);
 
@@ -360,9 +361,7 @@ SCENARIO("Protocols::ChunkMerger behaves correctly", "[chunks]") {
       PF::IndexStatus index_status;
       for (size_t i = 0; i < buffer_size - 4; ++i) {
         index_status = buffer.push_back(val);
-        THEN("the index status should be ok") {
-          REQUIRE(index_status == PF::IndexStatus::ok);
-        }
+        THEN("the index status should be ok") { REQUIRE(index_status == PF::IndexStatus::ok); }
       }
 
       PF::Protocols::ChunkOutputStatus status = chunks.transform<buffer_size, uint8_t>(buffer);
@@ -371,10 +370,9 @@ SCENARIO("Protocols::ChunkMerger behaves correctly", "[chunks]") {
       }
 
       index_status = buffer.push_back(0);
-      THEN("the final status should be ok") {
-        REQUIRE(index_status == PF::IndexStatus::ok);
-      }
-      PF::Protocols::ChunkOutputStatus transform_status = chunks.transform<buffer_size, uint8_t>(buffer);
+      THEN("the final status should be ok") { REQUIRE(index_status == PF::IndexStatus::ok); }
+      PF::Protocols::ChunkOutputStatus transform_status =
+          chunks.transform<buffer_size, uint8_t>(buffer);
 
       THEN("the final status should be ok") {
         REQUIRE(transform_status == PF::Protocols::ChunkOutputStatus::ok);
@@ -387,9 +385,7 @@ SCENARIO("Protocols::ChunkMerger behaves correctly", "[chunks]") {
       PF::IndexStatus index_status;
       for (size_t i = 0; i < buffer_size; ++i) {
         index_status = buffer.push_back(val);
-        THEN("the index status should be ok") {
-          REQUIRE(index_status == PF::IndexStatus::ok);
-        }
+        THEN("the index status should be ok") { REQUIRE(index_status == PF::IndexStatus::ok); }
       }
 
       PF::Protocols::ChunkOutputStatus status = chunks.transform<buffer_size, uint8_t>(buffer);

@@ -41,7 +41,8 @@ class Message {
   template <size_t output_size, size_t num_descriptors>
   MessageStatus write(
       Util::ByteVector<output_size> &output_buffer,
-      const Util::ProtobufDescriptors<num_descriptors> &pb_protobuf_descriptors) const; // updates type field
+      const Util::ProtobufDescriptors<num_descriptors> &pb_protobuf_descriptors)
+      const;  // updates type field
 
   template <size_t input_size, size_t num_descriptors>
   MessageStatus parse(

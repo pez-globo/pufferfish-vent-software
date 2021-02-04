@@ -12,13 +12,16 @@
 
 #include "Pufferfish/Protocols/Datagrams.h"
 
-#include "Pufferfish/Util/Array.h"
 #include "Pufferfish/Test/Util.h"
+#include "Pufferfish/Util/Array.h"
 #include "catch2/catch.hpp"
 
 namespace PF = Pufferfish;
 
-SCENARIO("Protocols::The write function correctly calculates length of internal payload and writes body with sequence, length and payload", "[Datagram]") {
+SCENARIO(
+    "Protocols::The write function correctly calculates length of internal payload and writes body "
+    "with sequence, length and payload",
+    "[Datagram]") {
   GIVEN("A Datagram with 0 bytes payload and 0 sequence") {
     constexpr size_t buffer_size = 254UL;
     using TestDatagramProps = PF::Protocols::DatagramProps<buffer_size>;
@@ -32,12 +35,8 @@ SCENARIO("Protocols::The write function correctly calculates length of internal 
       PF::Util::ByteVector<buffer_size> output_buffer;
       auto write_status = datagram.write(output_buffer);
 
-      THEN("The write status is equal to ok") {
-        REQUIRE(write_status == PF::IndexStatus::ok);
-      }
-      THEN("The length of output datagram is equal to 0") {
-        REQUIRE(datagram.length() == 0);
-      }
+      THEN("The write status is equal to ok") { REQUIRE(write_status == PF::IndexStatus::ok); }
+      THEN("The length of output datagram is equal to 0") { REQUIRE(datagram.length() == 0); }
     }
   }
 
@@ -56,18 +55,14 @@ SCENARIO("Protocols::The write function correctly calculates length of internal 
       PF::Util::ByteVector<buffer_size> output_buffer;
 
       auto write_status = datagram.write(output_buffer);
-      THEN("The write status is equal to ok") {
-        REQUIRE(write_status == PF::IndexStatus::ok);
-      }
+      THEN("The write status is equal to ok") { REQUIRE(write_status == PF::IndexStatus::ok); }
       THEN("The length of output buffer payload is equal to input payload length") {
         REQUIRE(datagram.length() == data.length());
       }
       THEN("The payload of datagran is equal to as expected") {
         REQUIRE(datagram.payload() == data);
       }
-      THEN("output datagram sequence is equal to 0") {
-        REQUIRE(datagram.seq() == 0);
-      }
+      THEN("output datagram sequence is equal to 0") { REQUIRE(datagram.seq() == 0); }
       THEN("The output buffer is as expected") {
         auto expected_buffer = std::string("\x00\x05\x01\x02\x03\x04\x05", 7);
         REQUIRE(output_buffer == expected_buffer);
@@ -92,18 +87,14 @@ SCENARIO("Protocols::The write function correctly calculates length of internal 
       PF::Util::ByteVector<buffer_size> output_buffer;
 
       auto write_status = datagram.write(output_buffer);
-      THEN("The write status is equal to ok") {
-        REQUIRE(write_status == PF::IndexStatus::ok);
-      }
+      THEN("The write status is equal to ok") { REQUIRE(write_status == PF::IndexStatus::ok); }
       THEN("The length of output buffer payload is equal to input payload length") {
         REQUIRE(datagram.length() == data.length());
       }
       THEN("The payload of output buffer is equal to as expected") {
         REQUIRE(datagram.payload() == data);
       }
-      THEN("output buffer sequence is equal to 10") {
-        REQUIRE(datagram.seq() == 10);
-      }
+      THEN("output buffer sequence is equal to 10") { REQUIRE(datagram.seq() == 10); }
       THEN("The output buffer is as expected") {
         auto expected_buffer = std::string("\x0A\x07\x12\x23\x34\x45\x56\x37\x00", 9);
         REQUIRE(output_buffer == expected_buffer);
@@ -128,18 +119,14 @@ SCENARIO("Protocols::The write function correctly calculates length of internal 
       PF::Util::ByteVector<buffer_size> output_buffer;
 
       auto write_status = datagram.write(output_buffer);
-      THEN("The write status is equal to ok") {
-        REQUIRE(write_status == PF::IndexStatus::ok);
-      }
+      THEN("The write status is equal to ok") { REQUIRE(write_status == PF::IndexStatus::ok); }
       THEN("The length of output buffer payload is equal to input payload length") {
         REQUIRE(datagram.length() == data.length());
       }
       THEN("The payload of output buffer is equal to as expected") {
         REQUIRE(datagram.payload() == data);
       }
-      THEN("output buffer sequence is equal to 255") {
-        REQUIRE(datagram.seq() == 255);
-      }
+      THEN("output buffer sequence is equal to 255") { REQUIRE(datagram.seq() == 255); }
       THEN("The output buffer is as expected") {
         auto expected_buffer = std::string("\xFF\x07\x01\x23\x45\x0A\x4D\x04\x05", 9);
         REQUIRE(output_buffer == expected_buffer);
@@ -169,7 +156,10 @@ SCENARIO("Protocols::The write function correctly calculates length of internal 
   }
 }
 
-SCENARIO("Protocols::The parse function correctly updates internal length, sequence and payload fields from input buffer", "[Datagram]") {
+SCENARIO(
+    "Protocols::The parse function correctly updates internal length, sequence and payload fields "
+    "from input buffer",
+    "[Datagram]") {
   GIVEN("A Datagram with 0 byte payload and 0 sequence") {
     constexpr size_t buffer_size = 254UL;
     using TestDatagramProps = PF::Protocols::DatagramProps<buffer_size>;
@@ -182,7 +172,7 @@ SCENARIO("Protocols::The parse function correctly updates internal length, seque
     WHEN("Input buffer of 0 payload, sequence and length is parsed") {
       auto input_data = PF::Util::make_array<uint8_t>(0x00);
       PF::Util::ByteVector<buffer_size> input_buffer;
-      for (auto& data: input_data) {
+      for (auto& data : input_data) {
         input_buffer.push_back(data);
       }
 
@@ -191,12 +181,8 @@ SCENARIO("Protocols::The parse function correctly updates internal length, seque
       THEN("The parse status is equal to out of bounds") {
         REQUIRE(parse_status == PF::IndexStatus::out_of_bounds);
       }
-      THEN("The length of datagram is equal to 0") {
-        REQUIRE(datagram.length() == 0);
-      }
-      THEN("The sequence of datagram is equal to 0") {
-        REQUIRE(datagram.seq() == 0);
-      }
+      THEN("The length of datagram is equal to 0") { REQUIRE(datagram.length() == 0); }
+      THEN("The sequence of datagram is equal to 0") { REQUIRE(datagram.seq() == 0); }
     }
   }
 
@@ -217,14 +203,14 @@ SCENARIO("Protocols::The parse function correctly updates internal length, seque
 
       auto parse_status = datagram.parse(input_buffer);
 
-      THEN("The parse status is equal to ok") {
-        REQUIRE(parse_status == PF::IndexStatus::ok);
-      }
+      THEN("The parse status is equal to ok") { REQUIRE(parse_status == PF::IndexStatus::ok); }
       THEN("The payload of the datagram is equal to the payload from the input buffer") {
         auto expected_payload = std::string("\x11\x12\x13\x14\x15", 5);
         REQUIRE(datagram.payload() == expected_payload);
       }
-      THEN("The length of the datagram is equal to the length of the payload from the input buffer") {
+      THEN(
+          "The length of the datagram is equal to the length of the payload from the input "
+          "buffer") {
         REQUIRE(datagram.length() == 5);
       }
       THEN("The sequence of datagram is equal to sequence in the input buffer") {
@@ -235,20 +221,20 @@ SCENARIO("Protocols::The parse function correctly updates internal length, seque
     WHEN("An input buffer of 0 payload and length is parsed") {
       auto input_data = PF::Util::make_array<uint8_t>(0x04, 0x00, 0x00);
       PF::Util::ByteVector<buffer_size> input_buffer;
-      for (auto& data: input_data) {
+      for (auto& data : input_data) {
         input_buffer.push_back(data);
       }
 
       auto parse_status = datagram.parse(input_buffer);
 
-      THEN("The parse status is equal to ok") {
-        REQUIRE(parse_status == PF::IndexStatus::ok);
-      }
+      THEN("The parse status is equal to ok") { REQUIRE(parse_status == PF::IndexStatus::ok); }
       THEN("The payload of the datagram is equal to the initial payload") {
         auto expected_payload = std::string("\x00", 1);
         REQUIRE(datagram.payload() == expected_payload);
       }
-      THEN("The length of the datagram is equal to the length of the payload from the input buffer") {
+      THEN(
+          "The length of the datagram is equal to the length of the payload from the input "
+          "buffer") {
         REQUIRE(datagram.length() == 0);
       }
       THEN("The sequence of datagram is equal to sequence in the input buffer") {
@@ -261,21 +247,17 @@ SCENARIO("Protocols::The parse function correctly updates internal length, seque
 
       PF::Util::ByteVector<buffer_size> input_buffer;
 
-      for (auto& data: body) {
+      for (auto& data : body) {
         input_buffer.push_back(data);
       }
 
       auto parse_status = datagram.parse(input_buffer);
-      THEN("The parse status is equal to ok") {
-        REQUIRE(parse_status == PF::IndexStatus::ok);
-      }
+      THEN("The parse status is equal to ok") { REQUIRE(parse_status == PF::IndexStatus::ok); }
       THEN("The payload of the datagram is equal to the initial payload") {
         auto expected_payload = std::string("\x01", 1);
         REQUIRE(datagram.payload() == expected_payload);
       }
-      THEN("The length of the datagram is equal to 0") {
-        REQUIRE(datagram.length() == 0);
-      }
+      THEN("The length of the datagram is equal to 0") { REQUIRE(datagram.length() == 0); }
       THEN("The sequence of datagram is equal to sequence in the input buffer") {
         REQUIRE(datagram.seq() == 4);
       }
@@ -286,14 +268,12 @@ SCENARIO("Protocols::The parse function correctly updates internal length, seque
 
       PF::Util::ByteVector<buffer_size> input_buffer;
 
-      for (auto& data: body) {
+      for (auto& data : body) {
         input_buffer.push_back(data);
       }
 
       auto parse_status = datagram.parse(input_buffer);
-      THEN("The parse status is equal to ok") {
-        REQUIRE(parse_status == PF::IndexStatus::ok);
-      }
+      THEN("The parse status is equal to ok") { REQUIRE(parse_status == PF::IndexStatus::ok); }
       THEN("The payload of the datagram is equal to payload of the input buffer") {
         auto expected_payload = std::string("\x01", 1);
         REQUIRE(datagram.payload() == expected_payload);
@@ -301,9 +281,7 @@ SCENARIO("Protocols::The parse function correctly updates internal length, seque
       THEN("The length of the datagram is equal to the length in the input buffer") {
         REQUIRE(datagram.length() == 1);
       }
-      THEN("The sequence of datagram is equal 0") {
-        REQUIRE(datagram.seq() == 0);
-      }
+      THEN("The sequence of datagram is equal 0") { REQUIRE(datagram.seq() == 0); }
     }
 
     WHEN("an input buffer with invalid payload is written") {
@@ -311,9 +289,10 @@ SCENARIO("Protocols::The parse function correctly updates internal length, seque
       // will always be returned as-is.
     }
   }
-} 
+}
 
-SCENARIO("Protocols::Datagram Receiver correctly parses datagrams into payloads", "[DatagramReceiver]") {
+SCENARIO(
+    "Protocols::Datagram Receiver correctly parses datagrams into payloads", "[DatagramReceiver]") {
   GIVEN("A Datagram receiver of buffer size 254 bytes") {
     constexpr size_t buffer_size = 254UL;
     using TestDatagramProps = PF::Protocols::DatagramProps<buffer_size>;
@@ -329,7 +308,7 @@ SCENARIO("Protocols::Datagram Receiver correctly parses datagrams into payloads"
       PF::Util::ByteVector<buffer_size> input_buffer;
       auto body = std::string("\x00", 1);
       PF::Util::convertStringToByteVector(body, input_buffer);
-      
+
       auto transform_status = datagram_receiver.transform(input_buffer, datagram);
 
       THEN("The transform status is equal to invalid parse") {
@@ -343,7 +322,7 @@ SCENARIO("Protocols::Datagram Receiver correctly parses datagrams into payloads"
       auto expected_payload = std::string("\x01\x02\x03", 3);
 
       PF::Util::convertStringToByteVector(body, input_buffer);
-      
+
       auto transform_status = datagram_receiver.transform(input_buffer, datagram);
 
       THEN("The transform status is equal to invalid parse") {
@@ -362,7 +341,7 @@ SCENARIO("Protocols::Datagram Receiver correctly parses datagrams into payloads"
       auto body = std::string("\x04\x03\x01\x02\x03", 5);
       auto expected_payload = std::string("\x01\x02\x03", 3);
       PF::Util::convertStringToByteVector(body, input_buffer);
-      
+
       auto transform_status = datagram_receiver.transform(input_buffer, datagram);
 
       THEN("The transform status is equal to invalid parse") {
@@ -398,7 +377,8 @@ SCENARIO("Protocols::Datagram Receiver correctly parses datagrams into payloads"
   }
 }
 
-SCENARIO("Protocols::Datagram Sender correctly generates datagrams from payloads", "[DatagramSender]") {
+SCENARIO(
+    "Protocols::Datagram Sender correctly generates datagrams from payloads", "[DatagramSender]") {
   constexpr size_t buffer_size = 254UL;
   using TestDatagramSender = PF::Protocols::DatagramSender<buffer_size>;
   TestDatagramSender datagram_sender{};

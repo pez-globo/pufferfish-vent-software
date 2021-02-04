@@ -37,7 +37,8 @@ inline bool operator!=(
 
 template <size_t payload_size>
 inline bool operator==(
-    const Pufferfish::Util::ByteVector<payload_size>& lhs, const Pufferfish::Util::ByteVector<payload_size>& rhs) {
+    const Pufferfish::Util::ByteVector<payload_size>& lhs,
+    const Pufferfish::Util::ByteVector<payload_size>& rhs) {
   if (lhs.size() != rhs.size()) {
     return false;
   }
@@ -51,7 +52,8 @@ inline bool operator==(
 
 template <size_t payload_size>
 inline bool operator!=(
-    const Pufferfish::Util::ByteVector<payload_size>& lhs, const Pufferfish::Util::ByteVector<payload_size>& rhs) {
+    const Pufferfish::Util::ByteVector<payload_size>& lhs,
+    const Pufferfish::Util::ByteVector<payload_size>& rhs) {
   return !(lhs == rhs);
 }
 

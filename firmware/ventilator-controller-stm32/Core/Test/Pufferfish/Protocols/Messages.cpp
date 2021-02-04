@@ -27,15 +27,20 @@ namespace BE = PF::Driver::Serial::Backend;
 
 static constexpr size_t num_descriptors = 8;
 
-auto exp_sensor_measurements = std::string("\x02\x25\x00\x00\xF0\x41\x35\x00\x00\xAA\x42\x3D\x00\x00\x90\x42", 16);
+auto exp_sensor_measurements =
+    std::string("\x02\x25\x00\x00\xF0\x41\x35\x00\x00\xAA\x42\x3D\x00\x00\x90\x42", 16);
 auto exp_cycle_measurements = std::string("\x03\x1D\x00\x00\x20\x41\x3D\x00\x00\x96\x43", 11);
 auto exp_parameters = std::string("\x04\x10\x06\x45\x00\x00\x70\x42\x50\x01", 10);
 auto exp_parameters_request = std::string("\x05\x10\x06\x45\x00\x00\xA0\x42\x50\x01", 10);
 auto exp_alarm_limits = std::string("\x06\x12\x04\x08\x15\x10\x64", 7);
 auto exp_alarm_limits_request = std::string("\x07\x12\x04\x08\x32\x10\x5C", 7);
 
-SCENARIO("Protocols::The message correctly writes to the output buffer and also updates type", "[messages]") {
-  GIVEN("A Message object constructed with StateSegment Taggedunion and a payload of size 252 bytes") {
+SCENARIO(
+    "Protocols::The message correctly writes to the output buffer and also updates type",
+    "[messages]") {
+  GIVEN(
+      "A Message object constructed with StateSegment Taggedunion and a payload of size 252 "
+      "bytes") {
     constexpr size_t payload_max_size = 252UL;
     using TestMessage = PF::Protocols::Message<PF::Application::StateSegment, payload_max_size>;
     TestMessage test_message;
@@ -43,11 +48,9 @@ SCENARIO("Protocols::The message correctly writes to the output buffer and also 
     PF::Util::ByteVector<buffer_size> buffer;
 
     WHEN("The index of payload tag is greater than the message descriptor array size") {
-      constexpr auto message_descriptors =
-      PF::Util::make_array<PF::Util::ProtobufDescriptor>(
+      constexpr auto message_descriptors = PF::Util::make_array<PF::Util::ProtobufDescriptor>(
           // array index should match the type code value
-          PF::Util::get_protobuf_descriptor<PF::Util::UnrecognizedMessage>()
-      );
+          PF::Util::get_protobuf_descriptor<PF::Util::UnrecognizedMessage>());
 
       ParametersRequest parameters_request;
       memset(&parameters_request, 0, sizeof(parameters_request));
@@ -119,9 +122,7 @@ SCENARIO("Protocols::The message correctly writes to the output buffer and also 
       THEN("The type field of message is not equal to 4 after write method") {
         REQUIRE(test_message.type != 4);
       }
-      THEN("The type field after write method is equal to 2") {
-        REQUIRE(test_message.type == 2);
-      }
+      THEN("The type field after write method is equal to 2") { REQUIRE(test_message.type == 2); }
     }
 
     // sensor measurments
@@ -139,15 +140,9 @@ SCENARIO("Protocols::The message correctly writes to the output buffer and also 
       THEN("The write status is equal to ok") {
         REQUIRE(write_status == PF::Protocols::MessageStatus::ok);
       }
-      THEN("first byte in the output buffer is equal to the type") {
-        REQUIRE(buffer[0] == 0x02);
-      }
-      THEN("The type field after write method is equal to 2") {
-        REQUIRE(test_message.type == 2);
-      }
-      THEN("The output buffer is as expected") {
-        REQUIRE(buffer == exp_sensor_measurements);
-      }
+      THEN("first byte in the output buffer is equal to the type") { REQUIRE(buffer[0] == 0x02); }
+      THEN("The type field after write method is equal to 2") { REQUIRE(test_message.type == 2); }
+      THEN("The output buffer is as expected") { REQUIRE(buffer == exp_sensor_measurements); }
     }
 
     // cycle measurments
@@ -163,15 +158,9 @@ SCENARIO("Protocols::The message correctly writes to the output buffer and also 
       THEN("The write status is equal to ok") {
         REQUIRE(write_status == PF::Protocols::MessageStatus::ok);
       }
-      THEN("first byte in the output buffer is equal to the type") {
-        REQUIRE(buffer[0] == 0x03);
-      }
-      THEN("The type field after write method is equal to 3") {
-        REQUIRE(test_message.type == 3);
-      }
-      THEN("The output buffer is as expected") {
-        REQUIRE(buffer == exp_cycle_measurements);
-      }
+      THEN("first byte in the output buffer is equal to the type") { REQUIRE(buffer[0] == 0x03); }
+      THEN("The type field after write method is equal to 3") { REQUIRE(test_message.type == 3); }
+      THEN("The output buffer is as expected") { REQUIRE(buffer == exp_cycle_measurements); }
     }
 
     // parameters
@@ -188,15 +177,9 @@ SCENARIO("Protocols::The message correctly writes to the output buffer and also 
       THEN("The write status is equal to ok") {
         REQUIRE(write_status == PF::Protocols::MessageStatus::ok);
       }
-      THEN("first byte in the output buffer is equal to the type") {
-        REQUIRE(buffer[0] == 0x04);
-      }
-      THEN("The type field after write method is equal to 4") {
-        REQUIRE(test_message.type == 4);
-      }
-      THEN("The output buffer is as expected") {
-        REQUIRE(buffer == exp_parameters);
-      }
+      THEN("first byte in the output buffer is equal to the type") { REQUIRE(buffer[0] == 0x04); }
+      THEN("The type field after write method is equal to 4") { REQUIRE(test_message.type == 4); }
+      THEN("The output buffer is as expected") { REQUIRE(buffer == exp_parameters); }
     }
 
     // parameters request
@@ -214,15 +197,9 @@ SCENARIO("Protocols::The message correctly writes to the output buffer and also 
       THEN("The write status is equal to ok") {
         REQUIRE(write_status == PF::Protocols::MessageStatus::ok);
       }
-      THEN("first byte in the output buffer is equal to the type") {
-        REQUIRE(buffer[0] == 0x05);
-      }
-      THEN("The type field after write method is equal to 5") {
-        REQUIRE(test_message.type == 5);
-      }
-      THEN("The output buffer is as expected") {
-        REQUIRE(buffer == exp_parameters_request);
-      }
+      THEN("first byte in the output buffer is equal to the type") { REQUIRE(buffer[0] == 0x05); }
+      THEN("The type field after write method is equal to 5") { REQUIRE(test_message.type == 5); }
+      THEN("The output buffer is as expected") { REQUIRE(buffer == exp_parameters_request); }
     }
 
     // alarm limits
@@ -241,15 +218,9 @@ SCENARIO("Protocols::The message correctly writes to the output buffer and also 
       THEN("The write status is equal to ok") {
         REQUIRE(write_status == PF::Protocols::MessageStatus::ok);
       }
-      THEN("first byte in the output buffer is equal to the type") {
-        REQUIRE(buffer[0] == 0x06);
-      }
-      THEN("The type field after write method is equal to 6") {
-        REQUIRE(test_message.type == 6);
-      }
-      THEN("The output buffer is as expected") {
-        REQUIRE(buffer == exp_alarm_limits);
-      }
+      THEN("first byte in the output buffer is equal to the type") { REQUIRE(buffer[0] == 0x06); }
+      THEN("The type field after write method is equal to 6") { REQUIRE(test_message.type == 6); }
+      THEN("The output buffer is as expected") { REQUIRE(buffer == exp_alarm_limits); }
     }
 
     // alarm limits
@@ -268,9 +239,7 @@ SCENARIO("Protocols::The message correctly writes to the output buffer and also 
       THEN("The write status is equal to ok") {
         REQUIRE(write_status == PF::Protocols::MessageStatus::ok);
       }
-      THEN("The type field after write method is equal to 6") {
-        REQUIRE(test_message.type == 6);
-      }
+      THEN("The type field after write method is equal to 6") { REQUIRE(test_message.type == 6); }
       THEN("The fio2 field is not written to the buffer") {
         auto expected = std::string("\06", 1);
         REQUIRE(buffer == expected);
@@ -293,15 +262,9 @@ SCENARIO("Protocols::The message correctly writes to the output buffer and also 
       THEN("The write status is equal to ok") {
         REQUIRE(write_status == PF::Protocols::MessageStatus::ok);
       }
-      THEN("first byte in the output buffer is equal to the type") {
-        REQUIRE(buffer[0] == 0x07);
-      }
-      THEN("The type field after write method is equal to 7") {
-        REQUIRE(test_message.type == 7);
-      }
-      THEN("The output buffer is as expected") {
-        REQUIRE(buffer == exp_alarm_limits_request);
-      }
+      THEN("first byte in the output buffer is equal to the type") { REQUIRE(buffer[0] == 0x07); }
+      THEN("The type field after write method is equal to 7") { REQUIRE(test_message.type == 7); }
+      THEN("The output buffer is as expected") { REQUIRE(buffer == exp_alarm_limits_request); }
     }
 
     // alarm limits request
@@ -320,16 +283,14 @@ SCENARIO("Protocols::The message correctly writes to the output buffer and also 
       THEN("The write status is equal to ok") {
         REQUIRE(write_status == PF::Protocols::MessageStatus::ok);
       }
-      THEN("The type field after write method is equal to 7") {
-        REQUIRE(test_message.type == 7);
-      }
+      THEN("The type field after write method is equal to 7") { REQUIRE(test_message.type == 7); }
       THEN("The fio2 field is not written to the buffer") {
         auto expected = std::string("\07", 1);
         REQUIRE(buffer == expected);
       }
     }
 
-    WHEN("Unkown message data is written") { // fields and payload different
+    WHEN("Unkown message data is written") {  // fields and payload different
       test_message.payload.tag = PF::Application::MessageTypes::parameters;
 
       CycleMeasurements cycle_measurements;
@@ -346,7 +307,9 @@ SCENARIO("Protocols::The message correctly writes to the output buffer and also 
     }
   }
 
-  GIVEN("A Message object constructed with StateSegment Taggedunion and a payload of size 126 bytes") {
+  GIVEN(
+      "A Message object constructed with StateSegment Taggedunion and a payload of size 126 "
+      "bytes") {
     constexpr size_t payload_max_size = 126UL;
     using TestMessage = PF::Protocols::Message<PF::Application::StateSegment, payload_max_size>;
     TestMessage test_message;
@@ -367,19 +330,15 @@ SCENARIO("Protocols::The message correctly writes to the output buffer and also 
       THEN("The write status is equal to ok") {
         REQUIRE(write_status == PF::Protocols::MessageStatus::ok);
       }
-      THEN("first byte in the output buffer is equal to the type") {
-        REQUIRE(buffer[0] == 0x02);
-      }
-      THEN("The type field after write method is equal to 2") {
-        REQUIRE(test_message.type == 2);
-      }
-      THEN("The output buffer is as expected") {
-        REQUIRE(buffer == exp_sensor_measurements);
-      }
+      THEN("first byte in the output buffer is equal to the type") { REQUIRE(buffer[0] == 0x02); }
+      THEN("The type field after write method is equal to 2") { REQUIRE(test_message.type == 2); }
+      THEN("The output buffer is as expected") { REQUIRE(buffer == exp_sensor_measurements); }
     }
   }
 
-  GIVEN("A Message object constructed with StateSegment Taggedunion and a payload of size 508 bytes") {
+  GIVEN(
+      "A Message object constructed with StateSegment Taggedunion and a payload of size 508 "
+      "bytes") {
     constexpr size_t payload_max_size = 508UL;
     using TestMessage = PF::Protocols::Message<PF::Application::StateSegment, payload_max_size>;
     TestMessage test_message;
@@ -400,19 +359,13 @@ SCENARIO("Protocols::The message correctly writes to the output buffer and also 
       THEN("The write status is equal to ok") {
         REQUIRE(write_status == PF::Protocols::MessageStatus::ok);
       }
-      THEN("first byte in the output buffer is equal to the type") {
-        REQUIRE(buffer[0] == 0x02);
-      }
-      THEN("The type field after write method is equal to 2") {
-        REQUIRE(test_message.type == 2);
-      }
-      THEN("The output buffer is as expected") {
-        REQUIRE(buffer == exp_sensor_measurements);
-      }
+      THEN("first byte in the output buffer is equal to the type") { REQUIRE(buffer[0] == 0x02); }
+      THEN("The type field after write method is equal to 2") { REQUIRE(test_message.type == 2); }
+      THEN("The output buffer is as expected") { REQUIRE(buffer == exp_sensor_measurements); }
     }
   }
 
-  GIVEN("A Different taggedunion") { // fields and payload value are different yet encoding is ok?
+  GIVEN("A Different taggedunion") {  // fields and payload value are different yet encoding is ok?
     constexpr size_t payload_max_size = 252UL;
     enum class MessageTypes : uint8_t {
       unknown = 0,
@@ -430,8 +383,8 @@ SCENARIO("Protocols::The message correctly writes to the output buffer and also 
           // array index should match the type code value
           PF::Util::get_protobuf_descriptor<PF::Util::UnrecognizedMessage>(),  // 0
           PF::Util::get_protobuf_descriptor<PF::Util::UnrecognizedMessage>(),  // 1
-          PF::Util::get_protobuf_descriptor<SensorMeasurements>(),            // 2
-          PF::Util::get_protobuf_descriptor<ParametersRequest>()             // 3
+          PF::Util::get_protobuf_descriptor<SensorMeasurements>(),             // 2
+          PF::Util::get_protobuf_descriptor<ParametersRequest>()               // 3
       );
 
       CycleMeasurements cycle_measurements;
@@ -445,14 +398,21 @@ SCENARIO("Protocols::The message correctly writes to the output buffer and also 
       auto write_status = test_message.write(buffer, message_descriptors);
 
       THEN("The write status is equal to ok") {
-        REQUIRE(write_status == PF::Protocols::MessageStatus::ok); // should fail? as fields and value are different
+        REQUIRE(
+            write_status ==
+            PF::Protocols::MessageStatus::ok);  // should fail? as fields and value are different
       }
     }
   }
 }
 
-SCENARIO("Protocols::The Messages class correctly parses the input buffer and updates type and payload fields", "[messages]") {
-  GIVEN("A Message object constructed with StateSegment Taggedunion and a payload of size 252 bytes") {
+SCENARIO(
+    "Protocols::The Messages class correctly parses the input buffer and updates type and payload "
+    "fields",
+    "[messages]") {
+  GIVEN(
+      "A Message object constructed with StateSegment Taggedunion and a payload of size 252 "
+      "bytes") {
     constexpr size_t payload_max_size = 252UL;
     using TestMessage = PF::Protocols::Message<PF::Application::StateSegment, payload_max_size>;
     TestMessage test_message;
@@ -537,18 +497,14 @@ SCENARIO("Protocols::The Messages class correctly parses the input buffer and up
       THEN("The status of parse function returns ok") {
         REQUIRE(parse_status == PF::Protocols::MessageStatus::ok);
       }
-      THEN("The type field of message class is equal to 2") {
-        REQUIRE(test_message.type == 2);
-      }
+      THEN("The type field of message class is equal to 2") { REQUIRE(test_message.type == 2); }
       THEN("The message payload values are as expected") {
         REQUIRE(test_message.payload.tag == PF::Application::MessageTypes::sensor_measurements);
         REQUIRE(test_message.payload.value.sensor_measurements.cycle == 10);
         REQUIRE(test_message.payload.value.sensor_measurements.paw == 20);
         REQUIRE(test_message.payload.value.sensor_measurements.time == 2);
       }
-      THEN("The input buffer is unchanged after parse") {
-        REQUIRE(input_buffer == data);
-      }
+      THEN("The input buffer is unchanged after parse") { REQUIRE(input_buffer == data); }
     }
 
     // cycle measurements
@@ -562,17 +518,13 @@ SCENARIO("Protocols::The Messages class correctly parses the input buffer and up
       THEN("The status of parse function returns ok") {
         REQUIRE(parse_status == PF::Protocols::MessageStatus::ok);
       }
-      THEN("The type field of message class is equal to 2") {
-        REQUIRE(test_message.type == 3);
-      }
+      THEN("The type field of message class is equal to 2") { REQUIRE(test_message.type == 3); }
       THEN("The message payload values are as expected") {
         REQUIRE(test_message.payload.tag == PF::Application::MessageTypes::cycle_measurements);
         REQUIRE(test_message.payload.value.cycle_measurements.peep == 30);
         REQUIRE(test_message.payload.value.cycle_measurements.ip == 10);
       }
-      THEN("The input buffer is unchanged after parse") {
-        REQUIRE(input_buffer == data);
-      }
+      THEN("The input buffer is unchanged after parse") { REQUIRE(input_buffer == data); }
     }
 
     // parameters
@@ -586,18 +538,14 @@ SCENARIO("Protocols::The Messages class correctly parses the input buffer and up
       THEN("The status of parse function returns ok") {
         REQUIRE(parse_status == PF::Protocols::MessageStatus::ok);
       }
-      THEN("The type field of message class is equal to 2") {
-        REQUIRE(test_message.type == 4);
-      }
+      THEN("The type field of message class is equal to 2") { REQUIRE(test_message.type == 4); }
       THEN("The message payload values are as expected") {
         REQUIRE(test_message.payload.tag == PF::Application::MessageTypes::parameters);
         REQUIRE(test_message.payload.value.parameters.vt == 45);
         REQUIRE(test_message.payload.value.parameters.ventilating == true);
         REQUIRE(test_message.payload.value.parameters.mode == VentilationMode_hfnc);
       }
-      THEN("The input buffer is unchanged after parse") {
-        REQUIRE(input_buffer == data);
-      }
+      THEN("The input buffer is unchanged after parse") { REQUIRE(input_buffer == data); }
     }
 
     // parameters request
@@ -611,18 +559,14 @@ SCENARIO("Protocols::The Messages class correctly parses the input buffer and up
       THEN("The status of parse function returns ok") {
         REQUIRE(parse_status == PF::Protocols::MessageStatus::ok);
       }
-      THEN("The type field of message class is equal to 2") {
-        REQUIRE(test_message.type == 5);
-      }
+      THEN("The type field of message class is equal to 2") { REQUIRE(test_message.type == 5); }
       THEN("The message payload values are as expected") {
         REQUIRE(test_message.payload.tag == PF::Application::MessageTypes::parameters_request);
         REQUIRE(test_message.payload.value.parameters_request.ie == 20);
         REQUIRE(test_message.payload.value.parameters_request.time == 0);
         REQUIRE(test_message.payload.value.parameters_request.ventilating == false);
       }
-      THEN("The input buffer is unchanged after parse") {
-        REQUIRE(input_buffer == data);
-      }
+      THEN("The input buffer is unchanged after parse") { REQUIRE(input_buffer == data); }
     }
 
     // alarm limits
@@ -635,9 +579,7 @@ SCENARIO("Protocols::The Messages class correctly parses the input buffer and up
       THEN("The status of parse function returns ok") {
         REQUIRE(parse_status == PF::Protocols::MessageStatus::ok);
       }
-      THEN("The type field of message class is equal to 2") {
-        REQUIRE(test_message.type == 6);
-      }
+      THEN("The type field of message class is equal to 2") { REQUIRE(test_message.type == 6); }
       THEN("The message payload values are as expected") {
         REQUIRE(test_message.payload.tag == PF::Application::MessageTypes::alarm_limits);
         REQUIRE(test_message.payload.value.alarm_limits.fio2.lower == 21);
@@ -659,9 +601,7 @@ SCENARIO("Protocols::The Messages class correctly parses the input buffer and up
       THEN("The status of parse function returns ok") {
         REQUIRE(parse_status == PF::Protocols::MessageStatus::ok);
       }
-      THEN("The type field of message class is equal to 2") {
-        REQUIRE(test_message.type == 7);
-      }
+      THEN("The type field of message class is equal to 2") { REQUIRE(test_message.type == 7); }
       THEN("The message payload values are as expected") {
         REQUIRE(test_message.payload.tag == PF::Application::MessageTypes::alarm_limits_request);
         REQUIRE(test_message.payload.value.alarm_limits.fio2.lower == 50);
@@ -675,8 +615,11 @@ SCENARIO("Protocols::The Messages class correctly parses the input buffer and up
   }
 }
 
-SCENARIO("Protocols::The Message class correctly writes to a buffer then parses from it", "[messages]") {
-  GIVEN("A Message object constructed with StateSegment Taggedunion and a payload of size 252 bytes") {
+SCENARIO(
+    "Protocols::The Message class correctly writes to a buffer then parses from it", "[messages]") {
+  GIVEN(
+      "A Message object constructed with StateSegment Taggedunion and a payload of size 252 "
+      "bytes") {
     constexpr size_t payload_max_size = 252UL;
     using TestMessage = PF::Protocols::Message<PF::Application::StateSegment, payload_max_size>;
     TestMessage test_message;
@@ -700,14 +643,11 @@ SCENARIO("Protocols::The Message class correctly writes to a buffer then parses 
       THEN("The status of write function should be ok") {
         REQUIRE(write_status == PF::Protocols::MessageStatus::ok);
       }
-      THEN("first byte in the output buffer is equal to the type") {
-        REQUIRE(buffer[0] == 0x05);
-      }
-      THEN("The type field of message class is equal to 5") {
-        REQUIRE(test_message.type == 5);
-      }
+      THEN("first byte in the output buffer is equal to the type") { REQUIRE(buffer[0] == 0x05); }
+      THEN("The type field of message class is equal to 5") { REQUIRE(test_message.type == 5); }
       THEN("The output buffer is as expected") {
-        auto expected = std::string("\x05\x10\x06\x45\x00\x00\x20\x42\x4D\x00\x00\x70\x42\x50\x01", 15);
+        auto expected =
+            std::string("\x05\x10\x06\x45\x00\x00\x20\x42\x4D\x00\x00\x70\x42\x50\x01", 15);
         REQUIRE(buffer == expected);
       }
 
@@ -722,11 +662,10 @@ SCENARIO("Protocols::The Message class correctly writes to a buffer then parses 
         REQUIRE(test_message.payload.value.parameters_request.fio2 == 40);
         REQUIRE(test_message.payload.value.parameters_request.flow == 60);
       }
-      THEN("The type field of message class is equal to 5") {
-        REQUIRE(test_message.type == 5);
-      }
+      THEN("The type field of message class is equal to 5") { REQUIRE(test_message.type == 5); }
       THEN("The input buffer is as expected") {
-        auto expected = std::string("\x05\x10\x06\x45\x00\x00\x20\x42\x4D\x00\x00\x70\x42\x50\x01", 15);
+        auto expected =
+            std::string("\x05\x10\x06\x45\x00\x00\x20\x42\x4D\x00\x00\x70\x42\x50\x01", 15);
         REQUIRE(buffer == expected);
       }
 
@@ -742,12 +681,8 @@ SCENARIO("Protocols::The Message class correctly writes to a buffer then parses 
       THEN("The status of write function should be ok") {
         REQUIRE(status == PF::Protocols::MessageStatus::ok);
       }
-      THEN("The type field of message class is equal to 2") {
-        REQUIRE(test_message.type == 2);
-      }
-      THEN("first byte in the output buffer is equal to the type") {
-        REQUIRE(buffer[0] == 0x02);
-      }
+      THEN("The type field of message class is equal to 2") { REQUIRE(test_message.type == 2); }
+      THEN("first byte in the output buffer is equal to the type") { REQUIRE(buffer[0] == 0x02); }
       THEN("The output buffer is as expected") {
         auto expected = std::string("\x02\x25\x00\x00\x20\x42\x3D\x00\x00\xA0\x42", 11);
         REQUIRE(buffer == expected);
@@ -756,7 +691,9 @@ SCENARIO("Protocols::The Message class correctly writes to a buffer then parses 
   }
 }
 
-SCENARIO("Protocols::The Message Receiver class correctly transforms messages into paylaods", "[messages]") {
+SCENARIO(
+    "Protocols::The Message Receiver class correctly transforms messages into paylaods",
+    "[messages]") {
   GIVEN("A MessageReceiver object is constructed with default parameters") {
     constexpr size_t payload_max_size = 252UL;
     using TestMessage = PF::Protocols::Message<PF::Application::StateSegment, payload_max_size>;
@@ -811,10 +748,10 @@ SCENARIO("Protocols::The Message Receiver class correctly transforms messages in
       constexpr auto message_descriptors = PF::Util::make_array<PF::Util::ProtobufDescriptor>(
           // array index should match the type code value
           PF::Util::get_protobuf_descriptor<PF::Util::UnrecognizedMessage>(),  // 0
-          PF::Util::get_protobuf_descriptor<ParametersRequest>(),             // 1
-          PF::Util::get_protobuf_descriptor<AlarmLimits>(),                  // 2
-          PF::Util::get_protobuf_descriptor<AlarmLimitsRequest>(),          // 3
-          PF::Util::get_protobuf_descriptor<Parameters>()                  // 4
+          PF::Util::get_protobuf_descriptor<ParametersRequest>(),              // 1
+          PF::Util::get_protobuf_descriptor<AlarmLimits>(),                    // 2
+          PF::Util::get_protobuf_descriptor<AlarmLimitsRequest>(),             // 3
+          PF::Util::get_protobuf_descriptor<Parameters>()                      // 4
       );
       constexpr size_t number_desc = 5;
       PF::Protocols::MessageReceiver<TestMessage, number_desc> receiver{message_descriptors};
@@ -856,9 +793,7 @@ SCENARIO("Protocols::The Message Receiver class correctly transforms messages in
         REQUIRE(test_message.payload.value.parameters.mode == VentilationMode_hfnc);
         REQUIRE(test_message.payload.value.parameters.ventilating == true);
       }
-      THEN("The type field of message class is equal to 4") {
-        REQUIRE(test_message.type == 4);
-      }
+      THEN("The type field of message class is equal to 4") { REQUIRE(test_message.type == 4); }
       THEN("The input buffer is unchanged after transform") {
         REQUIRE(input_buffer == exp_parameters);
       }
@@ -880,9 +815,7 @@ SCENARIO("Protocols::The Message Receiver class correctly transforms messages in
         REQUIRE(test_message.payload.value.sensor_measurements.fio2 == 85);
         REQUIRE(test_message.payload.value.sensor_measurements.spo2 == 72);
       }
-      THEN("The type field of message class is equal to 3") {
-        REQUIRE(test_message.type == 2);
-      }
+      THEN("The type field of message class is equal to 3") { REQUIRE(test_message.type == 2); }
       THEN("The input buffer is unchanged after transform") {
         REQUIRE(input_buffer == exp_sensor_measurements);
       }
@@ -903,9 +836,7 @@ SCENARIO("Protocols::The Message Receiver class correctly transforms messages in
         REQUIRE(test_message.payload.value.cycle_measurements.ve == 300);
         REQUIRE(test_message.payload.value.cycle_measurements.rr == 10);
       }
-      THEN("The type field of message class is equal to 3") {
-        REQUIRE(test_message.type == 3);
-      }
+      THEN("The type field of message class is equal to 3") { REQUIRE(test_message.type == 3); }
       THEN("The input buffer is unchanged after transform") {
         REQUIRE(input_buffer == exp_cycle_measurements);
       }
@@ -927,9 +858,7 @@ SCENARIO("Protocols::The Message Receiver class correctly transforms messages in
         REQUIRE(test_message.payload.value.parameters.mode == VentilationMode_hfnc);
         REQUIRE(test_message.payload.value.parameters.ventilating == true);
       }
-      THEN("The type field of message class is equal to 4") {
-        REQUIRE(test_message.type == 4);
-      }
+      THEN("The type field of message class is equal to 4") { REQUIRE(test_message.type == 4); }
       THEN("The input buffer is unchanged after transform") {
         REQUIRE(input_buffer == exp_parameters);
       }
@@ -951,9 +880,7 @@ SCENARIO("Protocols::The Message Receiver class correctly transforms messages in
         REQUIRE(test_message.payload.value.parameters_request.mode == VentilationMode_hfnc);
         REQUIRE(test_message.payload.value.parameters_request.ventilating == true);
       }
-      THEN("The type field of message class is equal to 5") {
-        REQUIRE(test_message.type == 5);
-      }
+      THEN("The type field of message class is equal to 5") { REQUIRE(test_message.type == 5); }
       THEN("The input buffer is unchanged after transform") {
         REQUIRE(input_buffer == exp_parameters_request);
       }
@@ -974,9 +901,7 @@ SCENARIO("Protocols::The Message Receiver class correctly transforms messages in
         REQUIRE(test_message.payload.value.alarm_limits.fio2.lower == 21);
         REQUIRE(test_message.payload.value.alarm_limits.fio2.upper == 100);
       }
-      THEN("The type field of message class is equal to 6") {
-        REQUIRE(test_message.type == 6);
-      }
+      THEN("The type field of message class is equal to 6") { REQUIRE(test_message.type == 6); }
       THEN("The input buffer is unchanged after transform") {
         REQUIRE(input_buffer == exp_alarm_limits);
       }
@@ -998,9 +923,7 @@ SCENARIO("Protocols::The Message Receiver class correctly transforms messages in
         REQUIRE(test_message.payload.value.alarm_limits_request.fio2.lower == 50);
         REQUIRE(test_message.payload.value.alarm_limits_request.fio2.upper == 92);
       }
-      THEN("The type field of message class is equal to 7") {
-        REQUIRE(test_message.type == 7);
-      }
+      THEN("The type field of message class is equal to 7") { REQUIRE(test_message.type == 7); }
       THEN("The input buffer is unchanged after transform") {
         REQUIRE(input_buffer == exp_alarm_limits_request);
       }
@@ -1008,7 +931,9 @@ SCENARIO("Protocols::The Message Receiver class correctly transforms messages in
   }
 }
 
-SCENARIO("Protocols::The Message Sender class correctly transforms payloads into messages", "[messages]") {
+SCENARIO(
+    "Protocols::The Message Sender class correctly transforms payloads into messages",
+    "[messages]") {
   GIVEN("A MessageSender object is constructed with default parameters") {
     constexpr size_t payload_max_size = 252UL;
     using TestMessage = PF::Protocols::Message<PF::Application::StateSegment, payload_max_size>;
@@ -1020,11 +945,9 @@ SCENARIO("Protocols::The Message Sender class correctly transforms payloads into
 
     WHEN("The message type value is greater than descriptor size") {
       constexpr size_t num_descriptors = 1;
-      constexpr auto message_descriptors =
-      PF::Util::make_array<PF::Util::ProtobufDescriptor>(
+      constexpr auto message_descriptors = PF::Util::make_array<PF::Util::ProtobufDescriptor>(
           // array index should match the type code value
-          PF::Util::get_protobuf_descriptor<PF::Util::UnrecognizedMessage>()
-      );
+          PF::Util::get_protobuf_descriptor<PF::Util::UnrecognizedMessage>());
 
       PF::Protocols::MessageSender<TestMessage, num_descriptors> sender{message_descriptors};
 
@@ -1077,9 +1000,7 @@ SCENARIO("Protocols::The Message Sender class correctly transforms payloads into
       THEN("first byte in the output buffer is equal to the type") {
         REQUIRE(output_buffer[0] == 0x02);
       }
-      THEN("The type field after write method is equal to 2") {
-        REQUIRE(test_message.type == 2);
-      }
+      THEN("The type field after write method is equal to 2") { REQUIRE(test_message.type == 2); }
       THEN("The output buffer is as expected") {
         REQUIRE(output_buffer == exp_sensor_measurements);
       }
@@ -1102,12 +1023,8 @@ SCENARIO("Protocols::The Message Sender class correctly transforms payloads into
       THEN("first byte in the output buffer is equal to the type") {
         REQUIRE(output_buffer[0] == 0x03);
       }
-      THEN("The type field after write method is equal to 3") {
-        REQUIRE(test_message.type == 3);
-      }
-      THEN("The output buffer is as expected") {
-        REQUIRE(output_buffer == exp_cycle_measurements);
-      }
+      THEN("The type field after write method is equal to 3") { REQUIRE(test_message.type == 3); }
+      THEN("The output buffer is as expected") { REQUIRE(output_buffer == exp_cycle_measurements); }
     }
 
     // parameters
@@ -1127,12 +1044,8 @@ SCENARIO("Protocols::The Message Sender class correctly transforms payloads into
       THEN("first byte in the output buffer is equal to the type") {
         REQUIRE(output_buffer[0] == 0x04);
       }
-      THEN("The type field after write method is equal to 4") {
-        REQUIRE(test_message.type == 4);
-      }
-      THEN("The output buffer is as expected") {
-        REQUIRE(output_buffer == exp_parameters);
-      }
+      THEN("The type field after write method is equal to 4") { REQUIRE(test_message.type == 4); }
+      THEN("The output buffer is as expected") { REQUIRE(output_buffer == exp_parameters); }
     }
 
     // parameters request
@@ -1153,15 +1066,11 @@ SCENARIO("Protocols::The Message Sender class correctly transforms payloads into
       THEN("first byte in the output buffer is equal to the type") {
         REQUIRE(output_buffer[0] == 0x05);
       }
-      THEN("The type field after write method is equal to 5") {
-        REQUIRE(test_message.type == 5);
-      }
-      THEN("The output buffer is as expected") {
-        REQUIRE(output_buffer == exp_parameters_request);
-      }
+      THEN("The type field after write method is equal to 5") { REQUIRE(test_message.type == 5); }
+      THEN("The output buffer is as expected") { REQUIRE(output_buffer == exp_parameters_request); }
     }
 
-    // alarm limits  
+    // alarm limits
     WHEN("The alarm limits data from the message is written to the buffer") {
       AlarmLimits alarm_limits = {};
       Range range = {};
@@ -1179,12 +1088,8 @@ SCENARIO("Protocols::The Message Sender class correctly transforms payloads into
       THEN("first byte in the output buffer is equal to the type") {
         REQUIRE(output_buffer[0] == 0x06);
       }
-      THEN("The type field after write method is equal to 6") {
-        REQUIRE(test_message.type == 6);
-      }
-      THEN("The output buffer is as expected") {
-        REQUIRE(output_buffer == exp_alarm_limits);
-      }
+      THEN("The type field after write method is equal to 6") { REQUIRE(test_message.type == 6); }
+      THEN("The output buffer is as expected") { REQUIRE(output_buffer == exp_alarm_limits); }
     }
 
     // alarm limits request
@@ -1205,9 +1110,7 @@ SCENARIO("Protocols::The Message Sender class correctly transforms payloads into
       THEN("first byte in the output buffer is equal to the type") {
         REQUIRE(output_buffer[0] == 0x07);
       }
-      THEN("The type field after write method is equal to 7") {
-        REQUIRE(test_message.type == 7);
-      }
+      THEN("The type field after write method is equal to 7") { REQUIRE(test_message.type == 7); }
       THEN("The output buffer is as expected") {
         REQUIRE(output_buffer == exp_alarm_limits_request);
       }

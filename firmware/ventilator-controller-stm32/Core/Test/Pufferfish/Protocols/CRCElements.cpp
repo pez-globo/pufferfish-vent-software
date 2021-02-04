@@ -17,8 +17,6 @@
 #include "Pufferfish/Util/Array.h"
 #include "Pufferfish/Util/Endian.h"
 #include "catch2/catch.hpp"
-
-#include <iostream>
 namespace PF = Pufferfish;
 
 constexpr size_t buffer_size = 254UL;
@@ -27,7 +25,9 @@ using TestCRCElement = PF::Protocols::CRCElement<TestCRCElementProps::PayloadBuf
 using TestCRCElementHeaderProps = PF::Protocols::CRCElementHeaderProps;
 PF::HAL::SoftCRC32 crc32c{PF::HAL::crc32c_params};
 
-SCENARIO("Protocols::CRCElement: The compute_body_crc function correctly computes crc from body", "[CRCElement]") {
+SCENARIO(
+    "Protocols::CRCElement: The compute_body_crc function correctly computes crc from body",
+    "[CRCElement]") {
   GIVEN("A CRC element initialized with an empty payload") {
     TestCRCElementProps::PayloadBuffer input_payload;
 
@@ -40,7 +40,7 @@ SCENARIO("Protocols::CRCElement: The compute_body_crc function correctly compute
       TestCRCElementProps::PayloadBuffer output_payload;
       output_payload.resize(TestCRCElementHeaderProps::header_size + input_payload.size());
       output_payload.copy_from(
-        input_payload.buffer(), input_payload.size(), TestCRCElementHeaderProps::payload_offset);
+          input_payload.buffer(), input_payload.size(), TestCRCElementHeaderProps::payload_offset);
 
       auto computed_crc = crc_element.compute_body_crc(output_payload, crc32c);
 
@@ -66,7 +66,7 @@ SCENARIO("Protocols::CRCElement: The compute_body_crc function correctly compute
       TestCRCElementProps::PayloadBuffer output_payload;
       output_payload.resize(TestCRCElementHeaderProps::header_size + input_payload.size());
       output_payload.copy_from(
-        input_payload.buffer(), input_payload.size(), TestCRCElementHeaderProps::payload_offset);
+          input_payload.buffer(), input_payload.size(), TestCRCElementHeaderProps::payload_offset);
 
       auto computed_crc = crc_element.compute_body_crc(output_payload, crc32c);
 
@@ -90,7 +90,7 @@ SCENARIO("Protocols::CRCElement: The compute_body_crc function correctly compute
 
       output_payload.resize(TestCRCElementHeaderProps::header_size + input_payload.size());
       output_payload.copy_from(
-        input_payload.buffer(), input_payload.size(), TestCRCElementHeaderProps::payload_offset);
+          input_payload.buffer(), input_payload.size(), TestCRCElementHeaderProps::payload_offset);
 
       auto computed_crc = crc_element.compute_body_crc(output_payload, crc32c);
 
@@ -114,7 +114,7 @@ SCENARIO("Protocols::CRCElement: The compute_body_crc function correctly compute
 
       output_payload.resize(TestCRCElementHeaderProps::header_size + input_payload.size());
       output_payload.copy_from(
-        input_payload.buffer(), input_payload.size(), TestCRCElementHeaderProps::payload_offset);
+          input_payload.buffer(), input_payload.size(), TestCRCElementHeaderProps::payload_offset);
 
       auto computed_crc = crc_element.compute_body_crc(output_payload, crc32c);
 
@@ -125,7 +125,10 @@ SCENARIO("Protocols::CRCElement: The compute_body_crc function correctly compute
   }
 }
 
-SCENARIO("Protocols::CRCElement: The write function correctly generates body from computed crc and payload", "[CRCElement]") {
+SCENARIO(
+    "Protocols::CRCElement: The write function correctly generates body from computed crc and "
+    "payload",
+    "[CRCElement]") {
   GIVEN("A crc element initalised with payload=[0x01, 0x02, 0x05]") {
     TestCRCElementProps::PayloadBuffer input_payload;
     auto data = PF::Util::make_array<uint8_t>(0x01, 0x02, 0x05);
@@ -135,7 +138,6 @@ SCENARIO("Protocols::CRCElement: The write function correctly generates body fro
 
     TestCRCElement crc_element{input_payload};
     WHEN("The crc and payload are written to the output buffer") {
-
       TestCRCElementProps::PayloadBuffer output_buffer;
       auto expected = std::string("\xD7\x91\x15\xF6\x01\x02\x05");
 
@@ -147,9 +149,7 @@ SCENARIO("Protocols::CRCElement: The write function correctly generates body fro
         REQUIRE(crc_element.crc() == crc_compute);
       }
 
-      THEN("The output buffer is as expected") {
-        REQUIRE(output_buffer == expected);
-      }
+      THEN("The output buffer is as expected") { REQUIRE(output_buffer == expected); }
     }
   }
 
@@ -163,13 +163,11 @@ SCENARIO("Protocols::CRCElement: The write function correctly generates body fro
 
       auto write_status = crc_element.write(output_buffer, crc32c);
       auto crc_payload = crc_element.crc();
-      THEN("CRC is equal to 0") {
-        REQUIRE(crc_payload == 0);
-      }
+      THEN("CRC is equal to 0") { REQUIRE(crc_payload == 0); }
       THEN("The output buffer is as expected") {
         PF::Util::ByteVector<buffer_size> expected_buffer;
         auto input_data = PF::Util::make_array<uint8_t>(0x00, 0x00, 0x00, 0x00);
-        for (auto& data: input_data) {
+        for (auto& data : input_data) {
           expected_buffer.push_back(data);
         }
         REQUIRE(output_buffer == expected_buffer);
@@ -178,7 +176,10 @@ SCENARIO("Protocols::CRCElement: The write function correctly generates body fro
   }
 }
 
-SCENARIO("Protocols::CRCElement: The parse function correctly updates internal crc and payload fields from the input buffer", "[CRCElement]") {
+SCENARIO(
+    "Protocols::CRCElement: The parse function correctly updates internal crc and payload fields "
+    "from the input buffer",
+    "[CRCElement]") {
   GIVEN("A CRC Element initialized with an empty payload buffer with a capacity of 254 bytes") {
     constexpr size_t buffer_size = 254UL;
     using TestCRCElementProps = PF::Protocols::CRCElementProps<buffer_size>;
@@ -201,11 +202,9 @@ SCENARIO("Protocols::CRCElement: The parse function correctly updates internal c
 
       auto parse_status = crc_element.parse(input_buffer);
       auto crc_check = crc_element.crc();
-      const auto &payload_check = crc_element.payload();
+      const auto& payload_check = crc_element.payload();
 
-      THEN("the parse status should be ok") {
-        REQUIRE(parse_status == PF::IndexStatus::ok);
-      }
+      THEN("the parse status should be ok") { REQUIRE(parse_status == PF::IndexStatus::ok); }
 
       THEN("crc from the CRCElement is equal to the expected crc for the given payload") {
         REQUIRE(crc_check == expected_crc);
@@ -244,9 +243,7 @@ SCENARIO("Protocols::CRCElement: The parse function correctly updates internal c
 
       auto payload_check = crc_element.payload();
 
-      THEN("the parse status is ok") {
-        REQUIRE(parse_status == PF::IndexStatus::ok);
-      }
+      THEN("the parse status is ok") { REQUIRE(parse_status == PF::IndexStatus::ok); }
       THEN("The crc from the CRCElement is equal to the crc in the body/input_buffer") {
         uint32_t crc_body = 0x12345678;
         REQUIRE(crc_check == crc_body);
@@ -298,7 +295,7 @@ SCENARIO("Protocols::CRCElement: The crc element correctly writes and parses to 
         auto expected_buffer = std::string("\x98\xDB\xE3\x55\x01\x05\x01\x02\x03\x04\x05");
         REQUIRE(output_buffer == expected_buffer);
       }
-      
+
       auto parse_status = crc_element.parse(output_buffer);
       THEN("The status of parse function returns ok") {
         REQUIRE(parse_status == PF::IndexStatus::ok);
@@ -315,7 +312,10 @@ SCENARIO("Protocols::CRCElement: The crc element correctly writes and parses to 
   }
 }
 
-SCENARIO("Protocols::CRCElementReceiver: The crc element receiver correctly parses datagrams into payloads", "[CRCElementReceiver]") {
+SCENARIO(
+    "Protocols::CRCElementReceiver: The crc element receiver correctly parses datagrams into "
+    "payloads",
+    "[CRCElementReceiver]") {
   GIVEN("A CRC element receiver") {
     constexpr size_t buffer_size = 254UL;
     using TestCRCElementProps = PF::Protocols::CRCElementProps<buffer_size>;
@@ -348,7 +348,9 @@ SCENARIO("Protocols::CRCElementReceiver: The crc element receiver correctly pars
         REQUIRE(crc_element.crc() == expected_crc);
       }
 
-      THEN("the payload in the output crc element is equal to the payload given in the input_buffer") {
+      THEN(
+          "the payload in the output crc element is equal to the payload given in the "
+          "input_buffer") {
         REQUIRE(payload == expected_payload);
       }
     }
@@ -367,12 +369,12 @@ SCENARIO("Protocols::CRCElementReceiver: The crc element receiver correctly pars
         REQUIRE(transform_status == TestCRCElementReceiver::Status::invalid_parse);
       }
 
-      THEN("The crc from crc element is equal to 0") {
-        REQUIRE(crc_element.crc() == expected_crc);
-      }
+      THEN("The crc from crc element is equal to 0") { REQUIRE(crc_element.crc() == expected_crc); }
     }
 
-    WHEN("The CRC stored in the input body is inconsistent with the payload stored in the input body") {
+    WHEN(
+        "The CRC stored in the input body is inconsistent with the payload stored in the input "
+        "body") {
       auto body = std::string("\x12\x34\x56\x78\x01\x05\x01\x02\x03\x04\x05", 11);
       PF::Util::ByteVector<buffer_size> input_buffer;
       PF::Util::convertStringToByteVector(body, input_buffer);
@@ -392,7 +394,10 @@ SCENARIO("Protocols::CRCElementReceiver: The crc element receiver correctly pars
   }
 }
 
-SCENARIO("Protocols::CRCElementSender: The crc element receiver correctly generates datagrams from payload", "[CRCElementSender]") {
+SCENARIO(
+    "Protocols::CRCElementSender: The crc element receiver correctly generates datagrams from "
+    "payload",
+    "[CRCElementSender]") {
   GIVEN("A CRC element sender of buffer size 254 bytes") {
     constexpr size_t buffer_size = 254UL;
     using TestCRCElementProps = PF::Protocols::CRCElementProps<buffer_size>;
