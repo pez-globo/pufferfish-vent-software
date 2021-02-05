@@ -47,11 +47,6 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "TestCatch2")
     set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -O0")
     set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fno-inline -fno-inline-small-functions -fno-default-inline")
 
-    # Some ARM header files give conversion errors from 32-bit to 64-bit
-    # TODO: Need t figure out how to enable this for a small section of code
-    # instead of for the whole project
-    set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fpermissive")
-
     setup_target_for_coverage_lcov(
         NAME ${CMAKE_BUILD_TYPE}_coverage
         EXECUTABLE ${CMAKE_BUILD_TYPE}
