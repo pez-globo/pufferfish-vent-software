@@ -1,0 +1,103 @@
+/* chunks
+
+Scenario: ChunkSplitter behaves correctly across chunk boundary(102 bytes)
+
+  GIVEN("A char chunk splitter with internal buffer equal to 102 bytes")
+    WHEN("the input data exceeds bounds after output is called, without delimiter")
+        THEN("the input status is equal to ok")
+      THEN("the output status is equal to waiting")
+      THEN("the output buffer is empty")
+      THEN("the final input status is equal to invalid_length")
+
+Scenario: ChunkSplitter behaves correctly across chunk boundary(256 bytes)
+
+  GIVEN("A uint8_t chunk splitter of internal buffer equal to 256 bytes")
+    WHEN("enough data is input to exactly fill the buffer of the splitter")
+        THEN("the input status is equal to ok")
+
+  GIVEN("A chunk splitter of buffer size equal to 256 bytes, that is filled with input data")
+    WHEN("the input data exceeds bounds without output being called")
+        THEN("the input status is equal to ok")
+        THEN("the final input status is equal to invalid_length")
+
+  GIVEN("A chunk splitter of buffer size equal to 256 bytes, that is filled with input data")
+    WHEN("the input data exceeds bounds after output is called, without delimiter")
+        THEN("the input status is equal to ok")
+      THEN("the output status is equal to waiting")
+      THEN("the final input status is equal to invalid_length")
+
+  GIVEN("A chunk splitter of buffer size equal to 256 bytes, that is filled with input data")
+    WHEN("Another byte is given as input")
+      THEN("the final input status should be invalid_length")
+
+    WHEN("output is called after the input status returns invalid length")
+      THEN("the output status is equal to invalid_length")
+
+    WHEN("the input receives delimeter")
+      THEN("input status is equal to output_ready")
+      THEN("the output status is equal to ok")
+      THEN("the final input status is equal to ok")
+
+  GIVEN("A chunk splitter of buffer size equal to 256 bytes, that is filled completely with input data")
+    WHEN("delimeter is passed after the buffer is full")
+        THEN("the initial status is equal to ok")
+      THEN("the final input status is equal to output ready")
+
+  GIVEN("A uint8_t chunk splitter with internal buffer of 256 bytes, with delimeter equal to 0x01")
+    WHEN("output is called after input status is ok")
+      THEN("the output status is equal to waiting")
+
+    WHEN("input receives delimeter equal to 1 byte")
+      THEN("the output status is equal to ok")
+      THEN("the input status shall be output ready")
+
+  GIVEN("A uint8_t chunk splitter with internal buffer of 256 bytes, with delimeter equal to 255 bytes")
+    WHEN("output is called after input status is ok")
+      THEN("the output status is equal to waiting")
+    WHEN("input receives delimeter equal to 1 byte")
+      THEN("the input status shall be output ready")
+      THEN("the output status is equal to ok")
+
+  GIVEN("A uint8_t chunk splitter with internal buffer of 256 bytes, with include_delimeter bool equal to true")
+    WHEN("output is called after input status is ok")
+      THEN("the output status is equal to waiting")
+    WHEN("input receives delimeter equal to 1 byte")
+      THEN("the input status shall be invalid length")
+      THEN("the output status is equal to invalid length")
+
+  GIVEN("A chunk splitter of buffer size equal to 256 bytes, that is filled with input data")
+    WHEN("The output is called after input of 3 chunks")
+        THEN("the initial status is equal to ok")
+        THEN("the initial status is equal to ok")
+        THEN("the initial status is equal to ok")
+      THEN("the output status is equal to waiting")
+
+
+/* ChunkMerger
+
+Scenario: Protocols::ChunkMerger behaves correctly
+
+  GIVEN("A chunk merger of internal buffer size equal to 30 bytes") {
+    WHEN("the input data given is within bounds")
+        THEN("the input status should be ok")
+      THEN("the final status should be ok")
+
+  GIVEN("A chunk merger of internal buffer size equal to 256 bytes") {
+    WHEN("The output buffer cannot hold enough data") {
+      THEN("the transform status should be invalid_length") {
+
+    WHEN("The buffer is available, delimeter is added to the buffer") {
+      // input
+      THEN("the input status should be ok")
+      // transform
+      THEN("the transform status should be ok") {
+      // delimeter
+      THEN("the input status should be ok")
+      // transform
+      THEN("the final transform status should be ok")
+
+    WHEN("The buffer is full, delimeter is not added to the buffer") {
+      // first input
+      THEN("the input status should be ok")
+      // delimeter
+      THEN("the final status should be out of bounds") {

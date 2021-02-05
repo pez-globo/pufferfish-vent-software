@@ -326,7 +326,7 @@ SCENARIO("Protocols::ChunkMerger behaves correctly", "[chunks]") {
       PF::IndexStatus index_status;
       for (size_t i = 0; i < buffer_size - 1; ++i) {
         index_status = buffer.push_back(val);
-        THEN("the index status should be ok") { REQUIRE(index_status == PF::IndexStatus::ok); }
+        THEN("the input status should be ok") { REQUIRE(index_status == PF::IndexStatus::ok); }
       }
       PF::Protocols::ChunkOutputStatus status = chunks.transform<buffer_size, char>(buffer);
 
@@ -346,7 +346,7 @@ SCENARIO("Protocols::ChunkMerger behaves correctly", "[chunks]") {
       PF::IndexStatus index_status;
       for (size_t i = 0; i < buffer_size; ++i) {
         index_status = buffer.push_back(val);
-        THEN("the index status should be ok") { REQUIRE(index_status == PF::IndexStatus::ok); }
+        THEN("the input status should be ok") { REQUIRE(index_status == PF::IndexStatus::ok); }
       }
       PF::Protocols::ChunkOutputStatus status = chunks.transform<buffer_size, uint8_t>(buffer);
 
@@ -361,20 +361,20 @@ SCENARIO("Protocols::ChunkMerger behaves correctly", "[chunks]") {
       PF::IndexStatus index_status;
       for (size_t i = 0; i < buffer_size - 4; ++i) {
         index_status = buffer.push_back(val);
-        THEN("the index status should be ok") { REQUIRE(index_status == PF::IndexStatus::ok); }
+        THEN("the input status should be ok") { REQUIRE(index_status == PF::IndexStatus::ok); }
       }
 
       PF::Protocols::ChunkOutputStatus status = chunks.transform<buffer_size, uint8_t>(buffer);
-      THEN("the final status should be ok") {
+      THEN("the transform status should be ok") {
         REQUIRE(status == PF::Protocols::ChunkOutputStatus::ok);
       }
 
       index_status = buffer.push_back(0);
-      THEN("the final status should be ok") { REQUIRE(index_status == PF::IndexStatus::ok); }
+      THEN("the input status should be ok") { REQUIRE(index_status == PF::IndexStatus::ok); }
       PF::Protocols::ChunkOutputStatus transform_status =
           chunks.transform<buffer_size, uint8_t>(buffer);
 
-      THEN("the final status should be ok") {
+      THEN("the final transform status should be ok") {
         REQUIRE(transform_status == PF::Protocols::ChunkOutputStatus::ok);
       }
     }
@@ -385,13 +385,13 @@ SCENARIO("Protocols::ChunkMerger behaves correctly", "[chunks]") {
       PF::IndexStatus index_status;
       for (size_t i = 0; i < buffer_size; ++i) {
         index_status = buffer.push_back(val);
-        THEN("the index status should be ok") { REQUIRE(index_status == PF::IndexStatus::ok); }
+        THEN("the input status should be ok") { REQUIRE(index_status == PF::IndexStatus::ok); }
       }
 
       PF::Protocols::ChunkOutputStatus status = chunks.transform<buffer_size, uint8_t>(buffer);
 
       index_status = buffer.push_back(0);
-      THEN("the final status should be ok") {
+      THEN("the final status should be out of bounds") {
         REQUIRE(index_status == PF::IndexStatus::out_of_bounds);
       }
     }
