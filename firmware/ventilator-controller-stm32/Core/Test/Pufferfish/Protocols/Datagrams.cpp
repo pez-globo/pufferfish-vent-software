@@ -68,6 +68,27 @@ SCENARIO(
         REQUIRE(output_buffer == expected_buffer);
       }
     }
+
+    WHEN("The payload is altered after datagram initalisation") {
+      input_payload.push_back(0x02);
+
+      PF::Util::ByteVector<buffer_size> output_buffer;
+
+      auto write_status = datagram.write(output_buffer);
+      THEN("The write status is equal to ok") { REQUIRE(write_status == PF::IndexStatus::ok); }
+      THEN("The length of output buffer payload is equal to input payload length") {
+        REQUIRE(datagram.length() == 6);
+      }
+      THEN("The payload of datagran is equal to as expected") {
+        auto expected = std::string("\x01\x02\x03\x04\x05\x02", 6);
+        REQUIRE(datagram.payload() == expected);
+      }
+      THEN("output datagram sequence is equal to 0") { REQUIRE(datagram.seq() == 0); }
+      THEN("The output buffer is as expected") {
+        auto expected_buffer = std::string("\x00\x06\x01\x02\x03\x04\x05\x02", 8);
+        REQUIRE(output_buffer == expected_buffer);
+      }
+    }
   }
 
   GIVEN("A Datagram with internal payload and non-zero sequence") {
@@ -216,6 +237,36 @@ SCENARIO(
       THEN("The sequence of datagram is equal to sequence in the input buffer") {
         REQUIRE(datagram.seq() == 1);
       }
+      THEN("The input buffer is unchanged after parse") {
+        REQUIRE(input_buffer == body);
+      }
+    }
+
+    WHEN("The internal payload of the datagram is changed after parse") {
+      auto body = std::string("\x01\x05\x11\x12\x13\x14\x15", 7);
+      PF::Util::ByteVector<buffer_size> input_buffer;
+      PF::Util::convertStringToByteVector(body, input_buffer);
+
+      auto parse_status = datagram.parse(input_buffer);
+
+      payload.push_back(0x16);
+
+      THEN("The parse status is equal to ok") { REQUIRE(parse_status == PF::IndexStatus::ok); }
+      THEN("The payload of datagram changes after parse method is called") {
+        auto expected_payload = std::string("\x11\x12\x13\x14\x15\x16", 6);
+        REQUIRE(datagram.payload() == expected_payload);
+      }
+      THEN(
+          "The length of the datagram is equal to the length of the payload from the input "
+          "buffer") {
+        REQUIRE(datagram.length() == 5);
+      }
+      THEN("The sequence of datagram is equal to sequence in the input buffer") {
+        REQUIRE(datagram.seq() == 1);
+      }
+      THEN("The input buffer is unchanged after parse") {
+        REQUIRE(input_buffer == body);
+      }
     }
 
     WHEN("An input buffer of 0 payload and length is parsed") {
@@ -239,6 +290,10 @@ SCENARIO(
       }
       THEN("The sequence of datagram is equal to sequence in the input buffer") {
         REQUIRE(datagram.seq() == 4);
+      }
+      THEN("The input buffer is unchanged after parse") {
+        auto initial_buffer = std::string("\x04\x00\x00", 3);
+        REQUIRE(input_buffer == initial_buffer);
       }
     }
 

@@ -14,6 +14,13 @@ Scenario: The write function correctly writes sequence, length and payload to th
       THEN("output datagram sequence is equal to 0")
       THEN("The output buffer is as expected")
 
+    WHEN("The payload is altered after datagram initalisation")
+      THEN("The write status is equal to ok")
+      THEN("The length of output buffer payload is equal to input payload length")
+      THEN("The payload of datagran is equal to as expected")
+      THEN("output datagram sequence is equal to 0")
+      THEN("The output buffer is as expected")
+
   GIVEN("A Datagram with internal payload and non-zero sequence")
     WHEN("The datagram is written to the output buffer")
       THEN("The write status is equal to ok")
@@ -49,6 +56,14 @@ Scenario: The parse function correctly updates internal length, sequence and pay
       THEN("The payload of the datagram is equal to the payload from the input buffer")
       THEN("The length of the datagram is equal to the length of the payload from the input buffer")
       THEN("The sequence of datagram is equal to sequence in the input buffer")
+      THEN("The input buffer is unchanged after parse")
+
+    WHEN("The internal payload of the datagram is changed after parse")
+      THEN("The parse status is equal to ok")
+      THEN("The payload of datagram changes after parse method is called") {
+      THEN("The length of the datagram is equal to the length of the payload from the input buffer")
+      THEN("The sequence of datagram is equal to sequence in the input buffer")
+      THEN("The input buffer is unchanged after parse")
 
     WHEN("An input buffer of 0 payload and length is parsed")
       THEN("The parse status is equal to ok")
