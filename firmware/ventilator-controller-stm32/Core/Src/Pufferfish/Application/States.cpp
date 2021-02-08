@@ -54,6 +54,10 @@ const ParametersRequest &States::parameters_request() const {
   return state_segments_.parameters_request;
 }
 
+const AlarmLimitsRequest &States::alarm_limits_request() const {
+  return state_segments_.alarm_limits_request;
+}
+
 Parameters &States::parameters() {
   return state_segments_.parameters;
 }
