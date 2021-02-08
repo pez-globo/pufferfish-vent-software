@@ -1,0 +1,67 @@
+Scenario: The States input method correctly updates the internal state_segment field
+  GIVEN("A StateSynchronizer object constructed with an output schedule array of multiple message types")
+
+    WHEN("the current time is passed")
+      THEN("the input status should be ok")
+
+    WHEN("The tag of the input StateSegment is equal to parameters request")
+      THEN("The input status returns ok")
+      // assertion
+      THEN("The statesegment field values are updated")
+
+    WHEN("The tag of the input StateSegment is equal to alarm limits request")
+      THEN("The input status returns ok")
+      // assertion
+      THEN("The statesegment field values are updated")
+
+    WHEN("The input StateSegment is uninitalised")
+      THEN("input status returns invalid type")
+
+    WHEN("The tag of the input StateSegment is invalid") // not equal to parameters_req or alarm_limits_req
+      THEN("input status returns invalid type")
+
+Scenario: The States output method correctly updates output StateSegment tag and field parameters
+  GIVEN("A StateSynchronizer object constructed with an output schedule array of single message type")
+   // array = 0 - parameters_req, 1 - parameters_req
+
+    /* 1st test
+    WHEN("The current time is greater than output state scheduler delay")
+      THEN("The input time status should be ok") // current_time = 0, given_time = 10 , 0' index delay = 5
+      THEN("The input segment status should be ok") // parameters_req
+      THEN("The ouptut status should be available")
+      // assertion
+      THEN("The tag of the output StateSegment object is equal to parameters_request")
+      THEN("The output StateSegment fields are set")
+
+    AND_WHEN("The current time is less than the second schedule entry delay") // current_time = 10, given_time = 10, 1st index delay = 6
+      THEN("The ouptut status should be waiting")
+      // assertion
+      THEN("The tag of the output StateSegment object is equal to parameters_request")
+
+    AND_WHEN("The current time is greater than the new delay") // current_time = 10, given_time = 16 , delay = 6
+      THEN("The output status should be available")
+      // assertion
+      THEN("The tag of the output StateSegment object is equal to parameters_request")
+
+    /* 2nd test
+  GIVEN("A StateSynchronizer object constructed with an output schedule array of multiple message types")
+    // array = 0 - parameters_req, 1 - alarm_limits_req
+
+    WHEN("The current time is greater than output state scheduler delay")
+      THEN("The input time status should be ok") // current_time = 0, given_time = 1 , 0 index delay = 1
+      THEN("The input segment status should be ok") // parameters_req
+      THEN("The ouptut status should be available")
+      // assertion
+      THEN("The tag of the output StateSegment object is equal to parameters_request")
+      THEN("The output StateSegment fields are set")
+
+    AND_WHEN("The current time is less than the second schedule entry delay") // current_time = 1, given_time = 2, 1st index delay = 2
+      THEN("The ouptut status should be waiting")
+      // assertion
+      THEN("The tag of the output StateSegment object is equal to parameters_request")
+
+    AND_WHEN("The current time is greater than the new delay") // current_time = 2, given_time = 4 , 1st index delay = 2
+      THEN("The output status should be available")
+      // assertion
+      THEN("The tag of the output StateSegment object is equal to alarm_limits_request")
+      THEN("The output StateSegment fields are 0")
