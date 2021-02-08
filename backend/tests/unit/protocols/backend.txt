@@ -51,41 +51,41 @@ Then: has_data function returns true
 #ReceiveFilter
 
 Scenario: The receive filter's output correctly reports whether it has data
-Given: a ReceiveFilter object which has not yet received any events
+Given: a ReceiveFilter object constructed with default parameters
 When: a receive event with no data is passed as input to the receive filter
 Then: the output of the receive filter is None
 
 Scenario: The receive filter's output correctly reports whether it has data
-Given: A ReceiveEvent object constructed with values for the time and mcu parameter
-When: the object is given as input to the filter
+Given: A ReceiveFilter object constructed with default parameters
+When: A ReceiveEvent object constructed with values for the time and mcu parameter is given as input to the ReceiveFilter object
 Then: output of receive filter is not None
 
 Scenario: The receive filter's output correctly reports whether it has data
-Given: A ReceiveEvent object constructed with values for the time, mcu and frontend parameter
-When: the object is given as input to the filter
+Given: A ReceiveFilter object constructed with default parameters
+When: A ReceiveEvent object constructed with values for the time, mcu and frontend parameter is given as input to the ReceiveFilter object
 Then: output of receive filter is not None
 
 Scenario: The receive filter's output correctly reports whether it has data
-Given: A ReceiveEvent object constructed with values for the time, mcu, frontend and file parameter
-When: the object is given as input to the filter
+Given: A ReceiveFilter object constructed with default parameters
+When: A ReceiveEvent object constructed with values for the time, mcu, frontend and file parameter is given as input to the ReceiveFilter object
 Then: output of receive filter is not None
 
 
 #SendFilter
 
 Scenario : The send filter's output correctly reports whether it has data
-Given: A OutputEvent object constructed with default parameters
-When: The object is not modified and given as input to the send_filter
+Given: A SendFilter object constructed with default parameters
+When: A OutputEvent object constructed with default parameters is given as input to the SendFilter object
 Then: output of send filter is None
 
 Scenario : The send filter's output correctly reports whether it has data
-Given: A Announcement object is constructed with values for the message parameter
-When: the object is given as input to the send_filter
+Given: A SendFilter object constructed with default parameters
+When: A Announcement object is constructed with values for the message parameter is given as input to the SendFilter object
 Then: output of send filter is not None
 
 Scenario : The send filter's output correctly reports whether it has data
-Given: A OutputEvent object constructed with a value for the mcu parameter
-When: the object is given as input to the send_filter
+Given: A SendFilter object constructed with default parameters
+When: A OutputEvent object constructed with a value for the mcu parameter is given as input to the SendFilter object
 Then: output of send filter is not None
 
 #Protocols

@@ -19,32 +19,57 @@ Then: has_data function returns true
 
 Scenario: The server sends output event properly and reports whether event has data
 Given: A SendOutputEvent object is constructed with default parameters
-When: The data is sent via serial
+When: The data in the form of bytes for the serial_send parameter is passed to the function
+Then: has_data function returns true
+
+Scenario: The server sends output event properly and reports whether event has data
+Given: A SendOutputEvent object is constructed with default parameters
+When: The data in the form of bytes for the websocket_send parameter is passed to the function
+Then: has_data function returns true
+
+Scenario: The server sends output event properly and reports whether event has data
+Given: A SendOutputEvent object is constructed with default parameters
+When: A tuple of (string, bytes) for the file_send parameter is passed to the function
 Then: has_data function returns true
 
 Scenario: The make_serial_receive function creates a ReceiveEvent object correctly
 Given: The make_serial_receive function
-When: The data received from serial is given to the function
+When: The data in the form of bytes is passed to the function
 Then: A event of type ReceiveEvent is obtained with data received from serial
 
 Scenario: The make_websocket_receive function creates a ReceiveEvent object correctly
 Given: The make_websocket_receive function
-When: The data received from websocket is given to the function
+When: The data in the form of bytes is passed to the function
 Then: A event of type ReceiveEvent is obtained with data received from websocket
 
 Scenario: The make_rotary_encoder_receive function creates a ReceiveEvent object correctly
 Given: The make_rotary_encoder_receive function
-When: The data received from rotary encoder is given to the function
+When: The data passed to the function is a tuple of 2 elements (int, bool)
 Then: A event of type ReceiveEvent is obtained with data received from rotary encoder
 
 # Filters
 
 Scenario: The receive filter properly transforms input data into an OutputEvent with data
-Given: A ReceiveEvent object constructed with data received from serial, websocket, rotary and file
-When: The object is given as input to the filter
+Given: A ReceiveFilter object is constructed with default parameters
+When: A ReceiveEvent object constructed with new values for serial_receive parameter is given as input to the ReceiveFilter object
+Then: The output of the filter is a event of type ReceiveOutputEvent with data
+
+Scenario: The receive filter properly transforms input data into an OutputEvent with data
+Given: A ReceiveFilter object is constructed with default parameters
+When: A ReceiveEvent object constructed with new values for websocket_receive parameter is given as input to the ReceiveFilter object
+Then: The output of the filter is a event of type ReceiveOutputEvent with data
+
+Scenario: The receive filter properly transforms input data into an OutputEvent with data
+Given: A ReceiveFilter object is constructed with default parameters
+When: A ReceiveEvent object constructed with new values for rotary_encoder_receive parameter is given as input to the ReceiveFilter object
+Then: The output of the filter is a event of type ReceiveOutputEvent with data
+
+Scenario: The receive filter properly transforms input data into an OutputEvent with data
+Given: A ReceiveFilter object is constructed with default parameters
+When: A ReceiveEvent object constructed with new values for file_receive parameter is given as input to the ReceiveFilter object
 Then: The output of the filter is a event of type ReceiveOutputEvent with data
 
 Scenario: The send filter properly transforms input data into an OutputEvent with data
-Given: A backend OutputEvent object constructed with data 
-When: The object is given as input to the filter
+Given: A SendFilter object is constructed with default parameters
+When: A backend OutputEvent object constructed with data in the form of bytes is given as input to the SendFilter object
 Then: The output of the filter is a event of type SendOutputEvent with data

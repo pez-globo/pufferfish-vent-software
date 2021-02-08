@@ -110,9 +110,8 @@ def test_receive_filter_mcu_input(
     receive_event = backend.ReceiveEvent(time, payload)
     # When: mcu receive event is passed as input to receive filter
     receive_filter.input(receive_event)
-    output = receive_filter.output()
     # Then: output of receive filter is not None
-    assert output is not None
+    assert receive_filter.output() is not None
 
 
 @hp.given(time=st.floats(min_value=0, max_value=10, allow_nan=False))
@@ -128,9 +127,8 @@ def test_filter_frontend_input(
     # When: frontend receive event is passed as input to receive filter
     receive_filter.input(receive_event)
     receive_filter.input(receive_event)
-    output = receive_filter.output()
     # Then: output of receive filter is not None
-    assert output is not None
+    assert receive_filter.output() is not None
 
 
 @hp.given(time=st.floats(min_value=0, max_value=10, allow_nan=False))
