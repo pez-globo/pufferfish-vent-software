@@ -29,7 +29,7 @@ Scenario: The message correctly writes to the output buffer and also updates typ
 
 /* Write function for each of the message types
 
-    WHEN("The payload is asensor measurements} message")
+    WHEN("The payload is a sensor measurements} message")
     AND("The Sensor Measurements flow value is equal to 50")
       THEN("The status of write function returns ok")
       THEN("first byte in the output buffer is equal to the type")

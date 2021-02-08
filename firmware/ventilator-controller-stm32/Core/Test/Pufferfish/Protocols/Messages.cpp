@@ -119,10 +119,9 @@ SCENARIO(
       THEN("The write status is equal to ok") {
         REQUIRE(write_status == PF::Protocols::MessageStatus::ok);
       }
-      THEN("The type field of message is not equal to 4 after write method") {
-        REQUIRE(test_message.type != 4);
+      THEN("The type field of message is unchanged after write method") {
+        REQUIRE(test_message.type == 4);
       }
-      THEN("The type field after write method is equal to 2") { REQUIRE(test_message.type == 2); }
     }
 
     // sensor measurments
@@ -141,7 +140,6 @@ SCENARIO(
         REQUIRE(write_status == PF::Protocols::MessageStatus::ok);
       }
       THEN("first byte in the output buffer is equal to the type") { REQUIRE(buffer[0] == 0x02); }
-      THEN("The type field after write method is equal to 2") { REQUIRE(test_message.type == 2); }
       THEN("The output buffer is as expected") { REQUIRE(buffer == exp_sensor_measurements); }
     }
 
@@ -159,7 +157,6 @@ SCENARIO(
         REQUIRE(write_status == PF::Protocols::MessageStatus::ok);
       }
       THEN("first byte in the output buffer is equal to the type") { REQUIRE(buffer[0] == 0x03); }
-      THEN("The type field after write method is equal to 3") { REQUIRE(test_message.type == 3); }
       THEN("The output buffer is as expected") { REQUIRE(buffer == exp_cycle_measurements); }
     }
 
@@ -178,7 +175,6 @@ SCENARIO(
         REQUIRE(write_status == PF::Protocols::MessageStatus::ok);
       }
       THEN("first byte in the output buffer is equal to the type") { REQUIRE(buffer[0] == 0x04); }
-      THEN("The type field after write method is equal to 4") { REQUIRE(test_message.type == 4); }
       THEN("The output buffer is as expected") { REQUIRE(buffer == exp_parameters); }
     }
 
@@ -198,7 +194,6 @@ SCENARIO(
         REQUIRE(write_status == PF::Protocols::MessageStatus::ok);
       }
       THEN("first byte in the output buffer is equal to the type") { REQUIRE(buffer[0] == 0x05); }
-      THEN("The type field after write method is equal to 5") { REQUIRE(test_message.type == 5); }
       THEN("The output buffer is as expected") { REQUIRE(buffer == exp_parameters_request); }
     }
 
@@ -219,7 +214,6 @@ SCENARIO(
         REQUIRE(write_status == PF::Protocols::MessageStatus::ok);
       }
       THEN("first byte in the output buffer is equal to the type") { REQUIRE(buffer[0] == 0x06); }
-      THEN("The type field after write method is equal to 6") { REQUIRE(test_message.type == 6); }
       THEN("The output buffer is as expected") { REQUIRE(buffer == exp_alarm_limits); }
     }
 
@@ -239,7 +233,6 @@ SCENARIO(
       THEN("The write status is equal to ok") {
         REQUIRE(write_status == PF::Protocols::MessageStatus::ok);
       }
-      THEN("The type field after write method is equal to 6") { REQUIRE(test_message.type == 6); }
       THEN("The fio2 field is not written to the buffer") {
         auto expected = std::string("\06", 1);
         REQUIRE(buffer == expected);
@@ -263,7 +256,6 @@ SCENARIO(
         REQUIRE(write_status == PF::Protocols::MessageStatus::ok);
       }
       THEN("first byte in the output buffer is equal to the type") { REQUIRE(buffer[0] == 0x07); }
-      THEN("The type field after write method is equal to 7") { REQUIRE(test_message.type == 7); }
       THEN("The output buffer is as expected") { REQUIRE(buffer == exp_alarm_limits_request); }
     }
 
@@ -283,28 +275,28 @@ SCENARIO(
       THEN("The write status is equal to ok") {
         REQUIRE(write_status == PF::Protocols::MessageStatus::ok);
       }
-      THEN("The type field after write method is equal to 7") { REQUIRE(test_message.type == 7); }
       THEN("The fio2 field is not written to the buffer") {
         auto expected = std::string("\07", 1);
         REQUIRE(buffer == expected);
       }
     }
 
-    WHEN("Unkown message data is written") {  // fields and payload different
-      test_message.payload.tag = PF::Application::MessageTypes::parameters;
+    // field descriptor and payload values are different, yet message status is not invalid encoding
+    // WHEN("Unkown message data is written") {
+    //   test_message.payload.tag = PF::Application::MessageTypes::parameters;
 
-      CycleMeasurements cycle_measurements;
-      memset(&cycle_measurements, 0, sizeof(cycle_measurements));
-      cycle_measurements.ve = 300;
-      cycle_measurements.rr = 10;
-      test_message.payload.value.cycle_measurements = cycle_measurements;
+    //   CycleMeasurements cycle_measurements;
+    //   memset(&cycle_measurements, 0, sizeof(cycle_measurements));
+    //   cycle_measurements.ve = 300;
+    //   cycle_measurements.rr = 10;
+    //   test_message.payload.value.cycle_measurements = cycle_measurements;
 
-      auto write_status = test_message.write(buffer, BE::message_descriptors);
+    //   auto write_status = test_message.write(buffer, BE::message_descriptors);
 
-      THEN("The write status is equal to ok") {
-        REQUIRE(write_status == PF::Protocols::MessageStatus::ok);
-      }
-    }
+    //   THEN("The write status is equal to ok") {
+    //     REQUIRE(write_status == PF::Protocols::MessageStatus::invalid_encoding);
+    //   }
+    // }
   }
 
   GIVEN(
@@ -331,7 +323,6 @@ SCENARIO(
         REQUIRE(write_status == PF::Protocols::MessageStatus::ok);
       }
       THEN("first byte in the output buffer is equal to the type") { REQUIRE(buffer[0] == 0x02); }
-      THEN("The type field after write method is equal to 2") { REQUIRE(test_message.type == 2); }
       THEN("The output buffer is as expected") { REQUIRE(buffer == exp_sensor_measurements); }
     }
   }
@@ -359,13 +350,14 @@ SCENARIO(
       THEN("The write status is equal to ok") {
         REQUIRE(write_status == PF::Protocols::MessageStatus::ok);
       }
+
       THEN("first byte in the output buffer is equal to the type") { REQUIRE(buffer[0] == 0x02); }
-      THEN("The type field after write method is equal to 2") { REQUIRE(test_message.type == 2); }
       THEN("The output buffer is as expected") { REQUIRE(buffer == exp_sensor_measurements); }
     }
   }
 
-  GIVEN("A Different taggedunion") {  // fields and payload value are different yet encoding is ok?
+  // fields and payload values are not of the same message type yet encoding is successful
+  GIVEN("A TaggedUnion with a subset of message types") {
     constexpr size_t payload_max_size = 252UL;
     enum class MessageTypes : uint8_t {
       unknown = 0,
@@ -400,7 +392,11 @@ SCENARIO(
       THEN("The write status is equal to ok") {
         REQUIRE(
             write_status ==
-            PF::Protocols::MessageStatus::ok);  // should fail? as fields and value are different
+            PF::Protocols::MessageStatus::ok);
+      }
+      THEN("The buffer is as expected") {
+        auto expected_buffer = std::string("\x02\x1D\x00\x00\x20\x41\x3D\x00\x00\x96\x43", 11);
+        REQUIRE(buffer == expected_buffer);
       }
     }
   }
@@ -644,7 +640,6 @@ SCENARIO(
         REQUIRE(write_status == PF::Protocols::MessageStatus::ok);
       }
       THEN("first byte in the output buffer is equal to the type") { REQUIRE(buffer[0] == 0x05); }
-      THEN("The type field of message class is equal to 5") { REQUIRE(test_message.type == 5); }
       THEN("The output buffer is as expected") {
         auto expected =
             std::string("\x05\x10\x06\x45\x00\x00\x20\x42\x4D\x00\x00\x70\x42\x50\x01", 15);
@@ -681,7 +676,6 @@ SCENARIO(
       THEN("The status of write function should be ok") {
         REQUIRE(status == PF::Protocols::MessageStatus::ok);
       }
-      THEN("The type field of message class is equal to 2") { REQUIRE(test_message.type == 2); }
       THEN("first byte in the output buffer is equal to the type") { REQUIRE(buffer[0] == 0x02); }
       THEN("The output buffer is as expected") {
         auto expected = std::string("\x02\x25\x00\x00\x20\x42\x3D\x00\x00\xA0\x42", 11);
@@ -733,8 +727,8 @@ SCENARIO(
 
     WHEN("The payload of the input buffer is invalid") {
       PF::Util::ByteVector<buffer_size> input_buffer;
-
-      auto data = std::string("\x02\x08\xa0\x10\x0A\x1D\x00\x00\xA0\x41", 10);
+      // std::string("\x02\x08\x02\x10\x0A\x1D\x00\x00\xA0\x41", 10); original buffer
+      auto data = std::string("\x02\x08\xa0\x10\x0A\x1D\x00\x00\xA0\x41", 10); // 3rd byte changed to random value
       PF::Util::convertStringToByteVector(data, input_buffer);
 
       auto transform_status = receiver.transform(input_buffer, test_message);
@@ -1000,7 +994,6 @@ SCENARIO(
       THEN("first byte in the output buffer is equal to the type") {
         REQUIRE(output_buffer[0] == 0x02);
       }
-      THEN("The type field after write method is equal to 2") { REQUIRE(test_message.type == 2); }
       THEN("The output buffer is as expected") {
         REQUIRE(output_buffer == exp_sensor_measurements);
       }
@@ -1023,7 +1016,6 @@ SCENARIO(
       THEN("first byte in the output buffer is equal to the type") {
         REQUIRE(output_buffer[0] == 0x03);
       }
-      THEN("The type field after write method is equal to 3") { REQUIRE(test_message.type == 3); }
       THEN("The output buffer is as expected") { REQUIRE(output_buffer == exp_cycle_measurements); }
     }
 
@@ -1044,7 +1036,6 @@ SCENARIO(
       THEN("first byte in the output buffer is equal to the type") {
         REQUIRE(output_buffer[0] == 0x04);
       }
-      THEN("The type field after write method is equal to 4") { REQUIRE(test_message.type == 4); }
       THEN("The output buffer is as expected") { REQUIRE(output_buffer == exp_parameters); }
     }
 
@@ -1066,7 +1057,6 @@ SCENARIO(
       THEN("first byte in the output buffer is equal to the type") {
         REQUIRE(output_buffer[0] == 0x05);
       }
-      THEN("The type field after write method is equal to 5") { REQUIRE(test_message.type == 5); }
       THEN("The output buffer is as expected") { REQUIRE(output_buffer == exp_parameters_request); }
     }
 
@@ -1088,7 +1078,6 @@ SCENARIO(
       THEN("first byte in the output buffer is equal to the type") {
         REQUIRE(output_buffer[0] == 0x06);
       }
-      THEN("The type field after write method is equal to 6") { REQUIRE(test_message.type == 6); }
       THEN("The output buffer is as expected") { REQUIRE(output_buffer == exp_alarm_limits); }
     }
 
@@ -1110,7 +1099,6 @@ SCENARIO(
       THEN("first byte in the output buffer is equal to the type") {
         REQUIRE(output_buffer[0] == 0x07);
       }
-      THEN("The type field after write method is equal to 7") { REQUIRE(test_message.type == 7); }
       THEN("The output buffer is as expected") {
         REQUIRE(output_buffer == exp_alarm_limits_request);
       }
