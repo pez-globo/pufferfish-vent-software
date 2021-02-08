@@ -237,9 +237,7 @@ SCENARIO(
       THEN("The sequence of datagram is equal to sequence in the input buffer") {
         REQUIRE(datagram.seq() == 1);
       }
-      THEN("The input buffer is unchanged after parse") {
-        REQUIRE(input_buffer == body);
-      }
+      THEN("The input buffer is unchanged after parse") { REQUIRE(input_buffer == body); }
     }
 
     WHEN("The internal payload of the datagram is changed after parse") {
@@ -264,9 +262,7 @@ SCENARIO(
       THEN("The sequence of datagram is equal to sequence in the input buffer") {
         REQUIRE(datagram.seq() == 1);
       }
-      THEN("The input buffer is unchanged after parse") {
-        REQUIRE(input_buffer == body);
-      }
+      THEN("The input buffer is unchanged after parse") { REQUIRE(input_buffer == body); }
     }
 
     WHEN("An input buffer of 0 payload and length is parsed") {

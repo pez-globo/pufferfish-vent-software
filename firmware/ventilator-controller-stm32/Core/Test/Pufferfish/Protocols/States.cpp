@@ -22,28 +22,31 @@
 
 namespace PF = Pufferfish;
 
-using StateOutputScheduleEntry = PF::Protocols::StateOutputScheduleEntry<PF::Application::MessageTypes>;
+using StateOutputScheduleEntry =
+    PF::Protocols::StateOutputScheduleEntry<PF::Application::MessageTypes>;
 using States = PF::Application::States;
 using StateSegment = PF::Application::StateSegment;
 using MessageTypes = PF::Application::MessageTypes;
 namespace BE = PF::Driver::Serial::Backend;
 
-SCENARIO("Protocols:: States input method correctly updates the internal state_segment field", "[states]") {
-  GIVEN("A StateSynchronizer object constructed with an output schedule array of multiple message types") {
-    using BackendStateSynchronizer = PF::Protocols::StateSynchronizer<
-        States,
-        StateSegment,
-        MessageTypes,
-        BE::state_sync_schedule.size()>;
+SCENARIO(
+    "Protocols:: States input method correctly updates the internal state_segment field",
+    "[states]") {
+  GIVEN(
+      "A StateSynchronizer object constructed with an output schedule array of multiple message "
+      "types") {
+    using BackendStateSynchronizer = PF::Protocols::
+        StateSynchronizer<States, StateSegment, MessageTypes, BE::state_sync_schedule.size()>;
 
-    const BackendStateSynchronizer::InputStatus input_ok = BackendStateSynchronizer::InputStatus::ok;
-    const BackendStateSynchronizer::InputStatus input_invalid = BackendStateSynchronizer::InputStatus::invalid_type;
+    const BackendStateSynchronizer::InputStatus input_ok =
+        BackendStateSynchronizer::InputStatus::ok;
+    const BackendStateSynchronizer::InputStatus input_invalid =
+        BackendStateSynchronizer::InputStatus::invalid_type;
 
     StateSegment input_state;
     States states{};
 
-    BackendStateSynchronizer synchronizer{
-        states, BE::state_sync_schedule};
+    BackendStateSynchronizer synchronizer{states, BE::state_sync_schedule};
 
     PF::HAL::MockTime time;
 
@@ -52,9 +55,7 @@ SCENARIO("Protocols:: States input method correctly updates the internal state_s
 
       auto input_status = synchronizer.input(ctime);
 
-      THEN("the final status should be ok") {
-        REQUIRE(input_status == input_ok);
-      }
+      THEN("the final status should be ok") { REQUIRE(input_status == input_ok); }
     }
 
     WHEN("The tag of the input StateSegment is equal to parameters request") {
@@ -67,9 +68,7 @@ SCENARIO("Protocols:: States input method correctly updates the internal state_s
 
       auto input_status = synchronizer.input(input_state);
 
-      THEN("The input status returns ok") {
-        REQUIRE(input_status == input_ok);
-      }
+      THEN("The input status returns ok") { REQUIRE(input_status == input_ok); }
       THEN("The fields of the state object are updated") {
         auto parameters_request = states.parameters_request();
         REQUIRE(parameters_request.fio2 == 30);
@@ -88,9 +87,7 @@ SCENARIO("Protocols:: States input method correctly updates the internal state_s
 
       auto input_status = synchronizer.input(input_state);
 
-      THEN("The input status returns ok") {
-        REQUIRE(input_status == input_ok);
-      }
+      THEN("The input status returns ok") { REQUIRE(input_status == input_ok); }
       THEN("The statesegment field values are updated") {
         auto alarm_limits_request = states.alarm_limits_request();
         REQUIRE(alarm_limits_request.fio2.lower == 50);
@@ -101,9 +98,7 @@ SCENARIO("Protocols:: States input method correctly updates the internal state_s
     WHEN("The input state is uninitalised") {
       auto input_status = synchronizer.input(input_state);
 
-      THEN("input status returns invalid type") {
-        REQUIRE(input_status == input_invalid);
-      }
+      THEN("input status returns invalid type") { REQUIRE(input_status == input_invalid); }
     }
 
     WHEN("The tag of the input state is of invalid message type") {
@@ -116,44 +111,42 @@ SCENARIO("Protocols:: States input method correctly updates the internal state_s
 
       auto input_status = synchronizer.input(input_state);
 
-      THEN("input status should be of invalid type") {
-        REQUIRE(input_status == input_invalid);
-      }
+      THEN("input status should be of invalid type") { REQUIRE(input_status == input_invalid); }
     }
   }
 }
 
-SCENARIO("Protocols::States output method correctly updates output state tag and field parameters", "[states]") {
-  GIVEN("A StateSynchronizer object constructed with an output schedule array of single message type") {
+SCENARIO(
+    "Protocols::States output method correctly updates output state tag and field parameters",
+    "[states]") {
+  GIVEN(
+      "A StateSynchronizer object constructed with an output schedule array of single message "
+      "type") {
     constexpr auto state_sync_schedule = PF::Util::make_array<const StateOutputScheduleEntry>(
         StateOutputScheduleEntry{5, MessageTypes::parameters_request},
-        StateOutputScheduleEntry{6, MessageTypes::parameters_request}
-    );
+        StateOutputScheduleEntry{6, MessageTypes::parameters_request});
 
-    using BackendStateSynchronizer = PF::Protocols::StateSynchronizer<
-        States,
-        StateSegment,
-        MessageTypes,
-        state_sync_schedule.size()>;
+    using BackendStateSynchronizer = PF::Protocols::
+        StateSynchronizer<States, StateSegment, MessageTypes, state_sync_schedule.size()>;
 
-    const BackendStateSynchronizer::InputStatus input_ok = BackendStateSynchronizer::InputStatus::ok;
-    const BackendStateSynchronizer::OutputStatus available = BackendStateSynchronizer::OutputStatus::available;
-    const BackendStateSynchronizer::OutputStatus waiting = BackendStateSynchronizer::OutputStatus::waiting;
+    const BackendStateSynchronizer::InputStatus input_ok =
+        BackendStateSynchronizer::InputStatus::ok;
+    const BackendStateSynchronizer::OutputStatus available =
+        BackendStateSynchronizer::OutputStatus::available;
+    const BackendStateSynchronizer::OutputStatus waiting =
+        BackendStateSynchronizer::OutputStatus::waiting;
 
     States states{};
 
     StateSegment input_state;
     StateSegment output_state;
 
-    BackendStateSynchronizer synchronizer{
-        states, state_sync_schedule};
-    
+    BackendStateSynchronizer synchronizer{states, state_sync_schedule};
+
     WHEN("The current time is greater than output state scheduler delay") {
       uint32_t time = 10;
       auto input_time = synchronizer.input(time);
-      THEN("The input time status should be ok") {
-        REQUIRE(input_time == input_ok);
-      }
+      THEN("The input time status should be ok") { REQUIRE(input_time == input_ok); }
 
       ParametersRequest parameters_request;
       memset(&parameters_request, 0, sizeof(parameters_request));
@@ -170,9 +163,7 @@ SCENARIO("Protocols::States output method correctly updates output state tag and
 
       auto output_status = synchronizer.output(output_state);
 
-      THEN("The ouptut status should be available") {
-        REQUIRE(output_status == available);
-      }
+      THEN("The ouptut status should be available") { REQUIRE(output_status == available); }
       THEN("The tag of the output StateSegment object is equal to parameters_request") {
         REQUIRE(output_state.tag == MessageTypes::parameters_request);
       }
@@ -186,17 +177,13 @@ SCENARIO("Protocols::States output method correctly updates output state tag and
       synchronizer.input(new_time);
       auto status = synchronizer.output(output_state);
 
-      THEN("The ouptut status should be waiting") {
-        REQUIRE(status == waiting);
-      }
+      THEN("The ouptut status should be waiting") { REQUIRE(status == waiting); }
 
       uint32_t final_time = 16;
       synchronizer.input(final_time);
       auto final_status = synchronizer.output(output_state);
 
-      THEN("The output status should be available") {
-        REQUIRE(final_status == available);
-      }
+      THEN("The output status should be available") { REQUIRE(final_status == available); }
       THEN("output state values are same") {
         REQUIRE(output_state.tag == MessageTypes::parameters_request);
         REQUIRE(output_state.value.parameters_request.ventilating == true);
@@ -206,36 +193,34 @@ SCENARIO("Protocols::States output method correctly updates output state tag and
     }
   }
 
-  GIVEN("A StateSynchronizer object constructed with an output schedule array of multiple message types") {
+  GIVEN(
+      "A StateSynchronizer object constructed with an output schedule array of multiple message "
+      "types") {
     constexpr auto state_sync_schedule = PF::Util::make_array<const StateOutputScheduleEntry>(
         StateOutputScheduleEntry{1, MessageTypes::parameters_request},
-        StateOutputScheduleEntry{2, MessageTypes::alarm_limits_request}
-    );
+        StateOutputScheduleEntry{2, MessageTypes::alarm_limits_request});
 
-    using BackendStateSynchronizer = PF::Protocols::StateSynchronizer<
-        States,
-        StateSegment,
-        MessageTypes,
-        state_sync_schedule.size()>;
+    using BackendStateSynchronizer = PF::Protocols::
+        StateSynchronizer<States, StateSegment, MessageTypes, state_sync_schedule.size()>;
 
-    const BackendStateSynchronizer::InputStatus input_ok = BackendStateSynchronizer::InputStatus::ok;
-    const BackendStateSynchronizer::OutputStatus available = BackendStateSynchronizer::OutputStatus::available;
-    const BackendStateSynchronizer::OutputStatus waiting = BackendStateSynchronizer::OutputStatus::waiting;
+    const BackendStateSynchronizer::InputStatus input_ok =
+        BackendStateSynchronizer::InputStatus::ok;
+    const BackendStateSynchronizer::OutputStatus available =
+        BackendStateSynchronizer::OutputStatus::available;
+    const BackendStateSynchronizer::OutputStatus waiting =
+        BackendStateSynchronizer::OutputStatus::waiting;
 
     States states{};
 
     StateSegment input_state;
     StateSegment output_state;
 
-    BackendStateSynchronizer synchronizer{
-        states, state_sync_schedule};
+    BackendStateSynchronizer synchronizer{states, state_sync_schedule};
 
     WHEN("The current time is greater than output state scheduler delay") {
       uint32_t time = 1;
       auto input_time = synchronizer.input(time);
-      THEN("The input time status should be ok") {
-        REQUIRE(input_time == input_ok);
-      }
+      THEN("The input time status should be ok") { REQUIRE(input_time == input_ok); }
 
       ParametersRequest parameters_request;
       memset(&parameters_request, 0, sizeof(parameters_request));
@@ -252,9 +237,7 @@ SCENARIO("Protocols::States output method correctly updates output state tag and
 
       auto output_status = synchronizer.output(output_state);
 
-      THEN("The ouptut status should be available") {
-        REQUIRE(output_status == available);
-      }
+      THEN("The ouptut status should be available") { REQUIRE(output_status == available); }
       THEN("The tag of the output StateSegment object is equal to parameters_request") {
         REQUIRE(output_state.tag == MessageTypes::parameters_request);
       }
@@ -268,17 +251,13 @@ SCENARIO("Protocols::States output method correctly updates output state tag and
       synchronizer.input(new_time);
       auto status = synchronizer.output(output_state);
 
-      THEN("The ouptut status should be waiting") {
-        REQUIRE(status == waiting);
-      }
+      THEN("The ouptut status should be waiting") { REQUIRE(status == waiting); }
 
       uint32_t final_time = 4;
       synchronizer.input(final_time);
       auto final_status = synchronizer.output(output_state);
 
-      THEN("The output status should be available") {
-        REQUIRE(final_status == available);
-      }
+      THEN("The output status should be available") { REQUIRE(final_status == available); }
       THEN("The tag of the output StateSegment is equal to alarm_limits_request") {
         REQUIRE(output_state.tag == MessageTypes::alarm_limits_request);
       }

@@ -20,7 +20,8 @@ template <size_t output_size, size_t num_descriptors>
 MessageStatus Message<TaggedUnion, max_size>::write(
     Util::ByteVector<output_size> &output_buffer,
     const Util::ProtobufDescriptors<num_descriptors> &pb_protobuf_descriptors) const {
-  auto type = static_cast<uint8_t>(payload.tag); // declared local variable to keep write method const
+  auto type =
+      static_cast<uint8_t>(payload.tag);  // declared local variable to keep write method const
   if (type > pb_protobuf_descriptors.size()) {
     return MessageStatus::invalid_type;
   }

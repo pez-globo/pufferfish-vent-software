@@ -390,9 +390,7 @@ SCENARIO(
       auto write_status = test_message.write(buffer, message_descriptors);
 
       THEN("The write status is equal to ok") {
-        REQUIRE(
-            write_status ==
-            PF::Protocols::MessageStatus::ok);
+        REQUIRE(write_status == PF::Protocols::MessageStatus::ok);
       }
       THEN("The buffer is as expected") {
         auto expected_buffer = std::string("\x02\x1D\x00\x00\x20\x41\x3D\x00\x00\x96\x43", 11);
@@ -728,7 +726,8 @@ SCENARIO(
     WHEN("The payload of the input buffer is invalid") {
       PF::Util::ByteVector<buffer_size> input_buffer;
       // std::string("\x02\x08\x02\x10\x0A\x1D\x00\x00\xA0\x41", 10); original buffer
-      auto data = std::string("\x02\x08\xa0\x10\x0A\x1D\x00\x00\xA0\x41", 10); // 3rd byte changed to random value
+      auto data = std::string(
+          "\x02\x08\xa0\x10\x0A\x1D\x00\x00\xA0\x41", 10);  // 3rd byte changed to random value
       PF::Util::convertStringToByteVector(data, input_buffer);
 
       auto transform_status = receiver.transform(input_buffer, test_message);
