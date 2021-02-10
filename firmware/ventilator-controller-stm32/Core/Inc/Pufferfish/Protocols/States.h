@@ -28,14 +28,13 @@ template <typename States, typename StateSegment, typename MessageTypes, size_t 
 class StateSynchronizer {
  public:
   enum class InputStatus { ok = 0, invalid_type };
-  enum class OutputStatus { available = 0, waiting };
+  enum class OutputStatus { ok = 0, waiting, invalid_type };
 
   StateSynchronizer(
       States &all_states, const StateOutputSchedule<MessageTypes, schedule_size> &schedule)
       : all_states_(all_states), output_schedule_(schedule) {}
 
   InputStatus input(uint32_t time);
-  InputStatus input(const StateSegment &input);
   OutputStatus output(StateSegment &output);
 
  private:

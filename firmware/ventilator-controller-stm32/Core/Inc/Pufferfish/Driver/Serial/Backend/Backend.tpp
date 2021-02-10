@@ -161,10 +161,10 @@ Backend::Status Backend::input(uint8_t new_byte) {
   }
 
   // Input into state synchronization
-  switch (synchronizer_.input(message.payload)) {
-    case BackendStateSynchronizer::InputStatus::ok:
+  switch (states_.input(message.payload)) {
+    case Application::States::InputStatus::ok:
       break;
-    case BackendStateSynchronizer::InputStatus::invalid_type:
+    case Application::States::InputStatus::invalid_type:
       // TODO(lietk12): handle error case
       return Status::invalid;
   }
@@ -180,8 +180,10 @@ Backend::Status Backend::output(FrameProps::ChunkBuffer &output_buffer) {
   // Output from state synchronization
   BackendMessage message;
   switch (synchronizer_.output(message.payload)) {
-    case BackendStateSynchronizer::OutputStatus::available:
+    case BackendStateSynchronizer::OutputStatus::ok:
       break;
+    case BackendStateSynchronizer::OutputStatus::invalid_type:
+      return Status::invalid;
     case BackendStateSynchronizer::OutputStatus::waiting:
       return Status::waiting;
   }
