@@ -109,3 +109,11 @@ GIVEN("A StateSynchronizer object constructed with output schedule array from ba
       // assertion
       THEN("The tag of the output StateSegment object is equal to alarm_limits")
       THEN("The output StateSegment fields are set and match the parameters of the all_states object")
+
+GIVEN("A StateSynchronizer object constructed with output schedule array containing unknown message type and an empty all_states object")
+
+    WHEN("The input StateSegment is uninitalised") {
+      THEN("The states input returns invalid type") {
+
+    WHEN("The output is called on a scheduler array with unknown message type")
+      THEN("The output status returns invalid type") {

@@ -19,7 +19,6 @@
 #include "Pufferfish/Test/BackendDefs.h"
 #include "Pufferfish/Util/Array.h"
 #include "catch2/catch.hpp"
-
 namespace PF = Pufferfish;
 
 using StateOutputScheduleEntry =
@@ -576,6 +575,51 @@ SCENARIO(
         REQUIRE(output_state.value.alarm_limits.fio2.lower == 21);
         REQUIRE(output_state.value.alarm_limits.fio2.upper == 100);
       }
+    }
+  }
+
+  GIVEN(
+      "A StateSynchronizer object constructed with output schedule array containing unknown "
+      "message type") {
+    constexpr auto state_sync_schedule = PF::Util::make_array<const StateOutputScheduleEntry>(
+        StateOutputScheduleEntry{1, MessageTypes::unknown},
+        StateOutputScheduleEntry{1, MessageTypes::parameters_request});
+
+    using BackendStateSynchronizer = PF::Protocols::
+        StateSynchronizer<States, StateSegment, MessageTypes, state_sync_schedule.size()>;
+
+    const BackendStateSynchronizer::InputStatus input_ok =
+        BackendStateSynchronizer::InputStatus::ok;
+    const BackendStateSynchronizer::OutputStatus output_ok =
+        BackendStateSynchronizer::OutputStatus::ok;
+    const BackendStateSynchronizer::OutputStatus invalid_type =
+        BackendStateSynchronizer::OutputStatus::invalid_type;
+    const BackendStateSynchronizer::OutputStatus waiting =
+        BackendStateSynchronizer::OutputStatus::waiting;
+
+    States states{};
+
+    StateSegment input_state;
+    StateSegment output_state;
+
+    BackendStateSynchronizer synchronizer{states, state_sync_schedule};
+
+    WHEN("The input StateSegment is uninitalised") {
+      auto input_segment = states.input(input_state);
+
+      THEN("The states input returns invalid type") {
+        REQUIRE(input_segment == States::InputStatus::invalid_type);
+      }
+    }
+
+    WHEN("The output is called on scheduler array with unknown message type") {
+      uint32_t ftime = 10;
+      auto final_time = synchronizer.input(ftime);
+      REQUIRE(final_time == input_ok);
+
+      auto output_status = synchronizer.output(output_state);
+
+      THEN("The output status returns invalid type") { REQUIRE(output_status == invalid_type); }
     }
   }
 }
