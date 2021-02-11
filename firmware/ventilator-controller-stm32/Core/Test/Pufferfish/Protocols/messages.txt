@@ -125,6 +125,13 @@ Scenario: The Message Receiver class correctly transforms messages into payloads
       THEN("The type field of message class is equal to 4")
       THEN("The input buffer is unchanged after transform")
 
+    WHEN("The input buffer is changed after transform is called on it") {
+      THEN("The transform status should be ok") {
+      THEN("The type field of message class is equal to 4")
+      THEN("The input buffer is unchanged after transform")
+      // change input buffer
+      THEN("The message payload values are unchanged") {
+
     // Error test cases similar to parse function
     
     // test cases for each message type 

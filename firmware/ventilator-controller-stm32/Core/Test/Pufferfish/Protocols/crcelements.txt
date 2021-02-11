@@ -72,6 +72,11 @@ Scenario: CRCElementReceiver: The crc element receiver correctly parses datagram
       THEN("the transform status is equal to invalid parse")
       THEN("the crc in output crc_element is equal to the given crc in input_buffer")
 
+    WHEN("body with less than 4 bytes is given to the crc element receiver")
+      // body of length 1,2,3 bytes is passed, passing 4 bytes will give a invalid_crc error instead
+      THEN("the transform status is equal to invalid parse") // for each time
+      THEN("The crc from crc element is equal to 0") // for each time
+
     WHEN("The CRC stored in the input body is inconsistent with the payload stored in the input body")
       THEN("the transform status is equal to invalid crc")
       THEN("the crc in output crc_element is equal to the invalid crc given in input buffer")

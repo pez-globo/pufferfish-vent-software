@@ -792,6 +792,37 @@ SCENARIO(
       }
     }
 
+    WHEN("The input buffer is changed after transform is called on it") {
+      auto parameters_data = std::string("\x04\x10\x06\x45\x00\x00\x70\x42\x50\x01", 10);
+      PF::Util::ByteVector<buffer_size> input_buffer;
+      PF::Util::convertStringToByteVector(parameters_data, input_buffer);
+
+      auto transform_status = receiver.transform(input_buffer, test_message);
+
+      THEN("The transform status should be ok") {
+        REQUIRE(transform_status == PF::Protocols::MessageStatus::ok);
+      }
+      THEN("The message payload values are as expected") {
+        REQUIRE(test_message.payload.tag == PF::Application::MessageTypes::parameters);
+        REQUIRE(test_message.payload.value.parameters.fio2 == 60);
+        REQUIRE(test_message.payload.value.parameters.mode == VentilationMode_hfnc);
+        REQUIRE(test_message.payload.value.parameters.ventilating == true);
+      }
+      THEN("The type field of message class is equal to 4") { REQUIRE(test_message.type == 4); }
+      THEN("The input buffer is unchanged after transform") {
+        REQUIRE(input_buffer == exp_parameters);
+      }
+
+      parameters_data.append("\x02", 1);
+
+      THEN("The message payload values are unchanged") {
+        REQUIRE(test_message.payload.tag == PF::Application::MessageTypes::parameters);
+        REQUIRE(test_message.payload.value.parameters.fio2 == 60);
+        REQUIRE(test_message.payload.value.parameters.mode == VentilationMode_hfnc);
+        REQUIRE(test_message.payload.value.parameters.ventilating == true);
+      }
+    }
+
     // sensor measurements
     WHEN("The buffer of sensor measurements is parsed") {
       PF::Util::ByteVector<buffer_size> input_buffer;

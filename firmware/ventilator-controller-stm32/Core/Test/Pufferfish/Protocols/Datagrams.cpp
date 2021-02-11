@@ -123,7 +123,7 @@ SCENARIO(
     }
   }
 
-  GIVEN("A Datagram with internal payload and 255 sequence") {
+  GIVEN("A Datagram with internal payload and a sequence ranging from 0 to 255") {
     constexpr size_t buffer_size = 254UL;
     using TestDatagramProps = PF::Protocols::DatagramProps<buffer_size>;
     using TestDatagram = PF::Protocols::Datagram<TestDatagramProps::PayloadBuffer>;
@@ -132,9 +132,12 @@ SCENARIO(
     auto data = std::string("\x01\x23\x45\x0a\x4d\x04\x05", 7);
     PF::Util::convertStringToByteVector(data, input_payload);
 
-    uint8_t seq = 255;
+    uint8_t sequence;
+    for (int i = 0; i <= 255; ++i) {
+      sequence = i;
+    }
 
-    TestDatagram datagram{input_payload, seq};
+    TestDatagram datagram{input_payload, sequence};
 
     WHEN("The payload is written to the output buffer") {
       PF::Util::ByteVector<buffer_size> output_buffer;
@@ -147,7 +150,7 @@ SCENARIO(
       THEN("The payload of output buffer is equal to as expected") {
         REQUIRE(datagram.payload() == data);
       }
-      THEN("output buffer sequence is equal to 255") { REQUIRE(datagram.seq() == 255); }
+      THEN("output buffer sequence is equal to 255") { REQUIRE(datagram.seq() == sequence); }
       THEN("The output buffer is as expected") {
         auto expected_buffer = std::string("\xFF\x07\x01\x23\x45\x0A\x4D\x04\x05", 9);
         REQUIRE(output_buffer == expected_buffer);
@@ -240,18 +243,16 @@ SCENARIO(
       THEN("The input buffer is unchanged after parse") { REQUIRE(input_buffer == body); }
     }
 
-    WHEN("The internal payload of the datagram is changed after parse") {
+    WHEN("The input buffer is changed after its parsed") {
       auto body = std::string("\x01\x05\x11\x12\x13\x14\x15", 7);
       PF::Util::ByteVector<buffer_size> input_buffer;
       PF::Util::convertStringToByteVector(body, input_buffer);
 
       auto parse_status = datagram.parse(input_buffer);
 
-      payload.push_back(0x16);
-
       THEN("The parse status is equal to ok") { REQUIRE(parse_status == PF::IndexStatus::ok); }
+      auto expected_payload = std::string("\x11\x12\x13\x14\x15", 5);
       THEN("The payload of datagram changes after parse method is called") {
-        auto expected_payload = std::string("\x11\x12\x13\x14\x15\x16", 6);
         REQUIRE(datagram.payload() == expected_payload);
       }
       THEN(
@@ -263,6 +264,12 @@ SCENARIO(
         REQUIRE(datagram.seq() == 1);
       }
       THEN("The input buffer is unchanged after parse") { REQUIRE(input_buffer == body); }
+
+      input_buffer.push_back(0x16);
+
+      THEN("The payload of the datagram is unchanged") {
+        REQUIRE(datagram.payload() == expected_payload);
+      }
     }
 
     WHEN("An input buffer of 0 payload and length is parsed") {

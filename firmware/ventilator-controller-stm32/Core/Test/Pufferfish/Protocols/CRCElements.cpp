@@ -165,11 +165,7 @@ SCENARIO(
       auto crc_payload = crc_element.crc();
       THEN("CRC is equal to 0") { REQUIRE(crc_payload == 0); }
       THEN("The output buffer is as expected") {
-        PF::Util::ByteVector<buffer_size> expected_buffer;
-        auto input_data = PF::Util::make_array<uint8_t>(0x00, 0x00, 0x00, 0x00);
-        for (auto& data : input_data) {
-          expected_buffer.push_back(data);
-        }
+        auto expected_buffer = std::string("\x00\x00\x00\x00", 4);
         REQUIRE(output_buffer == expected_buffer);
       }
     }
@@ -370,6 +366,63 @@ SCENARIO(
       }
 
       THEN("The crc from crc element is equal to 0") { REQUIRE(crc_element.crc() == expected_crc); }
+    }
+
+    WHEN("body with less than 4 bytes is given to the crc element receiver") {
+      TestCRCElementProps::PayloadBuffer input_payload;
+      TestCRCElement crc_element{input_payload};
+
+      PF::Util::ByteVector<buffer_size> input_buffer;
+
+      // body of length 1 byte
+      auto input = PF::Util::make_array<uint8_t>(0x00);
+
+      for (auto& bytes : input) {
+        input_buffer.push_back(bytes);
+      }
+      auto status = crc_element_receiver.transform(input_buffer, crc_element);
+
+      THEN("the transform status is equal to invalid parse") {
+        REQUIRE(status == TestCRCElementReceiver::Status::invalid_parse);
+      }
+      THEN("The crc from crc element is equal to 0") {
+        uint32_t expected_crc = 0x00;
+        REQUIRE(crc_element.crc() == expected_crc);
+      }
+
+      // body of length 2 bytes
+      auto input1 = std::string("\x01", 1);
+      input_buffer.clear();
+
+      for (auto& bytes : input1) {
+        input_buffer.push_back(bytes);
+      }
+      auto first = crc_element_receiver.transform(input_buffer, crc_element);
+
+      THEN("the transform status is equal to invalid parse") {
+        REQUIRE(first == TestCRCElementReceiver::Status::invalid_parse);
+      }
+      THEN("The crc from crc element is equal to 0") {
+        uint32_t expected_crc = 0x00;
+        REQUIRE(crc_element.crc() == expected_crc);
+      }
+
+      // body of length 3 bytes
+      auto input2 = std::string("\x00\x01", 2);
+      input_buffer.clear();
+
+      for (auto& bytes : input2) {
+        input_buffer.push_back(bytes);
+      }
+      auto second = crc_element_receiver.transform(input_buffer, crc_element);
+
+      THEN("the transform status is equal to invalid parse") {
+        REQUIRE(second == TestCRCElementReceiver::Status::invalid_parse);
+      }
+      THEN("The crc from crc element is equal to 0") {
+        uint32_t expected_crc = 0x00;
+        REQUIRE(crc_element.crc() == expected_crc);
+      }
     }
 
     WHEN(
