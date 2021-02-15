@@ -15,3 +15,6 @@ export { default as PEEPInfo } from './PEEPInfo';
 export { default as PIPInfo } from './PIPInfo';
 export { default as RRInfo } from './RRInfo';
 export { default as TVInfo } from './TVInfo';
+export { default as SpO2Info } from './SpO2Info';
+export { default as ROXIndexInfo } from './ROXIndexInfo';
+export { default as FlowInfo } from './FlowInfo';

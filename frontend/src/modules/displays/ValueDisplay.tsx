@@ -46,7 +46,7 @@ export interface ValueProps {
   value: number;
 }
 
-export interface Props {
+interface Props {
   value: number;
   label: string;
   units?: string;

@@ -1,3 +1,8 @@
+/**
+ * This is the doc comment for Empty Layout
+ * @packageDocumentation
+ * @module empty-page-layout
+ */
 import React from 'react';
 import { Route, RouteProps } from 'react-router-dom';
 

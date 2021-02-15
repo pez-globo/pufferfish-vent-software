@@ -1,3 +1,8 @@
+/**
+ * This is the doc comment for Screensaver Layout
+ * @packageDocumentation
+ * @module screensaver-layout
+ */
 import { AppBar, Grid, makeStyles, Theme } from '@material-ui/core';
 import React, { PropsWithChildren, useEffect } from 'react';
 import { useSelector } from 'react-redux';

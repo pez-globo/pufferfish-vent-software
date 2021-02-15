@@ -11,3 +11,5 @@ export { default as ValueModal } from './ValueModal';
 export { default as ValueController } from './ValueClicker';
 export { default as AlarmModal } from './AlarmModal';
 export { default as ValueClicker } from './ValueClicker';
+export { default as ModalPopup } from './ModalPopup';
+export { default as SimpleTable } from './SimpleTable';

@@ -1,3 +1,8 @@
+/**
+ * This is the doc comment for Sidebar based Layout
+ * @packageDocumentation
+ * @module sidebar-layout
+ */
 import { Grid } from '@material-ui/core';
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import React, { PropsWithChildren, useEffect } from 'react';

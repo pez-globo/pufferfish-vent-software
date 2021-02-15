@@ -1,3 +1,8 @@
+/**
+ * This is the doc comment for Sliding Sidebar based Layout
+ * @packageDocumentation
+ * @module sliding-sidebar-layout
+ */
 import React, { PropsWithChildren, useEffect } from 'react';
 import { Route, RouteProps } from 'react-router-dom';
 import { makeStyles, Theme } from '@material-ui/core/styles';

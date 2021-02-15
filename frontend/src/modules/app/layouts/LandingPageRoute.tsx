@@ -1,3 +1,8 @@
+/**
+ * This is the doc comment for Landing Page Layout
+ * @packageDocumentation
+ * @module landing-page-layout
+ */
 import { Grid } from '@material-ui/core';
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import React, { PropsWithChildren, useEffect } from 'react';
