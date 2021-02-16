@@ -160,6 +160,10 @@ Backend::Status Backend::input(uint8_t new_byte) {
       return Status::waiting;
   }
 
+  if (!states_.should_input(message.payload.tag)) {
+    return Status::invalid;
+  }
+
   // Input into state synchronization
   switch (states_.input(message.payload)) {
     case Application::States::InputStatus::ok:

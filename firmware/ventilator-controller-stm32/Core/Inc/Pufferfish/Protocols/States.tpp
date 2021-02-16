@@ -15,16 +15,14 @@ namespace Pufferfish::Protocols {
 // StateSynchronizer
 
 template <typename States, typename StateSegment, typename MessageTypes, size_t schedule_size>
-typename StateSynchronizer<States, StateSegment, MessageTypes, schedule_size>::InputStatus
-StateSynchronizer<States, StateSegment, MessageTypes, schedule_size>::input(uint32_t time) {
+void StateSynchronizer<States, StateSegment, MessageTypes, schedule_size>::input(uint32_t time) {
   current_time_ = time;
-  return InputStatus::ok;
 }
 
 template <typename States, typename StateSegment, typename MessageTypes, size_t schedule_size>
 typename StateSynchronizer<States, StateSegment, MessageTypes, schedule_size>::OutputStatus
 StateSynchronizer<States, StateSegment, MessageTypes, schedule_size>::output(StateSegment &output) {
-  if (should_output()) {
+  if (!should_output()) {
     return OutputStatus::waiting;
   }
 
@@ -39,7 +37,7 @@ StateSynchronizer<States, StateSegment, MessageTypes, schedule_size>::output(Sta
 
 template <typename States, typename StateSegment, typename MessageTypes, size_t schedule_size>
 bool StateSynchronizer<States, StateSegment, MessageTypes, schedule_size>::should_output() const {
-  return Util::within_timeout(
+  return !Util::within_timeout(
       current_schedule_entry_start_time_,
       output_schedule_[current_schedule_entry_].delay,
       current_time_);

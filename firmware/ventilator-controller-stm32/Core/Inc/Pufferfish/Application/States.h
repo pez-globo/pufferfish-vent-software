@@ -47,7 +47,7 @@ class States {
  public:
   States() = default;
   enum class InputStatus { ok = 0, invalid_type };
-  enum class OutputStatus { ok = 0, waiting, invalid_type };
+  enum class OutputStatus { ok = 0, invalid_type };
 
   [[nodiscard]] const ParametersRequest &parameters_request() const;
   Parameters &parameters();
