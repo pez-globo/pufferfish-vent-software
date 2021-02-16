@@ -1,110 +1,82 @@
-Scenario: States input method correctly updates the internal current_time field of the synchroniser
-  GIVEN("A StateSynchronizer object constructed with an output schedule array of multiple message types") // name the array
-
-    WHEN("the current time is passed")
-      THEN("the input status should be ok")
-
 Scenario: The States output method correctly updates output StateSegment tag and field parameters according to a schedule
+
   GIVEN("A StateSynchronizer object constructed with an output schedule array of single message type and a state object with values for parameters request")
    // array = 0 - parameters_req, 1 - parameters_req
 
-    WHEN("The current time is greater than the delay of the 1st output schedule entry")
-      THEN("The input time status should be ok") // current_time = 0, given_time = 10 , 0' index delay = 5
+    WHEN("The synchroniser is on the 0th element of the schedule with a delay of 5 and the current_time is 0")
+      THEN("The input time status should be ok") // given_time = 10
       THEN("The output status returns ok")
       // assertion
       THEN("The tag of the output StateSegment object is equal to parameters_request")
       THEN("The output StateSegment fields are set and match the parameters request of the all_states object")
 
-    WHEN("The current time is less than the delay of the 2nd output schedule entry") // current_time = 10, given_time = 10, 1st index delay = 6
+    WHEN("The synchroniser is on the 0th element of the schedule, and the current_time(10) is less than the delay of the 2nd output schedule entry(6)") // given_time = 10
       THEN("The ouptut status should be waiting")
       // assertion
       THEN("The tag of the output StateSegment object is equal to parameters_request")
 
-    WHEN("The current time is greater than the delay of the 2nd output schedule entry") // current_time = 10, given_time = 16 , delay = 6
+    WHEN("The synchroniser is on the 0th element of the schedule and the current time is 10 and delay of the next entry is 6") // given_time = 16
       THEN("The output status returns ok")
       // assertion
       THEN("The tag of the output StateSegment object is equal to parameters_request")
       THEN("The output StateSegment fields are set and match the parameters request of the all_states object")
 
-    WHEN("The output cycles back to the 0th index of the output schedule array")
-      // 0 index
+    WHEN("The synchroniser is on the 1st element of the schedule and the current time is 16 and the delay for the 0th element is 5")
       THEN("The output status returns ok")
-      // 1st index
-      THEN("The output status returns ok")
-      // 0 index
-      THEN("The output status returns ok")
+      THEN("The schedule goes back to the 0th element")
 
   GIVEN("A StateSynchronizer object constructed with an output schedule array of multiple message types and a all_states object")
     // array = 0 - parameters_req: 1, 1 - parameters: 2, 2- sensor_meausrements: 3, 3- cycle_measurements: 4
 
-    WHEN("The current time is greater than the delay of the 1st output schedule entry")
-      THEN("The input time status should be ok") // current_time = 0, given_time = 1 , 0 index delay = 1
+    WHEN("The synchroniser is on the 0th element of the schedule with a delay of 1 and the current_time is 0") // given_time = 1
       THEN("The ouptut status returns ok")
       // assertion
       THEN("The tag of the output StateSegment object is equal to parameters_request")
       THEN("The output StateSegment fields are set and match the parameters request of the all_states object")
+      THEN("The output StateSegment fields remain unchanged") // data integrity
 
-    WHEN("The current time is less than the delay of the 2nd output schedule entry")
+    WHEN("The synchroniser is on the 0th element of the schedule, and the new current_time(2) is less than the delay of the 1st output schedule entry(2)")
       THEN("The ouptut status returns waiting")
       // assertion
       THEN("The tag of the output StateSegment object is equal to parameters_request")
 
-    WHEN("The current time is greater than the delay of the 2nd output schedule entry")
+    WHEN("The synchroniser is on the 0th element of the schedule, and the new current_time(3) is greater than the delay of the 2nd output schedule entry(2)")
       THEN("The output status returns ok")
       // assertion
       THEN("The tag of the output StateSegment object is equal to parameters")
       THEN("The output StateSegment fields are set and match the parameters of the all_states object")
+      THEN("The output StateSegment fields remain unchanged") // data integrity
 
-    WHEN("The current time is greater than the delay of the 3rd output schedule entry")
+    WHEN("The synchroniser is on the 1st element of the schedule, and the new current_time(6) is greater than the delay of the 3rd output schedule entry(3)")
       THEN("The output status returns ok")
       // assertion
       THEN("The tag of the output StateSegment object is equal to sensor_meausrements")
       THEN("The output StateSegment fields are set and match the sensor_meausrements of the all_states object")
+      THEN("The output StateSegment fields remain unchanged") // data integrity
 
-    WHEN("The current time is greater than the delay of the 4th output schedule entry")
+    WHEN("The synchroniser is on the 2nd element of the schedule, and the new current_time(11) is greater than the delay of the 4th output schedule entry(3)")
       THEN("The output status returns ok")
       // assertion
       THEN("The tag of the output StateSegment object is equal to cycle_measurements")
       THEN("The output StateSegment fields are set and match the cycle_measurements of the all_states object")
-
-    WHEN("The input all_state fields are changed , the output StateSegment fields remain unchanged")
+      THEN("The output StateSegment fields remain unchanged") // data integrity
+ 
+    WHEN("The synchroniser is on the 3rd element of the schedule, and the new current_time(14) is greater than the delay of the 1st output schedule entry(3)")
       THEN("The output status returns ok")
+      THEN("The tag of the output StateSegment object is equal to parameters_request")
       THEN("The output StateSegment fields remain unchanged")
-
-    WHEN("The output cycles back to the 0th index of the output schedule array")
-      // 0 index
-      THEN("The output status returns ok")
-      THEN("The tag of the output StateSegment object is equal to parameters_request")
-      // 1st index
-      THEN("The output status returns ok")
-      THEN("The tag of the output StateSegment object is equal to parameters")
-      // 2nd index
-      THEN("The output status returns ok")
-      THEN("The tag of the output StateSegment object is equal to sensor_measurements")
-      // 3rd index
-      THEN("The output status returns ok")
-      THEN("The tag of the output StateSegment object is equal to cycle_measurements")
-      // 0 index
-      THEN("The output status returns ok")
-      THEN("The tag of the output StateSegment object is equal to parameters_request")
 
 GIVEN("A StateSynchronizer object constructed with output schedule array from backend and a all_states object")
   # https://github.com/pez-globo/pufferfish-software/blob/develop/firmware/ventilator-controller-stm32/Core/Inc/Pufferfish/Driver/Serial/Backend/Backend.h#L41
 
-    WHEN("The current time is greater than the delay of the 1st output schedule entry")
+    WHEN("The synchroniser is on the 0th element of the schedule with a delay of 1 and the current_time is 0")
       THEN("The input time status should be ok") // current_time = 0, given_time = 1 , 0 index delay = 1
       THEN("The ouptut status returns ok")
       // assertion
       THEN("The tag of the output StateSegment object is equal to sensor_measurements")
       THEN("The output StateSegment fields are set and match the sensor_measurements of the all_states object")
 
-    WHEN("The current time is less than the delay of the 2nd output schedule entry")
-      THEN("The ouptut status returns waiting")
-      // assertion
-      THEN("The tag of the output StateSegment object is equal to parameters")
-      THEN("The output StateSegment fields are set and match the parameters of the all_states object")
-
-    WHEN("The current time is greater than the delay of the 2nd output schedule entry")
+    WHEN("The synchroniser is on the 1st element of the schedule with a delay of the next entry is 10 and the new current_time is 20")
       THEN("The output status returns ok")
       // assertion
       THEN("The tag of the output StateSegment object is equal to alarm_limits")
@@ -112,8 +84,24 @@ GIVEN("A StateSynchronizer object constructed with output schedule array from ba
 
 GIVEN("A StateSynchronizer object constructed with output schedule array containing unknown message type and an empty all_states object")
 
-    WHEN("The input StateSegment is uninitalised") {
-      THEN("The states input returns invalid type") {
-
     WHEN("The output is called on a scheduler array with unknown message type")
-      THEN("The output status returns invalid type") {
+      THEN("The output status returns invalid type")
+
+GIVEN("A StateSynchronizer object constructed with an output schedule array of 4 message types and a all_states object")
+    // array = 0 - parameters_req: 10, 1 - parameters: 10, 2- sensor_meausrements: 10, 3- cycle_measurements: 10
+
+    WHEN("The new current time is greater than the timeouts of all the schedule entries")
+      // 1st entry
+      THEN("The ouptut status returns ok")
+      // assertion
+      THEN("The tag of the output StateSegment object is equal to parameters_req")
+      THEN("The output StateSegment fields are set and match the parameters_req of the all_states object")
+
+      // new time = 100
+      THEN("The ouptut status returns ok")
+      THEN("Only one schedule entry is advanced and the tag of the output state is parameters")
+      THEN("The output StateSegment fields are set and match the parameters of the all_states object")
+
+    WHEN("The State segment fields for the next entry are changed before it's timeout")
+      THEN("The ouptut status returns ok")
+      THEN("The output StateSegment fields are set and match the parameters of the changed field values")

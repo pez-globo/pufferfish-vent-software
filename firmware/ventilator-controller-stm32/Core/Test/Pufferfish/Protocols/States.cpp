@@ -29,38 +29,6 @@ using MessageTypes = PF::Application::MessageTypes;
 namespace BE = PF::Driver::Serial::Backend;
 
 SCENARIO(
-    "Protocols:: States input method correctly updates the internal current_time field of the "
-    "synchroniser",
-    "[states]") {
-  GIVEN(
-      "A StateSynchronizer object constructed with an output schedule array of multiple message "
-      "types") {
-    using BackendStateSynchronizer = PF::Protocols::
-        StateSynchronizer<States, StateSegment, MessageTypes, BE::state_sync_schedule.size()>;
-
-    const BackendStateSynchronizer::InputStatus input_ok =
-        BackendStateSynchronizer::InputStatus::ok;
-    const BackendStateSynchronizer::InputStatus input_invalid =
-        BackendStateSynchronizer::InputStatus::invalid_type;
-
-    StateSegment input_state;
-    States states{};
-
-    BackendStateSynchronizer synchronizer{states, BE::state_sync_schedule};
-
-    PF::HAL::MockTime time;
-
-    WHEN("the current time is written to it") {
-      const uint32_t ctime = 0x12345678;
-
-      auto input_status = synchronizer.input(ctime);
-
-      THEN("the final status should be ok") { REQUIRE(input_status == input_ok); }
-    }
-  }
-}
-
-SCENARIO(
     "Protocols::The States output method correctly updates output StateSegment tag and field "
     "parameters according to a schedule",
     "[states]") {
@@ -71,7 +39,6 @@ SCENARIO(
   using BackendStateSynchronizer = PF::Protocols::
       StateSynchronizer<States, StateSegment, MessageTypes, state_sync_schedule.size()>;
 
-  const BackendStateSynchronizer::InputStatus input_ok = BackendStateSynchronizer::InputStatus::ok;
   const BackendStateSynchronizer::OutputStatus output_ok =
       BackendStateSynchronizer::OutputStatus::ok;
   const BackendStateSynchronizer::OutputStatus waiting =
@@ -83,14 +50,8 @@ SCENARIO(
   StateSegment output_state;
 
   GIVEN(
-      "A StateSynchronizer object constructed with an output schedule array of single message "
-      "type") {
-    BackendStateSynchronizer synchronizer{states, state_sync_schedule};
-
-    uint32_t time = 10;
-    auto input_time = synchronizer.input(time);
-    REQUIRE(input_time == input_ok);
-
+      "A StateSynchronizer object constructed with an output schedule array of single message type "
+      "and a state object with values for parameters request") {
     ParametersRequest parameters_request;
     memset(&parameters_request, 0, sizeof(parameters_request));
     parameters_request.ventilating = true;
@@ -102,7 +63,14 @@ SCENARIO(
     REQUIRE(input_segment == States::InputStatus::ok);
     REQUIRE(input_state.tag == MessageTypes::parameters_request);
 
-    WHEN("The current time is greater than the delay of the 1st output schedule entry") {
+    BackendStateSynchronizer synchronizer{states, state_sync_schedule};
+
+    uint32_t time = 10;
+    synchronizer.input(time);
+
+    WHEN(
+        "The synchroniser is on the 0th element of the schedule with a delay of 5 and the "
+        "current_time is 0") {
       auto output_status = synchronizer.output(output_state);
 
       THEN("The output status returns ok") { REQUIRE(output_status == output_ok); }
@@ -114,9 +82,19 @@ SCENARIO(
         REQUIRE(output_state.value.parameters_request.ventilating == true);
         REQUIRE(output_state.value.parameters_request.mode == VentilationMode_hfnc);
       }
+      // change state field values
+      parameters_request.fio2 = 70;
+      input_state.set(parameters_request);
+      states.input(input_state);
+
+      THEN("The Output StateSegment fields are unchanged") {
+        REQUIRE(output_state.value.parameters_request.fio2 == 30);
+      }
     }
 
-    WHEN("The current time is less than the delay of the 2nd output schedule entry") {
+    WHEN(
+        "The synchroniser is on the 0th element of the schedule, and the current_time(10) is less "
+        "than the delay of the 2nd output schedule entry(6)") {
       auto output_status = synchronizer.output(output_state);
 
       THEN("The initial output status returns ok") { REQUIRE(output_status == output_ok); }
@@ -128,7 +106,9 @@ SCENARIO(
       THEN("The final output status returns waiting") { REQUIRE(final_status == waiting); }
     }
 
-    WHEN("The current time is greater than the delay of the 2nd output schedule entry") {
+    WHEN(
+        "The synchroniser is on the 0th element of the schedule and the current time is 10 and "
+        "delay of the next entry is 6") {
       auto output_status = synchronizer.output(output_state);
 
       THEN("The output status returns ok") { REQUIRE(output_status == output_ok); }
@@ -155,21 +135,6 @@ SCENARIO(
         REQUIRE(output_state.value.parameters_request.ventilating == true);
         REQUIRE(output_state.value.parameters_request.mode == VentilationMode_hfnc);
       }
-    }
-
-    WHEN("The output cycles back to the 0th index of the output schedule array") {
-      // 0th index
-      auto initial = synchronizer.output(output_state);
-
-      THEN("The output status returns ok") { REQUIRE(initial == output_ok); }
-
-      uint32_t time = 16;
-      synchronizer.input(time);
-
-      // 1st index
-      auto first = synchronizer.output(output_state);
-
-      THEN("The output status returns ok") { REQUIRE(first == output_ok); }
 
       // 0th index
       uint32_t final_time = 21;
@@ -178,6 +143,15 @@ SCENARIO(
       auto final = synchronizer.output(output_state);
       // as status returns ok, it is within_timeout, exactly equal to the 0 index delay
       THEN("The output status returns ok") { REQUIRE(final == output_ok); }
+
+      // change state field values
+      parameters_request.fio2 = 70;
+      input_state.set(parameters_request);
+      states.input(input_state);
+
+      THEN("The Output StateSegment fields are unchanged") {
+        REQUIRE(output_state.value.parameters_request.fio2 == 30);
+      }
     }
   }
 
@@ -193,8 +167,6 @@ SCENARIO(
     using BackendStateSynchronizer = PF::Protocols::
         StateSynchronizer<States, StateSegment, MessageTypes, state_sync_schedule.size()>;
 
-    const BackendStateSynchronizer::InputStatus input_ok =
-        BackendStateSynchronizer::InputStatus::ok;
     const BackendStateSynchronizer::OutputStatus output_ok =
         BackendStateSynchronizer::OutputStatus::ok;
     const BackendStateSynchronizer::OutputStatus waiting =
@@ -204,8 +176,6 @@ SCENARIO(
 
     StateSegment input_state;
     StateSegment output_state;
-
-    BackendStateSynchronizer synchronizer{states, state_sync_schedule};
 
     // creation of all_states object
     ParametersRequest parameters_request;
@@ -243,11 +213,14 @@ SCENARIO(
     auto input_segment = states.input(input_state);
     REQUIRE(input_segment == States::InputStatus::ok);
 
-    uint32_t time = 1;
-    auto input_time = synchronizer.input(time);
-    REQUIRE(input_time == input_ok);
+    BackendStateSynchronizer synchronizer{states, state_sync_schedule};
 
-    WHEN("The current time is greater than the delay of the 1st output schedule entry") {
+    uint32_t time = 1;
+    synchronizer.input(time);
+
+    WHEN(
+        "The synchroniser is on the 0th element of the schedule with a delay of 1 and the "
+        "current_time is 0") {
       auto output_status = synchronizer.output(output_state);
 
       THEN("The output status returns ok") { REQUIRE(output_status == output_ok); }
@@ -260,29 +233,39 @@ SCENARIO(
         REQUIRE(output_state.value.parameters_request.fio2 == 56);
         REQUIRE(output_state.value.parameters_request.mode == VentilationMode_hfnc);
       }
+      // Change parameters req field values
+      parameters_request.fio2 = 90;
+      input_state.set(parameters_request);
+      states.input(input_state);
+
+      THEN("The output StateSegment fields are unchagned") {
+        REQUIRE(output_state.value.parameters_request.fio2 == 56);
+      }
     }
 
-    WHEN("The current time is less than the delay of the 2nd output schedule entry") {
+    WHEN(
+        "The synchroniser is on the 0th element of the schedule, and the new current_time(2) is "
+        "less than the delay of the 1st output schedule entry(2)") {
       auto output_status = synchronizer.output(output_state);
 
       THEN("The output status returns ok") { REQUIRE(output_status == output_ok); }
 
       uint32_t time = 2;
-      auto input_time = synchronizer.input(time);
-      REQUIRE(input_time == input_ok);
+      synchronizer.input(time);
 
       THEN("The ouptut status returns waiting") { REQUIRE(output_status == output_ok); }
     }
 
-    WHEN("The current time is greater than the delay of the 2nd output schedule entry") {
+    WHEN(
+        "The synchroniser is on the 0th element of the schedule, and the new current_time(3) is "
+        "greater than the delay of the 2nd output schedule entry(2)") {
       auto output_status = synchronizer.output(output_state);
 
       // same as previous when
       THEN("The output status returns ok") { REQUIRE(output_status == output_ok); }
 
       uint32_t time = 3;
-      auto input_time = synchronizer.input(time);
-      REQUIRE(input_time == input_ok);
+      synchronizer.input(time);
 
       auto final_output = synchronizer.output(output_state);
       THEN("The output status returns ok") { REQUIRE(output_status == output_ok); }
@@ -296,19 +279,29 @@ SCENARIO(
         REQUIRE(output_state.value.parameters.flow == 60);
         REQUIRE(output_state.value.parameters.ventilating == true);
       }
+
+      // Change parameters field values
+      parameters.flow = 90;
+      input_state.set(parameters);
+      states.input(input_state);
+
+      THEN("The output StateSegment fields are unchagned") {
+        REQUIRE(output_state.value.parameters.flow == 60);
+      }
     }
 
-    WHEN("The current time is greater than the delay of the 3rd output schedule entry") {
+    WHEN(
+        "The synchroniser is on the 1st element of the schedule, and the new current_time(6) is "
+        "greater than the delay of the 3rd output schedule entry(3)") {
       // skip to the 3rd element in the output schedule array
       synchronizer.output(output_state);
 
       uint32_t time2 = 3;
-      auto input_2 = synchronizer.input(time2);
+      synchronizer.input(time2);
       synchronizer.output(output_state);
 
       uint32_t time3 = 6;
-      auto input_3 = synchronizer.input(time3);
-      REQUIRE(input_3 == input_ok);
+      synchronizer.input(time3);
 
       auto output_status = synchronizer.output(output_state);
       THEN("The output status returns ok") { REQUIRE(output_status == output_ok); }
@@ -322,24 +315,33 @@ SCENARIO(
         REQUIRE(output_state.value.sensor_measurements.paw == 20);
         REQUIRE(output_state.value.sensor_measurements.spo2 == 94);
       }
+
+      // change sensor measurements fields values
+      sensor_measurements.paw = 30;
+      input_state.set(sensor_measurements);
+      states.input(input_state);
+
+      THEN("The output StateSegment fields are unchagned") {
+        REQUIRE(output_state.value.sensor_measurements.paw == 20);
+      }
     }
 
-    WHEN("The current time is greater than the delay of the 3rd output schedule entry") {
+    WHEN(
+        "The synchroniser is on the 2nd element of the schedule, and the new current_time(11) is "
+        "greater than the delay of the 4th output schedule entry(3)") {
       // skip to the 4th element in the output schedule array
       synchronizer.output(output_state);
 
       uint32_t time2 = 3;
-      auto input_2 = synchronizer.input(time2);
+      synchronizer.input(time2);
       synchronizer.output(output_state);
 
       uint32_t time3 = 6;
-      auto input_3 = synchronizer.input(time3);
-      REQUIRE(input_3 == input_ok);
+      synchronizer.input(time3);
       synchronizer.output(output_state);
 
       uint32_t time4 = 11;
-      auto final_input = synchronizer.input(time4);
-      REQUIRE(final_input == input_ok);
+      synchronizer.input(time4);
 
       auto output_status = synchronizer.output(output_state);
       THEN("The output status returns ok") { REQUIRE(output_status == output_ok); }
@@ -352,17 +354,43 @@ SCENARIO(
           "all_states object") {
         REQUIRE(output_state.value.cycle_measurements.rr == 20);
       }
+
+      // change cycle measurements fields values
+      cycle_measurements.rr = 45;
+      input_state.set(cycle_measurements);
+      states.input(input_state);
+
+      THEN("The output StateSegment fields are unchagned") {
+        REQUIRE(output_state.value.cycle_measurements.rr == 20);
+      }
     }
 
     WHEN(
-        "The input all_state fields are changed , the output StateSegment fields remain "
-        "unchanged") {
+        "The synchroniser is on the 3rd element of the schedule, and the new current_time(14) is "
+        "greater than the delay of the 1st output schedule entry(3)") {
+      synchronizer.output(output_state);
+
+      uint32_t time2 = 3;
+      synchronizer.input(time2);
+      synchronizer.output(output_state);
+
+      uint32_t time3 = 6;
+      synchronizer.input(time3);
+      synchronizer.output(output_state);
+
+      uint32_t time4 = 11;
+      synchronizer.input(time4);
+      synchronizer.output(output_state);
+
+      uint32_t ftime = 14;
+      synchronizer.input(ftime);
       auto output_status = synchronizer.output(output_state);
 
       THEN("The output status returns ok") { REQUIRE(output_status == output_ok); }
-      THEN("The tag of the output StateSegment object is equal to parameters_request") {
+      THEN("The schedule goes back to the 0th element") {
         REQUIRE(output_state.tag == MessageTypes::parameters_request);
       }
+
       THEN(
           "The output StateSegment fields are set and match the parameters request of the "
           "all_states object") {
@@ -370,67 +398,13 @@ SCENARIO(
         REQUIRE(output_state.value.parameters_request.mode == VentilationMode_hfnc);
       }
 
-      ParametersRequest parameters_request;
-      memset(&parameters_request, 0, sizeof(parameters_request));
-      parameters_request.fio2 = 10;
-      parameters_request.mode = VentilationMode_pc_ac;
+      // Change parameters req field values
+      parameters_request.fio2 = 90;
       input_state.set(parameters_request);
+      states.input(input_state);
 
-      auto input_status = states.input(input_state);
-      REQUIRE(input_status == States::InputStatus::ok);
-
-      THEN("The output status returns ok") { REQUIRE(output_status == output_ok); }
-      THEN("The tag of the output StateSegment object is equal to parameters_request") {
-        REQUIRE(output_state.tag == MessageTypes::parameters_request);
-      }
-      THEN("The output StateSegment fields remain unchanged") {
+      THEN("The output StateSegment fields are unchagned") {
         REQUIRE(output_state.value.parameters_request.fio2 == 56);
-        REQUIRE(output_state.value.parameters_request.mode == VentilationMode_hfnc);
-      }
-    }
-
-    WHEN("The output cycles back to the 0th index of the output schedule array") {
-      auto first = synchronizer.output(output_state);
-      THEN("The output status returns ok") { REQUIRE(first == output_ok); }
-      THEN("The tag of the output StateSegment object is equal to parameters_request") {
-        REQUIRE(output_state.tag == MessageTypes::parameters_request);
-      }
-
-      uint32_t time2 = 3;
-      auto input_2 = synchronizer.input(time2);
-      REQUIRE(input_2 == input_ok);
-      auto second = synchronizer.output(output_state);
-      THEN("The output status returns ok") { REQUIRE(second == output_ok); }
-      THEN("The tag of the output StateSegment object is equal to parameters") {
-        REQUIRE(output_state.tag == MessageTypes::parameters);
-      }
-
-      uint32_t time3 = 6;
-      auto input_3 = synchronizer.input(time3);
-      REQUIRE(input_3 == input_ok);
-      auto third = synchronizer.output(output_state);
-      THEN("The output status returns ok") { REQUIRE(third == output_ok); }
-      THEN("The tag of the output StateSegment object is equal to sensor_measurements") {
-        REQUIRE(output_state.tag == MessageTypes::sensor_measurements);
-      }
-
-      uint32_t time4 = 11;
-      auto input_4 = synchronizer.input(time4);
-      REQUIRE(input_4 == input_ok);
-      auto fourth = synchronizer.output(output_state);
-      THEN("The output status returns ok") { REQUIRE(fourth == output_ok); }
-      THEN("The tag of the output StateSegment object is equal to cycle_measurements") {
-        REQUIRE(output_state.tag == MessageTypes::cycle_measurements);
-      }
-
-      uint32_t final_time = 12;
-      auto final_input = synchronizer.input(final_time);
-      REQUIRE(final_input == input_ok);
-      auto final = synchronizer.output(output_state);
-      THEN("The output status returns ok") { REQUIRE(final == output_ok); }
-
-      THEN("The tag of the output StateSegment object is equal to parameters_request") {
-        REQUIRE(output_state.tag == MessageTypes::parameters_request);
       }
     }
   }
@@ -441,8 +415,6 @@ SCENARIO(
     using BackendStateSynchronizer = PF::Protocols::
         StateSynchronizer<States, StateSegment, MessageTypes, BE::state_sync_schedule.size()>;
 
-    const BackendStateSynchronizer::InputStatus input_ok =
-        BackendStateSynchronizer::InputStatus::ok;
     const BackendStateSynchronizer::OutputStatus output_ok =
         BackendStateSynchronizer::OutputStatus::ok;
     const BackendStateSynchronizer::OutputStatus waiting =
@@ -452,8 +424,6 @@ SCENARIO(
 
     StateSegment input_state;
     StateSegment output_state;
-
-    BackendStateSynchronizer synchronizer{states, BE::state_sync_schedule};
 
     // creation of all_states object
     ParametersRequest parameters_request;
@@ -501,11 +471,14 @@ SCENARIO(
     auto input_segment = states.input(input_state);
     REQUIRE(input_segment == States::InputStatus::ok);
 
-    uint32_t time = 10;
-    auto input_time = synchronizer.input(time);
-    REQUIRE(input_time == input_ok);
+    BackendStateSynchronizer synchronizer{states, BE::state_sync_schedule};
 
-    WHEN("The current time is greater than the delay of the 1st output schedule entry") {
+    uint32_t time = 10;
+    synchronizer.input(time);
+
+    WHEN(
+        "The synchroniser is on the 0th element of the schedule with a delay of 1 and the "
+        "current_time is 0") {
       auto output_status = synchronizer.output(output_state);
 
       THEN("The output status returns ok") { REQUIRE(output_status == output_ok); }
@@ -519,17 +492,27 @@ SCENARIO(
         REQUIRE(output_state.value.sensor_measurements.paw == 20);
         REQUIRE(output_state.value.sensor_measurements.spo2 == 94);
       }
+
+      // change sensor measurements field values
+      sensor_measurements.spo2 = 90;
+      input_state.set(sensor_measurements);
+      states.input(input_state);
+
+      THEN("The output StateSegment fields remain unchanged") {
+        REQUIRE(output_state.value.sensor_measurements.spo2 == 94);
+      }
     }
 
-    WHEN("The current time is greater than the delay of the 2nd output schedule entry") {
+    WHEN(
+        "The synchroniser is on the 1st element of the schedule with a delay of the next entry is "
+        "10 and the new current_time is 20") {
       // same as previous when
       auto output_status = synchronizer.output(output_state);
 
       THEN("The output status returns ok") { REQUIRE(output_status == output_ok); }
 
       uint32_t time = 20;
-      auto input_time = synchronizer.input(time);
-      REQUIRE(input_time == input_ok);
+      synchronizer.input(time);
 
       auto final_output = synchronizer.output(output_state);
       THEN("The output status returns ok") { REQUIRE(output_status == output_ok); }
@@ -543,24 +526,33 @@ SCENARIO(
         REQUIRE(output_state.value.parameters.flow == 60);
         REQUIRE(output_state.value.parameters.ventilating == true);
       }
+
+      // change parameter field values
+      parameters.ventilating = false;
+      input_state.set(parameters);
+      states.input(input_state);
+
+      THEN("The output StateSegment fields remain unchanged") {
+        REQUIRE(output_state.value.parameters.ventilating == true);
+      }
     }
 
-    WHEN("The current time is greater than the delay of the 3rd output schedule entry") {
+    WHEN(
+        "The synchroniser is on the 2nd element of the schedule with a delay of the next entry is "
+        "10 and the new current_time is 30") {
       // same as previous when
       auto initial_status = synchronizer.output(output_state);
 
       THEN("The output status returns ok") { REQUIRE(initial_status == output_ok); }
 
       uint32_t time = 20;
-      auto input_time = synchronizer.input(time);
-      REQUIRE(input_time == input_ok);
+      synchronizer.input(time);
 
       auto output_status = synchronizer.output(output_state);
       THEN("The output status returns ok") { REQUIRE(output_status == output_ok); }
 
       uint32_t ftime = 30;
-      auto final_time = synchronizer.input(ftime);
-      REQUIRE(final_time == input_ok);
+      synchronizer.input(ftime);
 
       auto final_output = synchronizer.output(output_state);
       THEN("The output status returns ok") { REQUIRE(final_output == output_ok); }
@@ -572,6 +564,19 @@ SCENARIO(
       THEN(
           "The output StateSegment fields are set and match the alarm limits of the all_states "
           "object") {
+        REQUIRE(output_state.value.alarm_limits.fio2.lower == 21);
+        REQUIRE(output_state.value.alarm_limits.fio2.upper == 100);
+      }
+
+      // Change alarm limits values
+      range.lower = 30;
+      range.upper = 90;
+
+      alarm_limits.fio2 = range;
+      input_state.set(alarm_limits);
+      states.input(input_state);
+
+      THEN("The output StateSegment fields remain unchanged") {
         REQUIRE(output_state.value.alarm_limits.fio2.lower == 21);
         REQUIRE(output_state.value.alarm_limits.fio2.upper == 100);
       }
@@ -588,8 +593,6 @@ SCENARIO(
     using BackendStateSynchronizer = PF::Protocols::
         StateSynchronizer<States, StateSegment, MessageTypes, state_sync_schedule.size()>;
 
-    const BackendStateSynchronizer::InputStatus input_ok =
-        BackendStateSynchronizer::InputStatus::ok;
     const BackendStateSynchronizer::OutputStatus output_ok =
         BackendStateSynchronizer::OutputStatus::ok;
     const BackendStateSynchronizer::OutputStatus invalid_type =
@@ -602,24 +605,110 @@ SCENARIO(
     StateSegment input_state;
     StateSegment output_state;
 
+    auto input_segment = states.input(input_state);
+
     BackendStateSynchronizer synchronizer{states, state_sync_schedule};
-
-    WHEN("The input StateSegment is uninitalised") {
-      auto input_segment = states.input(input_state);
-
-      THEN("The states input returns invalid type") {
-        REQUIRE(input_segment == States::InputStatus::invalid_type);
-      }
-    }
 
     WHEN("The output is called on scheduler array with unknown message type") {
       uint32_t ftime = 10;
-      auto final_time = synchronizer.input(ftime);
-      REQUIRE(final_time == input_ok);
+      synchronizer.input(ftime);
 
       auto output_status = synchronizer.output(output_state);
 
       THEN("The output status returns invalid type") { REQUIRE(output_status == invalid_type); }
+    }
+  }
+
+  GIVEN(
+      "A StateSynchronizer object constructed with an output schedule array of 4 message "
+      "types and a all_states object") {
+    constexpr auto state_sync_schedule = PF::Util::make_array<const StateOutputScheduleEntry>(
+        StateOutputScheduleEntry{10, MessageTypes::parameters_request},
+        StateOutputScheduleEntry{10, MessageTypes::parameters},
+        StateOutputScheduleEntry{10, MessageTypes::sensor_measurements},
+        StateOutputScheduleEntry{10, MessageTypes::cycle_measurements});
+
+    using BackendStateSynchronizer = PF::Protocols::
+        StateSynchronizer<States, StateSegment, MessageTypes, state_sync_schedule.size()>;
+
+    const BackendStateSynchronizer::OutputStatus output_ok =
+        BackendStateSynchronizer::OutputStatus::ok;
+    const BackendStateSynchronizer::OutputStatus waiting =
+        BackendStateSynchronizer::OutputStatus::waiting;
+
+    States states{};
+
+    StateSegment input_state;
+    StateSegment output_state;
+
+    // creation of all_states object
+    ParametersRequest parameters_request;
+    memset(&parameters_request, 0, sizeof(parameters_request));
+    parameters_request.fio2 = 56;
+    parameters_request.mode = VentilationMode_hfnc;
+    input_state.set(parameters_request);
+    auto input_pr = states.input(input_state);
+    REQUIRE(input_pr == States::InputStatus::ok);
+
+    Parameters parameters;
+    memset(&parameters, 0, sizeof(parameters));
+    parameters.flow = 60;
+    parameters.ventilating = true;
+    input_state.set(parameters);
+    auto input_parameters = states.input(input_state);
+    REQUIRE(input_parameters == States::InputStatus::ok);
+
+    states.input(input_state);
+
+    BackendStateSynchronizer synchronizer{states, state_sync_schedule};
+
+    uint32_t time = 10;
+    synchronizer.input(time);
+
+    auto output_status = synchronizer.output(output_state);
+    // 1st entry
+    REQUIRE(output_status == output_ok);
+    REQUIRE(output_state.tag == MessageTypes::parameters_request);
+    REQUIRE(output_state.value.parameters_request.fio2 == 56);
+    REQUIRE(output_state.value.parameters_request.mode == VentilationMode_hfnc);
+
+    WHEN("The new current time is greater than all the timeouts") {
+      uint32_t final_time = 100;
+      synchronizer.input(final_time);
+
+      auto status = synchronizer.output(output_state);
+
+      THEN("The output status returns ok") { REQUIRE(status == output_ok); }
+      THEN("Only one schedule entry is advanced and the tag of the output state is parameters") {
+        REQUIRE(output_state.tag == MessageTypes::parameters);
+      }
+      THEN(
+          "The output StateSegment fields are set and match the parameters of the "
+          "all_states object") {
+        REQUIRE(output_state.value.parameters.flow == 60);
+        REQUIRE(output_state.value.parameters.ventilating == true);
+      }
+    }
+
+    WHEN("The State segment fields for the next entry are changed before its timeout") {
+      uint32_t final_time = 20;
+      synchronizer.input(final_time);
+
+      parameters.flow = 80;
+      parameters.ventilating = false;
+      input_state.set(parameters);
+
+      states.input(input_state);
+
+      auto status = synchronizer.output(output_state);
+
+      THEN("The output status returns ok") { REQUIRE(status == output_ok); }
+      THEN(
+          "The output StateSegment fields are set and match the parameters of the changed field "
+          "values") {
+        REQUIRE(output_state.value.parameters.flow == 80);
+        REQUIRE(output_state.value.parameters.ventilating == false);
+      }
     }
   }
 }
