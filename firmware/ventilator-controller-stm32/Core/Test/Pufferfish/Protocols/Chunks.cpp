@@ -12,6 +12,7 @@
 
 #include "Pufferfish/Protocols/Chunks.h"
 
+#include "Pufferfish/Test/Util.h"
 #include "Pufferfish/Util/Array.h"
 #include "Pufferfish/Util/Vector.h"
 #include "catch2/catch.hpp"
@@ -50,128 +51,250 @@ SCENARIO(
 }
 
 SCENARIO(
-    "Protocols::ChunkSplitter behaves correctly across chunk boundary(256 bytes)", "[chunks]") {
-  GIVEN("A chunk splitter of buffer size equal to 256 bytes, that is filled with input data") {
+    "Protocols::ChunkSplitter correctly handles input chunks of acceptable lengths", "[chunks]") {
+  GIVEN("A uint8_t chunksplitter with an empty internal buffer") {
     constexpr size_t buffer_size = 256;
     PF::Protocols::ChunkSplitter<buffer_size, uint8_t> chunks;
-    uint8_t val = 128;
     PF::Protocols::ChunkInputStatus status;
-    for (size_t i = 0; i < buffer_size; ++i) {
-      status = chunks.input(val);
-      REQUIRE(status == PF::Protocols::ChunkInputStatus::ok);
-    }
 
-    WHEN("the input data exceeds bounds without output being called") {
-      for (size_t i = 0; i < buffer_size; ++i) {
-        status = chunks.input(val);
-        THEN("the final input status is equal to invalid_length") {
-          REQUIRE(status == PF::Protocols::ChunkInputStatus::invalid_length);
-        }
+    WHEN("A delimiter is passed and output is called") {
+      uint8_t delimiter = 0x00;
+      status = chunks.input(delimiter);
+      PF::Util::ByteVector<buffer_size> output_buffer;
+
+      auto output_status = chunks.output(output_buffer);
+
+      THEN("The output method reports ok status") {
+        REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::ok);
+      }
+      AND_THEN("The output buffer is set to an empty buffer") {
+        REQUIRE(output_buffer.empty() == true);
       }
     }
   }
 
-  GIVEN("A chunk splitter of buffer size equal to 256 bytes, that is filled with input data") {
+  GIVEN("A uint8_t chunksplitter with an empty internal buffer of capacity 256 bytes") {
     constexpr size_t buffer_size = 256;
     PF::Protocols::ChunkSplitter<buffer_size, uint8_t> chunks;
-    uint8_t val = 128;
     PF::Protocols::ChunkInputStatus status;
-    for (size_t i = 0; i < buffer_size; ++i) {
-      status = chunks.input(val);
-      REQUIRE(status == PF::Protocols::ChunkInputStatus::ok);
+    PF::Protocols::ChunkOutputStatus output_status;
+    PF::Util::ByteVector<buffer_size> output_buffer;
+
+    WHEN(
+        "Output method is called after 256 non-delimiter bytes are passed as input, and 257th byte "
+        "is passed as a delimiter") {
+      for (size_t i = 0; i < buffer_size; ++i) {
+        uint8_t val = 10;
+        status = chunks.input(val);
+      }
+
+      THEN("The input method reports ok status") {
+        REQUIRE(status == PF::Protocols::ChunkInputStatus::ok);
+      }
+
+      uint8_t delimiter = 0x00;
+      status = chunks.input(delimiter);
+
+      THEN("The input method reports output_ready status") {
+        REQUIRE(status == PF::Protocols::ChunkInputStatus::output_ready);
+      }
+
+      output_status = chunks.output(output_buffer);
+
+      THEN("The output method reports ok status") {
+        REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::ok);
+      }
     }
+  }
 
-    WHEN("the input data exceeds bounds after output is called, without delimiter") {
-      PF::Util::Vector<uint8_t, buffer_size> buffer;
-      PF::Protocols::ChunkOutputStatus output_status = chunks.output(buffer);
+  GIVEN("A uint8_t chunksplitter with an empty internal buffer of capacity 256 bytes") {
+    constexpr size_t buffer_size = 256;
+    PF::Protocols::ChunkSplitter<buffer_size, uint8_t> chunks;
+    PF::Protocols::ChunkInputStatus status;
+    PF::Protocols::ChunkOutputStatus output_status;
+    PF::Util::ByteVector<buffer_size> output_buffer;
 
-      auto final_status = chunks.input(val);
+    WHEN(
+        "256 non-delimiter bytes followed by a delimiter byte, are passed as input, with output "
+        "called between each input call") {
+      uint8_t val = 10;
+      for (size_t i = 0; i < buffer_size; ++i) {
+        status = chunks.input(val);
+      }
 
-      THEN("the output status is equal to waiting") {
+      THEN("The input method reports ok status") {
+        REQUIRE(status == PF::Protocols::ChunkInputStatus::ok);
+      }
+
+      output_status = chunks.output(output_buffer);
+
+      THEN("The output method reports waiting status") {
         REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::waiting);
       }
 
-      THEN("the final input status is equal to invalid_length") {
-        REQUIRE(final_status == PF::Protocols::ChunkInputStatus::invalid_length);
+      uint8_t delimiter = 0x00;
+      status = chunks.input(delimiter);
+
+      THEN("The input method reports output_ready status") {
+        REQUIRE(status == PF::Protocols::ChunkInputStatus::output_ready);
+      }
+
+      output_status = chunks.output(output_buffer);
+
+      THEN("The output method reports ok status") {
+        REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::ok);
+      }
+      AND_THEN("The output buffer is set to an empty buffer") {
+        PF::Util::ByteVector<buffer_size> expected_buffer;
+        for (size_t i = 0; i < buffer_size; ++i) {
+          uint8_t val = 10;
+          expected_buffer.push_back(val);
+        }
+        REQUIRE(output_buffer == expected_buffer);
       }
     }
   }
+}
 
-  GIVEN("A chunk splitter of buffer size equal to 256 bytes, that is filled with input data") {
+SCENARIO("Protocols::ChunkSplitter correctly handles unacceptably long input chunks", "[chunks]") {
+  GIVEN("A uint8_t chunk splitter with a completely full internal buffer of 256 bytes") {
     constexpr size_t buffer_size = 256;
     PF::Protocols::ChunkSplitter<buffer_size, uint8_t> chunks;
     uint8_t val = 128;
-    PF::Protocols::ChunkInputStatus status;
+    PF::Protocols::ChunkInputStatus input_status;
+    PF::Protocols::ChunkOutputStatus output_status;
     for (size_t i = 0; i < buffer_size; ++i) {
-      status = chunks.input(val);
-      REQUIRE(status == PF::Protocols::ChunkInputStatus::ok);
+      input_status = chunks.input(val);
+      REQUIRE(input_status == PF::Protocols::ChunkInputStatus::ok);
     }
 
-    WHEN("Another byte is given as input") {
-      auto input_status = chunks.input(val);
-      THEN("the final input status should be invalid_length") {
+    PF::Util::Vector<uint8_t, buffer_size> output_buffer;
+
+    WHEN("257th non-delimiter byte is passed as input") {
+      input_status = chunks.input(val);
+      THEN("The input method reports invalid_length status") {
         REQUIRE(input_status == PF::Protocols::ChunkInputStatus::invalid_length);
       }
     }
 
-    WHEN("output is called after the input status returns invalid length") {
-      auto input_status = chunks.input(val);
-      PF::Util::Vector<uint8_t, buffer_size> buffer;
-      PF::Protocols::ChunkOutputStatus output_status = chunks.output(buffer);
-      THEN("the output status is equal to invalid_length") {
+    WHEN("More than 256 non-delimiter bytes are passed as input") {
+      for (size_t i = 0; i < buffer_size; ++i) {
+        input_status = chunks.input(val);
+        THEN(
+            "The input method reports invalid_length status on 257th byte and for all the "
+            "subsequent bytes") {
+          REQUIRE(input_status == PF::Protocols::ChunkInputStatus::invalid_length);
+        }
+      }
+    }
+
+    WHEN(
+        "More than 256 non-delimiter bytes are passed as input, after which a delimiter is passed "
+        "and output is called") {
+      for (size_t i = 0; i < buffer_size; ++i) {
+        input_status = chunks.input(val);
+        THEN("The input method reports invalid_length status") {
+          REQUIRE(input_status == PF::Protocols::ChunkInputStatus::invalid_length);
+        }
+      }
+
+      THEN("The input method reports output ready status") {
+        input_status = chunks.input(0);
+        REQUIRE(input_status == PF::Protocols::ChunkInputStatus::output_ready);
+      }
+
+      output_status = chunks.output(output_buffer);
+      THEN("the output method reports invalid_length status") {
         REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::invalid_length);
       }
     }
 
-    WHEN("the input receives delimeter") {
-      auto input_status = chunks.input(0);
-      THEN("input status is equal to output_ready") {
+    WHEN("Output is called after a non-delimiter byte is passed as input") {
+      input_status = chunks.input(val);
+      THEN("The input method reports invalid_length status") {
+        REQUIRE(input_status == PF::Protocols::ChunkInputStatus::invalid_length);
+      }
+
+      output_status = chunks.output(output_buffer);
+      THEN("the output method reports invalid_length status") {
+        REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::invalid_length);
+      }
+    }
+
+    WHEN("The 257th delimiter byte is passed as input, and output is called") {
+      input_status = chunks.input(0);
+      THEN("The input method reports output_ready status") {
         REQUIRE(input_status == PF::Protocols::ChunkInputStatus::output_ready);
       }
 
-      PF::Util::Vector<uint8_t, buffer_size> buffer;
-      PF::Protocols::ChunkOutputStatus output_status = chunks.output(buffer);
-      THEN("the output status is equal to ok") {
+      output_status = chunks.output(output_buffer);
+      THEN("the output method reports ok status") {
+        REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::ok);
+      }
+    }
+  }
+}
+
+SCENARIO(
+    "Protocols:: After output is consumed, ChunkSplitter's behavior resets to that of a "
+    "ChunkSplitter with an empty buffer",
+    "[chunks]") {
+  GIVEN(
+      "A uint8_t ChunkSplitter completely filled with input data, and no delimiters are consumed "
+      "with an output call") {
+    constexpr size_t buffer_size = 256;
+    PF::Protocols::ChunkSplitter<buffer_size, uint8_t> chunks;
+    uint8_t val = 128;
+    PF::Protocols::ChunkInputStatus input_status;
+    PF::Protocols::ChunkOutputStatus output_status;
+    PF::Util::ByteVector<buffer_size> output_buffer;
+    for (size_t i = 0; i < buffer_size; ++i) {
+      input_status = chunks.input(val);
+      REQUIRE(input_status == PF::Protocols::ChunkInputStatus::ok);
+    }
+
+    input_status = chunks.input(0);
+    output_status = chunks.output(output_buffer);
+
+    WHEN(
+        "10 bytes of non-delimiter bytes followed by a delimiter byte are passed as input, and "
+        "output is called between each input") {
+      constexpr size_t size = 10;
+
+      for (size_t i = 0; i < size; ++i) {
+        input_status = chunks.input(val);
+        REQUIRE(input_status == PF::Protocols::ChunkInputStatus::ok);
+      }
+
+      output_status = chunks.output(output_buffer);
+      THEN("The output method reports waiting status") {
+        REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::waiting);
+      }
+
+      input_status = chunks.input(0);
+      THEN("The input method reports output_ready status") {
+        REQUIRE(input_status == PF::Protocols::ChunkInputStatus::output_ready);
+      }
+
+      output_status = chunks.output(output_buffer);
+
+      THEN("The input method reports ok status") {
         REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::ok);
       }
 
-      auto final_status = chunks.input(val);
-
-      THEN("the final input status is equal to ok") {
-        REQUIRE(final_status == PF::Protocols::ChunkInputStatus::ok);
+      THEN("The output buffer is as expected") {
+        auto expected = std::string("\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80", 10);
+        REQUIRE(output_buffer == expected);
       }
     }
   }
+}
 
+SCENARIO("Protocols::Chunksplitter correctly handles delimeters other than 0x00", "[chunks]") {
   GIVEN(
-      "A chunk splitter of buffer size equal to 256 bytes, that is filled completely with input "
-      "data") {
-    constexpr size_t buffer_size = 156;
-    PF::Protocols::ChunkSplitter<buffer_size, uint8_t> chunks;
-    uint8_t val = 128;
-    PF::Protocols::ChunkInputStatus status;
-    for (size_t i = 0; i < buffer_size; ++i) {
-      status = chunks.input(val);
-      REQUIRE(status == PF::Protocols::ChunkInputStatus::ok);
-    }
-
-    WHEN("delimeter is passed after the buffer is full") {
-      for (size_t i = 0; i < buffer_size; ++i) {
-        status = chunks.input(val);
-        THEN("the initial status is equal to ok") {
-          REQUIRE(status == PF::Protocols::ChunkInputStatus::invalid_length);
-        }
-      }
-      THEN("the final input status is equal to output ready") {
-        status = chunks.input(0);
-        REQUIRE(status == PF::Protocols::ChunkInputStatus::output_ready);
-      }
-    }
-  }
-
-  GIVEN(
-      "A uint8_t chunk splitter with internal buffer of 256 bytes, with delimeter equal to 0x01") {
-    constexpr size_t buffer_size = 156;
+      "A uint8_t chunksplitter with a completely full internal buffer of capacity 256 bytes, with "
+      "no delimiters which is equal to 0x01") {
+    constexpr size_t buffer_size = 256;
     uint8_t delimeter = 0x01;
     PF::Protocols::ChunkSplitter<buffer_size, uint8_t> chunks{delimeter};
 
@@ -182,18 +305,18 @@ SCENARIO(
       REQUIRE(status == PF::Protocols::ChunkInputStatus::ok);
     }
 
-    WHEN("output is called after input status is ok") {
+    WHEN("The Output is called after the internal buffer is full") {
       PF::Util::Vector<uint8_t, buffer_size> buffer;
       PF::Protocols::ChunkOutputStatus output_status = chunks.output(buffer);
-      THEN("the output status is equal to waiting") {
+      THEN("The output method returns waiting status") {
         REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::waiting);
       }
     }
 
-    WHEN("input receives delimeter equal to 1 byte") {
+    WHEN("The output is called after delimeter equal to 0x01 is passed as input") {
       uint8_t new_val = 1;
       status = chunks.input(new_val);
-      THEN("the input status shall be output ready") {
+      THEN("the input method reports output ready status") {
         REQUIRE(status == PF::Protocols::ChunkInputStatus::output_ready);
       }
 
@@ -206,9 +329,9 @@ SCENARIO(
   }
 
   GIVEN(
-      "A uint8_t chunk splitter with internal buffer of 256 bytes, with delimeter equal to 255 "
-      "bytes") {
-    constexpr size_t buffer_size = 156;
+      "A uint8_t chunksplitter with a completely full internal buffer of capacity 256 bytes, with "
+      "no delimiters which is equal to 0xff") {
+    constexpr size_t buffer_size = 256;
     uint8_t delimeter = 0xff;
     PF::Protocols::ChunkSplitter<buffer_size, uint8_t> chunks{delimeter};
 
@@ -219,18 +342,18 @@ SCENARIO(
       REQUIRE(status == PF::Protocols::ChunkInputStatus::ok);
     }
 
-    WHEN("output is called after input status is ok") {
+    WHEN("The Output is called after the internal buffer is full") {
       PF::Util::Vector<uint8_t, buffer_size> buffer;
       PF::Protocols::ChunkOutputStatus output_status = chunks.output(buffer);
-      THEN("the output status is equal to waiting") {
+      THEN("The output method returns waiting status") {
         REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::waiting);
       }
     }
 
-    WHEN("input receives delimeter equal to 1 byte") {
-      uint8_t new_val = 255;
+    WHEN("The output is called after delimeter equal to 0xff is passed as input") {
+      uint8_t new_val = 0xff;
       status = chunks.input(new_val);
-      THEN("the input status shall be output ready") {
+      THEN("the input method reports output ready status") {
         REQUIRE(status == PF::Protocols::ChunkInputStatus::output_ready);
       }
 
@@ -243,9 +366,9 @@ SCENARIO(
   }
 
   GIVEN(
-      "A uint8_t chunk splitter with internal buffer of 256 bytes, with include_delimeter bool "
-      "equal to true") {
-    constexpr size_t buffer_size = 156;
+      "A uint8_t chunksplitter with a completely full internal buffer of capacity 256 bytes, with "
+      "include_delimeter bool equal to true") {
+    constexpr size_t buffer_size = 256;
     uint8_t delimeter = 1;
     PF::Protocols::ChunkSplitter<buffer_size, uint8_t> chunks{delimeter, true};
     uint8_t val = 128;
@@ -255,144 +378,267 @@ SCENARIO(
       REQUIRE(status == PF::Protocols::ChunkInputStatus::ok);
     }
 
-    WHEN("output is called after input status is ok") {
+    WHEN("The output is called after the internal buffer is full") {
       PF::Util::Vector<uint8_t, buffer_size> buffer;
       PF::Protocols::ChunkOutputStatus output_status = chunks.output(buffer);
-      THEN("the output status is equal to waiting") {
+      THEN("the output method reports ok status") {
         REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::waiting);
       }
     }
 
-    WHEN("input receives delimeter equal to 1 byte") {
+    WHEN("Output is called after passing delimiter equal to 0x01 as input") {
       uint8_t new_val = 1;
       status = chunks.input(new_val);
-      THEN("the input status shall be invalid length") {
+      THEN("the input method reports invalid_length status") {
         REQUIRE(status == PF::Protocols::ChunkInputStatus::invalid_length);
       }
 
       PF::Util::Vector<uint8_t, buffer_size> buffer;
       PF::Protocols::ChunkOutputStatus output_status = chunks.output(buffer);
-      THEN("the output status is equal to invalid length") {
+      THEN("the output method reports invalid length status") {
         REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::invalid_length);
       }
     }
   }
 
-  GIVEN("A chunk splitter of buffer size equal to 256 bytes, that is filled with input data") {
+  GIVEN(
+      "A uint8_t chunksplitter with a partially filled internal buffer of capacity 256 bytes, with "
+      "include_delimeter bool equal to true") {
     constexpr size_t buffer_size = 256;
-    PF::Protocols::ChunkSplitter<buffer_size, uint8_t> chunks;
-    auto input_data = PF::Util::make_array<uint8_t>(0x01, 0x02, 0x03, 0x04);
+    uint8_t delimeter = 1;
+    PF::Protocols::ChunkSplitter<buffer_size, uint8_t> chunks{delimeter, true};
+    uint8_t val = 128;
     PF::Protocols::ChunkInputStatus status;
+    for (size_t i = 0; i < buffer_size / 2; ++i) {
+      status = chunks.input(val);
+      REQUIRE(status == PF::Protocols::ChunkInputStatus::ok);
+    }
 
-    WHEN("The output is called after input of 3 chunks") {
-      for (size_t i = 0; i < input_data.size(); ++i) {
-        status = chunks.input(input_data[0]);
-        THEN("the initial status is equal to ok") {
-          REQUIRE(status == PF::Protocols::ChunkInputStatus::ok);
-        }
+    WHEN("The output is called after the internal buffer is partially filled") {
+      PF::Util::Vector<uint8_t, buffer_size> buffer;
+      PF::Protocols::ChunkOutputStatus output_status = chunks.output(buffer);
+      THEN("the output method reports ok status") {
+        REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::waiting);
       }
+    }
 
-      for (size_t i = 0; i < input_data.size(); ++i) {
-        status = chunks.input(input_data[1]);
-        THEN("the initial status is equal to ok") {
-          REQUIRE(status == PF::Protocols::ChunkInputStatus::ok);
-        }
-      }
-
-      for (size_t i = 0; i < input_data.size(); ++i) {
-        status = chunks.input(input_data[2]);
-        THEN("the initial status is equal to ok") {
-          REQUIRE(status == PF::Protocols::ChunkInputStatus::ok);
-        }
+    WHEN("The delimiter equal to 0x01 is passed as input") {
+      uint8_t new_val = 1;
+      status = chunks.input(new_val);
+      THEN("the input method reports ok status") {
+        REQUIRE(status == PF::Protocols::ChunkInputStatus::output_ready);
       }
 
       PF::Util::Vector<uint8_t, buffer_size> buffer;
       PF::Protocols::ChunkOutputStatus output_status = chunks.output(buffer);
-      THEN("the output status is equal to waiting") {
-        REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::waiting);
+      THEN("the output method reports ok status") {
+        REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::ok);
+      }
+
+      AND_THEN("The output buffer contains delimiter") {
+        auto expected = std::string(
+            "\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80"
+            "\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80"
+            "\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80"
+            "\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80"
+            "\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80"
+            "\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80"
+            "\x80\x80\x01",
+            129);
+
+        REQUIRE(buffer == expected);
+      }
+    }
+  }
+}
+
+SCENARIO(
+    "Protocols:: Chunksplitter correctly handles input of multiple delimited chunks before output "
+    "consumes them",
+    "[chunks]") {
+  GIVEN("A uint8_t chunksplitter with an empty internal buffer of capacity 256 bytes") {
+    constexpr size_t buffer_size = 256;
+    PF::Protocols::ChunkSplitter<buffer_size, uint8_t> chunks;
+    uint8_t val = 128;
+    PF::Protocols::ChunkInputStatus input_status;
+    PF::Protocols::ChunkOutputStatus output_status;
+    PF::Util::ByteVector<buffer_size> output_buffer;
+
+    WHEN("input to the chunksplitter is '0x01 0x02 0x03 0x00 0x04 0x05 0x00' ") {
+      auto input_data = PF::Util::make_array<uint8_t>(0x01, 0x02, 0x03, 0x00, 0x04, 0x05, 0x00);
+
+      for (size_t i = 0; i < 7; ++i) {
+        input_status = chunks.input(input_data[i]);
+      }
+      THEN("The input method reports output_ready status") {
+        REQUIRE(input_status == PF::Protocols::ChunkInputStatus::output_ready);
+      }
+      output_status = chunks.output(output_buffer);
+      THEN("the output method reports ok status") {
+        REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::ok);
+      }
+      THEN("The output buffer is as expected") {
+        auto expected = std::string("\x01\x02\x03\x04\x05", 5);
+        REQUIRE(output_buffer == expected);
       }
     }
   }
 }
 
 SCENARIO("Protocols::ChunkMerger behaves correctly", "[chunks]") {
-  GIVEN("A chunk merger of internal buffer size equal to 30 bytes") {
+  GIVEN("A ChunkMerger with delimiter equal to 0x00") {
     constexpr size_t buffer_size = 30;
-    PF::Protocols::ChunkMerger chunks;
+    PF::Protocols::ChunkMerger chunk_merger{};
+    PF::Protocols::ChunkOutputStatus output_status;
 
-    WHEN("the input data given is within bounds") {
-      uint8_t val = 128;
-      PF::Util::Vector<char, buffer_size> buffer;
+    WHEN("A partially full buffer of size 10 bytes is passed as input to transform method") {
+      constexpr size_t size = 10;
+      PF::Util::ByteVector<size> buffer;
       PF::IndexStatus index_status;
-      for (size_t i = 0; i < buffer_size - 1; ++i) {
-        index_status = buffer.push_back(val);
-        THEN("the input status should be ok") { REQUIRE(index_status == PF::IndexStatus::ok); }
-      }
-      PF::Protocols::ChunkOutputStatus status = chunks.transform<buffer_size, char>(buffer);
 
-      THEN("the final status should be ok") {
-        REQUIRE(status == PF::Protocols::ChunkOutputStatus::ok);
+      for (size_t i = 0; i < size - 1; ++i) {
+        uint8_t val = 10;
+        buffer.push_back(val);
+      }
+
+      output_status = chunk_merger.transform<size, uint8_t>(buffer);
+
+      THEN("The transform method reports ok status") {
+        REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::ok);
+      }
+      AND_THEN("The ChunkMerger appends a delimeter") {
+        auto expected = std::string("\x0A\x0A\x0A\x0A\x0A\x0A\x0A\x0A\x0A\x00", 10);
+        REQUIRE(buffer == expected);
+      }
+    }
+
+    WHEN("Completely full buffer of size 30 bytes is passed as input to transform method") {
+      uint8_t val = 128;
+      PF::Util::ByteVector<buffer_size> buffer;
+      PF::IndexStatus index_status;
+
+      for (size_t i = 0; i < buffer_size; ++i) {
+        index_status = buffer.push_back(val);
+        REQUIRE(index_status == PF::IndexStatus::ok);
+      }
+
+      output_status = chunk_merger.transform<buffer_size, uint8_t>(buffer);
+
+      THEN("The transform method reports invalid length") {
+        REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::invalid_length);
+      }
+    }
+
+    WHEN("An input data with it's last byte equal to the delimiter is passed to transform") {
+      constexpr size_t size = 10;
+      PF::Util::ByteVector<size> buffer;
+      PF::IndexStatus index_status;
+
+      for (size_t i = 0; i < size - 2; ++i) {
+        uint8_t val = 10;
+        buffer.push_back(val);
+      }
+
+      buffer.push_back(0x00);
+
+      output_status = chunk_merger.transform<size, uint8_t>(buffer);
+
+      THEN("The transform method reports ok status") {
+        REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::ok);
+      }
+      AND_THEN("The ChunkMerger appends a delimeter") {
+        auto expected = std::string("\x0A\x0A\x0A\x0A\x0A\x0A\x0A\x0A\x00\x00", 10);
+        REQUIRE(buffer == expected);
+      }
+    }
+
+    WHEN("An input data with it's first byte equal to the delimiter is passed to transform") {
+      constexpr size_t size = 10;
+      PF::Util::ByteVector<size> buffer;
+      PF::IndexStatus index_status;
+
+      buffer.push_back(0x00);
+
+      for (size_t i = 1; i < size - 1; ++i) {
+        uint8_t val = 10;
+        buffer.push_back(val);
+      }
+
+      output_status = chunk_merger.transform<size, uint8_t>(buffer);
+
+      THEN("The transform method reports ok status") {
+        REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::ok);
+      }
+      AND_THEN("The ChunkMerger appends a delimeter") {
+        auto expected = std::string("\x00\x0A\x0A\x0A\x0A\x0A\x0A\x0A\x0A\x00", 10);
+        REQUIRE(buffer == expected);
+      }
+    }
+
+    WHEN("An input data with multiple delimited chunks is passed as input to transform") {
+      constexpr size_t size = 10;
+      PF::Util::ByteVector<size> buffer;
+      PF::IndexStatus index_status;
+
+      auto data =
+          PF::Util::make_array<uint8_t>(0x01, 0x02, 0x00, 0x03, 0x00, 0x04, 0x05, 0x00, 0x07);
+
+      for (size_t i = 0; i < 9; ++i) {
+        buffer.push_back(data[i]);
+      }
+
+      output_status = chunk_merger.transform<size, uint8_t>(buffer);
+
+      THEN("The transform method reports ok status") {
+        REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::ok);
+      }
+      AND_THEN("The ChunkMerger appends a delimeter") {
+        auto expected = std::string("\x01\x02\x00\x03\x00\x04\x05\x00\x07\x00", 10);
+        REQUIRE(buffer == expected);
       }
     }
   }
 
-  GIVEN("A chunk merger of internal buffer size equal to 256 bytes") {
-    constexpr size_t buffer_size = 256;
-    PF::Protocols::ChunkMerger chunks;
+  GIVEN("A ChunkMerger with delimiter equal to 0x01") {
+    constexpr size_t buffer_size = 30;
+    PF::Protocols::ChunkMerger chunk_merger{0x01};
+    PF::Protocols::ChunkOutputStatus output_status;
 
-    WHEN("The output buffer cannot hold enough data") {
-      uint8_t val = 128;
-      PF::Util::Vector<uint8_t, buffer_size> buffer;
+    WHEN("A partially full buffer of size 10 bytes is passed as input to transform method") {
+      constexpr size_t size = 10;
+      PF::Util::ByteVector<size> buffer;
       PF::IndexStatus index_status;
-      for (size_t i = 0; i < buffer_size; ++i) {
-        index_status = buffer.push_back(val);
-        THEN("the input status should be ok") { REQUIRE(index_status == PF::IndexStatus::ok); }
-      }
-      PF::Protocols::ChunkOutputStatus status = chunks.transform<buffer_size, uint8_t>(buffer);
 
-      THEN("the transform status should be invalid_length") {
-        REQUIRE(status == PF::Protocols::ChunkOutputStatus::invalid_length);
+      for (size_t i = 0; i < size - 1; ++i) {
+        uint8_t val = 10;
+        buffer.push_back(val);
+      }
+
+      output_status = chunk_merger.transform<size, uint8_t>(buffer);
+
+      THEN("The transform method reports ok status") {
+        REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::ok);
+      }
+      AND_THEN("The ChunkMerger appends a delimeter") {
+        auto expected = std::string("\x0A\x0A\x0A\x0A\x0A\x0A\x0A\x0A\x0A\x01", 10);
+        REQUIRE(buffer == expected);
       }
     }
 
-    WHEN("The buffer is available, delimeter is added to the buffer") {
+    WHEN("Completely full buffer of size 30 bytes is passed as input to transform method") {
       uint8_t val = 128;
-      PF::Util::Vector<uint8_t, buffer_size> buffer;
+      PF::Util::ByteVector<buffer_size> buffer;
       PF::IndexStatus index_status;
-      for (size_t i = 0; i < buffer_size - 4; ++i) {
-        index_status = buffer.push_back(val);
-        THEN("the input status should be ok") { REQUIRE(index_status == PF::IndexStatus::ok); }
-      }
 
-      PF::Protocols::ChunkOutputStatus status = chunks.transform<buffer_size, uint8_t>(buffer);
-      THEN("the transform status should be ok") {
-        REQUIRE(status == PF::Protocols::ChunkOutputStatus::ok);
-      }
-
-      index_status = buffer.push_back(0);
-      THEN("the input status should be ok") { REQUIRE(index_status == PF::IndexStatus::ok); }
-      PF::Protocols::ChunkOutputStatus transform_status =
-          chunks.transform<buffer_size, uint8_t>(buffer);
-
-      THEN("the final transform status should be ok") {
-        REQUIRE(transform_status == PF::Protocols::ChunkOutputStatus::ok);
-      }
-    }
-
-    WHEN("The buffer is full, delimeter is not added to the buffer") {
-      uint8_t val = 128;
-      PF::Util::Vector<uint8_t, buffer_size> buffer;
-      PF::IndexStatus index_status;
       for (size_t i = 0; i < buffer_size; ++i) {
         index_status = buffer.push_back(val);
-        THEN("the input status should be ok") { REQUIRE(index_status == PF::IndexStatus::ok); }
+        REQUIRE(index_status == PF::IndexStatus::ok);
       }
 
-      PF::Protocols::ChunkOutputStatus status = chunks.transform<buffer_size, uint8_t>(buffer);
+      output_status = chunk_merger.transform<buffer_size, uint8_t>(buffer);
 
-      index_status = buffer.push_back(0);
-      THEN("the final status should be out of bounds") {
-        REQUIRE(index_status == PF::IndexStatus::out_of_bounds);
+      THEN("The transform method reports invalid length") {
+        REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::invalid_length);
       }
     }
   }
