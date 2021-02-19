@@ -44,7 +44,7 @@ LINE_FILTERS="[$EXCLUDE_FILTERS,$STM32_USER_FILTERS,$INCLUDE_FILTERS]"
 # Check files
 SOURCE_FILES=`find Core/Src/Pufferfish -iname *.cpp | xargs`
 if [ "$1" == "TestCatch2" ]; then
-  TEST_FILES=`find Core/Test -iname *.cpp | xargs`
+  TEST_FILES=`find Core/Test -iname *.cpp -o -iname *.h | xargs`
   FILES="$TEST_FILES"
   CHECK_OVERRIDES="-readability-magic-numbers"
 elif [ "$1" == "Clang" ]; then
