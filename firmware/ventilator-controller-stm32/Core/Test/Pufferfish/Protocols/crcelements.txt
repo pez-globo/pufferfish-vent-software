@@ -1,0 +1,104 @@
+/* compute_body_crc
+Scenario: CRCElement: The compute_body_crc function correctly computes crc from body
+  GIVEN("A CRC element initialized with an empty payload")
+    WHEN("the crc is computed from the payload")
+      THEN("the computed crc is equal to the expected crc")
+
+  GIVEN("A CRC Element initialized with the payload '123456789'")
+    WHEN("the crc is computed from the payload")
+      THEN("the computed crc is equal to the expected crc")
+
+  GIVEN("A crc element is initalised with payload 0x00")
+    WHEN("the crc is computed from the payload")
+      THEN("the computed crc is equal to the expected crc")
+
+  GIVEN("A crc element is initalised with payload 0x01")
+    WHEN("the crc is computed from the payload")
+      THEN("the computed crc is equal to the expected crc")
+
+/* write function
+Scenario: CRCElement: The write function correctly generates body from computed crc and payload
+  GIVEN("A crc element initalised with payload=[0x01, 0x02, 0x05]")
+    WHEN("The crc and payload are written to the output buffer")
+      THEN("crc computed in write method is same as crcchecker compute")
+      THEN("The output buffer is as expected")
+
+  GIVEN("A crc element is initalised with an empty payload")
+    WHEN("The crc and payload are written to the output buffer")
+      THEN("The CRC returned by the crc() method is equal to 0")
+      THEN("The output buffer is as expected")
+
+/* parse function
+Scenario: CRCElement: The parse function correctly updates internal crc and payload fields from the input buffer
+
+  GIVEN("A CRC Element initialized with an empty payload buffer with a capacity of 254 bytes")
+
+    WHEN("A body with crc more than 4 bytes and equal to the crc of the payload is parsed")
+      THEN("the parse method reports ok status")
+      THEN("crc returned from the crc() method is same as the crc of the payload in input body")
+      THEN("payload returned from the payload() method is equal to the payload from the body")
+
+    WHEN("A body of less than 4 bytes is parsed")
+      THEN("the parse method reports out of bounds status")
+
+    WHEN("A body with crc and payload is given, where the crc is not equal to the actual crc of the payload")
+      THEN("the parse method reports ok status")
+      THEN("The crc returned from the crc() method is equal to the crc in the body/input_buffer")
+      THEN("The crc returned from the crc() method is not equal to the actual crc for the given payload")
+      THEN("The payload returned from the payload() method is equal to the payload from the body")
+
+/* write parse roundtrip
+Scenario: The crc element correctly writes and parses to a buffer
+
+  GIVEN("A CRC Element initialized with a non empty payload buffer with a capacity of 254 bytes")
+
+    WHEN("A body with crc and payload is generated, parsed and generated again")
+      # write  
+      THEN("The status of write function returns ok")
+      THEN("The crc from the crc element is equal to expected")
+      THEN("The payload of the crc element is as expected")
+      THEN("The output buffer is as expected")
+      # parse
+      THEN("The status of parse function returns ok")
+      THEN("The crc from the CRCElement is equal to the crc in the body")
+      THEN("payload from the CRCElement is equal to the expected payload from the body")
+      # write  
+      THEN("The status of write function returns ok")
+      THEN("The crc from the crc element is equal to expected")
+      THEN("The payload of the crc element is as expected")
+      THEN("The output buffer is as expected")
+
+
+/* CRCElementReceiver
+Scenario: CRCElementReceiver: The crc element receiver correctly parses datagrams into payloads
+
+  GIVEN("A CRC element receiver of capacity 254 bytes")
+    WHEN("A body with crc more than 4 bytes and equal to the crc of the payload is given to the crc_element receiver")
+      THEN("the transform method reports ok status")
+      THEN("crc returned from the crc() method is equal to the crc in the body/input_buffer")
+      THEN("payload returned from the payload() method is equal to the payload from the body")
+
+    WHEN("body with 0 bytes is given to the crc element receiver")
+      THEN("the transform status is equal to invalid parse")
+      THEN("the crc in output crc_element is equal to the given crc in input_buffer")
+
+    WHEN("body with less than 4 bytes is given to the crc element receiver")
+      // body of length 1,2,3 bytes is passed, passing 4 bytes will give a invalid_crc error instead
+      THEN("the transform status is equal to invalid parse") // for each time
+      THEN("The crc returned from the crc() method is equal to 0") // for each time
+
+    WHEN("The CRC stored in the input body is inconsistent with the payload stored in the input body")
+      THEN("the transform method reports invalid crc status")
+      THEN("the crc returned from the crc() method is equal to the invalid crc given in input body")
+
+/* CRCElementSender
+Scenario: CRCElementSender: The crc element receiver correctly generates datagrams from payload
+
+  GIVEN("A CRC element sender of capacity 254 bytes")
+    WHEN("A payload is given along with a sufficiently large output buffer")
+      THEN("the transform status is ok")
+      THEN("output buffer is as expected, equal to (crc + input_buffer)")
+
+  GIVEN("A CRC element sender of buffer size 20 bytes")
+    WHEN("The output buffer is not large enough for the input payload")
+      THEN("the transform status is equal to invalid_length")
