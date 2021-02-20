@@ -22,7 +22,7 @@ inline bool operator==(
     return false;
   }
   for (size_t i = 0; i < lhs.size(); ++i) {
-    if ((uint8_t)lhs[i] != (uint8_t)rhs.at(i)) {
+    if (static_cast<uint8_t>(lhs[i]) != static_cast<uint8_t>(rhs.at(i))) {
       return false;
     }
   }
@@ -43,7 +43,7 @@ inline bool operator==(
     return false;
   }
   for (size_t i = 0; i < lhs.size(); ++i) {
-    if ((uint8_t)lhs[i] != (uint8_t)rhs[i]) {
+    if (static_cast<uint8_t>(lhs[i]) != static_cast<uint8_t>(rhs[i])) {
       return false;
     }
   }
@@ -58,19 +58,19 @@ inline bool operator!=(
 }
 
 template <size_t payload_size>
-inline bool convertStringToByteVector(
+inline bool convert_string_to_byte_vector(
     const std::string& input_string, Pufferfish::Util::ByteVector<payload_size>& output_buffer) {
   if (input_string.size() >= payload_size) {
     return false;
   }
-  for (auto& ch : input_string) {
+  for (const auto& ch : input_string) {
     output_buffer.push_back(ch);
   }
   return true;
 }
 
 template <size_t payload_size>
-inline std::string convertByteVectorToHexString(
+inline std::string convert_byte_vector_to_hex_string(
     const Pufferfish::Util::ByteVector<payload_size>& input_buffer) {
   std::string output_string;
   for (size_t i = 0; i < input_buffer.size(); ++i) {
@@ -78,18 +78,18 @@ inline std::string convertByteVectorToHexString(
     output_string += "\\x";
     int c1 = ((ch & 0xf0) >> 4);
     if ((c1 >= 0) && (c1 <= 9)) {
-      output_string += (c1 + '0');
+      output_string += std::to_string(c1);
     } else if ((c1 >= 10) && (c1 <= 15)) {
-      output_string += ((c1 - 10) + 'A');
+      output_string += static_cast<char>(c1 - 10 + 'A');
     } else {
       output_string += ('?');
     }
 
     c1 = (ch & 0x0f);
     if ((c1 >= 0) && (c1 <= 9)) {
-      output_string += (c1 + '0');
+      output_string += std::to_string(c1);
     } else if ((c1 >= 10) && (c1 <= 15)) {
-      output_string += ((c1 - 10) + 'A');
+      output_string += static_cast<char>(c1 - 10 + 'A');
     } else {
       output_string += ('?');
     }
