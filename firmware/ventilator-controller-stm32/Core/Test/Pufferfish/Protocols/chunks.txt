@@ -96,10 +96,16 @@ Scenario: chunksplitter correctly handles delimeters other than 0x00
 Scenario: Chunksplitter correctly handles input of multiple delimited chunks before output consumes them
 
   GIVEN("A uint8_t chunksplitter with an empty internal buffer of capacity 256 bytes")
-    WHEN("input to the chunksplitter is '0x01 0x02 0x03 0x00 0x04 0x05 0x00' ")
+    WHEN("input to the chunksplitter is '0x01 0x02 0x03 0x00 0x04 0x05 0x00' and output is called after each delimeter")
       THEN("The input method reports output_ready status")
       THEN("the output method reports ok status")
-      THEN("The output buffer is as expected") // should not push subsequent bytes after the first delimeter to the buffer
+      THEN("The output buffer is as expected '\x04\x05' ")
+
+    WHEN("input to the chunksplitter is '0x01 0x02 0x03 0x00 0x04 0x05' and output is not called after passing delimeter")
+      THEN("The input method reports ok status on the first 3 bytes")
+      THEN("The input method reports output_ready status on the 4th byte") // delimeter byte
+      THEN("The input method reports ok status and sets the input_overwritten flag on the 5th byte")
+      THEN("The output buffer only contains the last chunk '0x04 0x05' ")
 
 /* ChunkMerger
 
