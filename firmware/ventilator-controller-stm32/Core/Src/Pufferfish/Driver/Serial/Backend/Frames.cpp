@@ -12,7 +12,22 @@ namespace Pufferfish::Driver::Serial::Backend {
 // FrameReceiver
 
 FrameProps::InputStatus FrameReceiver::input(uint8_t new_byte) {
-  return chunk_splitter_.input(new_byte);
+  bool input_overwritten = false;
+  auto status = chunk_splitter_.input(new_byte, input_overwritten);
+  if (input_overwritten) {
+    return FrameProps::InputStatus::input_overwritten;
+  }
+
+  switch (status) {
+    case Protocols::ChunkInputStatus::output_ready:
+      return FrameProps::InputStatus::output_ready;
+    case Protocols::ChunkInputStatus::invalid_length:
+      return FrameProps::InputStatus::invalid_length;
+    case Protocols::ChunkInputStatus::ok:
+      break;
+  }
+
+  return FrameProps::InputStatus::ok;
 }
 
 FrameProps::OutputStatus FrameReceiver::output(FrameProps::ChunkBuffer &output_buffer) {

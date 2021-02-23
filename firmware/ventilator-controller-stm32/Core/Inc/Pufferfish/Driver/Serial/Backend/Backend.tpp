@@ -19,6 +19,8 @@ BackendReceiver::InputStatus BackendReceiver::input(uint8_t new_byte) {
       return InputStatus::output_ready;
     case FrameProps::InputStatus::invalid_length:
       return InputStatus::invalid_frame_length;
+    case FrameProps::InputStatus::input_overwritten:
+      return InputStatus::input_overwritten;
     case FrameProps::InputStatus::ok:
       break;
   }
@@ -134,6 +136,7 @@ Backend::Status Backend::input(uint8_t new_byte) {
     case BackendReceiver::InputStatus::output_ready:
       break;
     case BackendReceiver::InputStatus::invalid_frame_length:
+    case BackendReceiver::InputStatus::input_overwritten:
       // TODO(lietk12): handle error case first
     case BackendReceiver::InputStatus::ok:
       return Status::waiting;

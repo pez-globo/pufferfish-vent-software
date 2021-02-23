@@ -57,7 +57,7 @@ using BackendMessage = Protocols::Message<
 
 class BackendReceiver {
  public:
-  enum class InputStatus { ok = 0, output_ready, invalid_frame_length };
+  enum class InputStatus { ok = 0, output_ready, invalid_frame_length, input_overwritten };
   enum class OutputStatus {
     available = 0,
     waiting,

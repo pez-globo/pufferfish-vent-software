@@ -25,7 +25,7 @@ class ChunkSplitter {
       : delimiter(delimiter), include_delimiter(include_delimiter) {}
 
   // Call this until it returns available, then call output
-  ChunkInputStatus input(uint8_t new_byte);
+  ChunkInputStatus input(uint8_t new_byte, bool &input_overwritten);
   ChunkOutputStatus output(Util::Vector<Byte, buffer_size> &output_buffer);
 
  private:

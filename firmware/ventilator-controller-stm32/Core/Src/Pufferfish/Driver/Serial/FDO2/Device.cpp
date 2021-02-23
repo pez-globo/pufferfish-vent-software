@@ -38,7 +38,13 @@ namespace Pufferfish::Driver::Serial::FDO2 {
 // ResponseReceiver
 
 ResponseReceiver::InputStatus ResponseReceiver::input(uint8_t new_byte) {
-  switch (chunks_.input(new_byte)) {
+  bool input_overwritten = false;
+  auto status = chunks_.input(new_byte, input_overwritten);
+  if (input_overwritten) {
+    return InputStatus::input_overwritten;
+  }
+
+  switch (status) {
     case Protocols::ChunkInputStatus::output_ready:
       return InputStatus::output_ready;
     case Protocols::ChunkInputStatus::invalid_length:
@@ -46,6 +52,7 @@ ResponseReceiver::InputStatus ResponseReceiver::input(uint8_t new_byte) {
     case Protocols::ChunkInputStatus::ok:
       break;
   }
+
   return InputStatus::ok;
 }
 
@@ -129,6 +136,7 @@ Device::Status Device::receive(Response &response) {
     // Responses
     switch (responses_.input(receive)) {
       case ResponseReceiver::InputStatus::invalid_frame_length:
+      case ResponseReceiver::InputStatus::input_overwritten:
         // TODO(lietk12): handle error case first
       case ResponseReceiver::InputStatus::ok:
         break;

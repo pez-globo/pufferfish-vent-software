@@ -14,7 +14,14 @@ namespace Pufferfish::Protocols {
 // ChunkSplitter
 
 template <size_t buffer_size, typename Byte>
-ChunkInputStatus ChunkSplitter<buffer_size, Byte>::input(uint8_t new_byte) {
+ChunkInputStatus ChunkSplitter<buffer_size, Byte>::input(
+    uint8_t new_byte, bool &input_overwritten) {
+  if (input_status_ == ChunkInputStatus::output_ready) {
+    buffer_.clear();
+    input_overwritten = true;
+    input_status_ = ChunkInputStatus::ok;
+  }
+
   if (include_delimiter || new_byte != delimiter) {
     if (buffer_.push_back(new_byte) != IndexStatus::ok) {
       input_status_ = ChunkInputStatus::invalid_length;
