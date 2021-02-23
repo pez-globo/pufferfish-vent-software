@@ -9,32 +9,32 @@ Scenario: The write function correctly writes sequence, length and payload to th
   GIVEN("A Datagram with internal payload and 0 sequence")
     WHEN("The datagram is written to the output buffer")
       THEN("The write status is equal to ok")
-      THEN("The length of output buffer payload is equal to input payload length")
-      THEN("The payload of datagran is equal to as expected")
-      THEN("output datagram sequence is equal to 0")
+      THEN("The length returned by the length() method is equal to the input payload length")
+      THEN("The payload returned by the payload() method is equal to as expected")
+      THEN("The sequence returned by the seq() method is equal to 0")
       THEN("The output buffer is as expected")
 
-    WHEN("The payload is altered after datagram initalisation")
+    WHEN("The payload is altered after datagram initalisation and the write method is called")
       THEN("The write status is equal to ok")
-      THEN("The length of output buffer payload is equal to input payload length")
-      THEN("The payload of datagran is equal to as expected")
-      THEN("output datagram sequence is equal to 0")
+      THEN("The length returned by the length() method is equal to the input payload length")
+      THEN("The payload returned by the payload() method is equal to the altered payload")
+      THEN("The sequence returned by the seq() method is equal to 0")
       THEN("The output buffer is as expected")
 
   GIVEN("A Datagram with internal payload and non-zero sequence")
     WHEN("The datagram is written to the output buffer")
       THEN("The write status is equal to ok")
-      THEN("The length of output buffer payload is equal to input payload length")
+      THEN("The length returned by the length() method is equal to the input payload length")
       THEN("The payload of output buffer is equal to as expected")
-      THEN("output buffer sequence is equal to 10")
+      THEN("The sequence returned by the seq() method is equal to 10")
       THEN("The output buffer is as expected")
 
   GIVEN("A Datagram with internal payload and a sequence ranging from 0 to 255")
     WHEN("The payload is written to the output buffer")
       THEN("The write status is equal to ok")
-      THEN("The length of output buffer payload is equal to input payload length")
+      THEN("The length returned by the length() method is equal to the input payload length")
       THEN("The payload of output buffer is equal to as expected")
-      THEN("output buffer sequence is input sequence")
+      THEN("The sequence returned by the seq() method is same as the sequence given in the input_payload")
       THEN("The output buffer is as expected")
 
   GIVEN("A Datagram with internal payload and 0 sequence")
@@ -47,70 +47,99 @@ Scenario: The parse function correctly updates internal length, sequence and pay
   GIVEN("A Datagram with 0 byte payload and 0 sequence")
     WHEN("Input buffer of 0 payload, sequence and length is parsed")
       THEN("The parse status is equal to out of bounds")
-      THEN("The length of datagram is equal to 0")
-      THEN("The sequence of datagram is equal to 0")
+      THEN("The length returned by the length() method is equal to 0")
+      THEN("The sequence returned by the seq() method is equal to 0")
 
-  GIVEN("A Datagram with payload of length 5 bytes and 0 sequence")
+  GIVEN("A Datagram with payload of 0 sequence and a payload field of capacity 254 bytes")
     WHEN("An Input buffer of non empty payload buffer, length and non zero sequence is parsed")
       THEN("The parse status is equal to ok")
-      THEN("The payload of the datagram is equal to the payload from the input buffer")
-      THEN("The length of the datagram is equal to the length of the payload from the input buffer")
-      THEN("The sequence of datagram is equal to sequence in the input buffer")
+      THEN("The payload returned by the payload() method is equal to the payload from the input buffer")
+      THEN("The length returned by the length() method is equal to the length of the payload from the input buffer")
+      THEN("The sequence returned by the seq() method is same as the sequence in the input buffer")
       THEN("The input buffer is unchanged after parse")
 
-    WHEN("The input buffer is changed after its parsed")
+    WHEN("The input buffer ['0x01 0x05 0x11 0x12 0x13 0x14 0x15'] is changed after its parsed")
       THEN("The parse status is equal to ok")
-      THEN("The payload of datagram changes after parse method is called") {
-      THEN("The length of the datagram is equal to the length of the payload from the input buffer")
-      THEN("The sequence of datagram is equal to sequence in the input buffer")
-      THEN("The input buffer is unchanged after parse")
-      THEN("The payload of the datagram is unchanged")
+      THEN("The payload returned by the payload() method changes after parse method is called") {
+      THEN("The length returned by the length() method is equal to the length of the payload from the input buffer")
+      THEN("The sequence returned by the seq() method is equal to 1")
+      THEN("The input buffer is not modified by the parse method")
+      THEN("The payload returned by the payload() method is same as in the original buffer")
 
-    WHEN("An input buffer of 0 payload and length is parsed")
+    WHEN("An input buffer where the length field of the header is 0 and the payload field is empty is parsed")
       THEN("The parse status is equal to ok")
-      THEN("The payload of the datagram is equal to the initial payload")
-      THEN("The length of the datagram is equal to the length of the payload from the input buffer")
-      THEN("The sequence of datagram is equal to sequence in the input buffer")
+      THEN("The payload returned by the payload() method is equal to the initial payload")
+      THEN("The length returned by the length() method is equal to 0")
+      THEN("The sequence returned by the seq() method is same as the sequence in input buffer")
 
-    WHEN("An input buffer of invalid length is parsed")
+    WHEN("The length header of the input buffer '0x04 0x05 0x01' does not match the actual length of the payload field")
       THEN("The parse status is equal to ok")
-      THEN("The payload of the datagram is equal to the initial payload")
-      THEN("The length of the datagram is equal to 0")
-      THEN("The sequence of datagram is equal to sequence in the input buffer")
+      THEN("The payload returned by the payload() method is equal to the initial payload")
+      THEN("The length returned by the length() method is equal to 5")
+      THEN("The sequence returned by the seq() method is equal to sequence in the input buffer")
 
     WHEN("An input buffer of invalid sequence is parsed")
       THEN("The parse status is equal to ok")
-      THEN("The payload of the datagram is equal to payload of the input buffer")
-      THEN("The length of the datagram is equal to the length in the input buffer")
-      THEN("The sequence of datagram is equal 0")
+      THEN("The payload returned by the payload() method is equal to payload of the input buffer")
+      THEN("The length returned by the length() method is equal to the length in the input buffer")
+      THEN("The sequence returned by the seq() method is equal to 0")
 
 /* Datagram Receiver
 
 Scenario: Datagram Receiver correctly parses datagrams into payloads
-  GIVEN("A Datagram receiver of buffer size 254 bytes")
-    WHEN("The input buffer is of invalid length")
-      THEN("The transform status is equal to invalid parse")
+
+  GIVEN("A Datagram receiver of buffer size 254 bytes and expected sequence number equal to 0")
+    WHEN("An input buffer of size less than 2 bytes is given to the receiver")
+      THEN("The transform method reports invalid_parse status") {
 
     WHEN("The input buffer length is not equal to the actual length of the payload")
-      THEN("The transform status is equal to invalid parse")
+      THEN("The transform method reports invalid length status") {
       THEN("The output datagram payload is equal to the input buffer paylaod")
       THEN("The output datagram length is not equal to the input buffer payload length")
 
     WHEN("The input buffer sequence is not equal to 0")
-      THEN("The transform status is equal to invalid parse")
+      THEN("The transform method reports invalid sequence status") {
       THEN("The output datagram payload is equal to the input buffer paylaod")
       THEN("The output datagram length is equal to the input buffer payload length")
 
-    WHEN("The input buffer has valid length, sequence and payload")
-      THEN("The transform status is equal to invalid parse")
+    WHEN("The input buffer has a valid length, sequence and a non-empty payload")
+      THEN("The transform method reports ok status") {
       THEN("The output datagram payload is equal to the input buffer paylaod")
       THEN("The output datagram length is equal to the input buffer payload length")
+
+  GIVEN("A Datagram receiver of buffer size 254 bytes and expected sequence number equal to 1") {
+    WHEN("The input buffer has a valid length, sequence and a non-empty payload") {
+      THEN("The transform method reports ok status") {
+      THEN("The sequence returned by the seq() method is equal to 1") {
+      THEN("The output datagram payload is equal to the input buffer paylaod") {
+      THEN("The output datagram length is equal to the input buffer payload length") {
+
+    WHEN("The first input buffer has a sequence equal to 1, and the second buffer has a sequence equal to 3, and transform is called on both") {
+      THEN("The transform method reports invalid sequence status") {
+      THEN("The sequence returned by the seq() method is equal to the sequence in input buffer") {
+      THEN("The transform method reports ok status") {
+
+    WHEN("The first input buffer has a sequence equal to 0xff and second buffer has a sequence equal to 0, and transform is called on both") {
+      THEN("The transform method reports invalid sequence status") {
+      THEN("The sequence returned by the seq() method is equal to the sequence in input buffer") {
+      THEN("The transform method reports ok status") {
+      THEN("The sequence returned by the seq() method is equal to the sequence in input buffer") {
+
+    WHEN("Three buffers are given as input with sequence numbers equal to 1, 10, 11 respectively, and transform is called on each") {
+      THEN("The transform method reports ok status") {
+      THEN("The sequence returned by the seq() method is equal to the sequence in input buffer") {
+      THEN("The transform method reports invalid_sequence status") {
+      THEN("The sequence returned by the seq() method is equal to the sequence in input buffer") {
+      THEN("The transform method reports ok status") {
+      THEN("The sequence returned by the seq() method is equal to the sequence in input buffer") {
+
 
   // other tests similar to parse function
 
 /* Datagram sender
 
 Scenario: Datagram Sender correctly generates datagrams from payloads
+
   GIVEN("A Datagram sender of buffer size 254 bytes")
     WHEN("A valid payload is given as input to datagram sender")
       THEN("The transform status is equal to ok")
@@ -118,5 +147,19 @@ Scenario: Datagram Sender correctly generates datagrams from payloads
 
     WHEN("The output datagram cannot hold enough data")
       THEN("The transform status is equal to invalid length")
+
+    WHEN("The input paylaod is too large for the output buffer to hold") {
+      THEN("The transform method reports invalid length") {
+
+    WHEN("The input payload to the transform method is '0x00 0x00'") {
+      THEN("The transform method reports ok status") {
+      THEN("The output datagram is as expected '\x00\x02\x00\x00' ") {
+
+  GIVEN("A Datagram sender of buffer size 254 bytes with next sequence equal to 0") {
+    WHEN("2 non-empty payloads of capacity 254 bytes is given to the sender") {
+      THEN("The transform method reports ok status") {
+      THEN("The output datagram is as expected '\x00\x05\x01\x02\x03\x04\x05' ") {
+      THEN("The transform method reports ok status") {
+      THEN("The output datagram is as expected '\x01\x05\x12\x13\x14\x15\x16' ") {
   
   // other tests similar to write function
