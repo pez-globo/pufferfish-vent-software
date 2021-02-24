@@ -77,6 +77,10 @@ template <size_t input_size>
 typename CRCElementReceiver<body_max_size>::Status CRCElementReceiver<body_max_size>::transform(
     const Util::ByteVector<input_size> &input_buffer,
     ParsedCRCElement<body_max_size> &output_crcelement) {
+  if (input_buffer.size() > body_max_size) {
+    return Status::invalid_parse;
+  }
+
   if (output_crcelement.parse(input_buffer) != IndexStatus::ok) {
     return Status::invalid_parse;
   }

@@ -112,10 +112,10 @@ Scenario: CRCElementReceiver correctly parses CRCElement bodies and performs con
       THEN("the transform method reports invalid crc status")
       THEN("the value returned by the crc accessor method is equal to the crc field of the input body's header")
 
-  GIVEN("A CRC element receiver of capacity 10 bytes")
-    WHEN("A body with a complete 4-byte header, And a payload of size 20 bytes completely filled with data")
-      THEN("the transform method reports ok status")
-      THEN("the output buffer contains only 4 bytes of crc + 6 bytes of the payload")
+  GIVEN("A CRC element receiver of capacity 10 bytes") {
+
+    WHEN("A body of size 20 bytes with a complete 4-byte header, And a payload of capacity 16 bytes completely filled with data is given to the receiver")
+      THEN("the transform method reports invalid parse status")
 
 /* CRCElementSender
 Scenario: CRCElementSender: correctly generates CRCElement bodies from payloads
