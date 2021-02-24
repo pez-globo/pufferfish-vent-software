@@ -58,14 +58,14 @@ class CRCElement {
   IndexStatus write_protected(Util::ByteVector<output_size> &output_buffer) const;
 };
 
-// In this CRCElement, the payload can only be set through the constructor, so
-// a const payload can be given in the constructor. However, the parse method
-// is not available, as it would modify the payload given in the constructor.
+// In this CRCElement, the payload can be modified through the parse method, so
+// a const payload cannot be given in the constructor.
 template <size_t body_max_size>
 using ParsedCRCElement = CRCElement<typename CRCElementProps<body_max_size>::PayloadBuffer>;
 
-// In this CRCElement, the payload can be modified through the parse method, so
-// a const payload cannot be given in the constructor.
+// In this CRCElement, the payload can only be set through the constructor, so
+// a const payload can be given in the constructor. However, the parse method
+// is not available, as it would modify the payload given in the constructor.
 template <size_t body_max_size>
 using ConstructedCRCElement =
     CRCElement<const typename CRCElementProps<body_max_size>::PayloadBuffer>;
@@ -82,7 +82,7 @@ class CRCElementReceiver {
   template <size_t input_size>
   Status transform(
       const Util::ByteVector<input_size> &input_buffer,
-      ParsedCRCElement<body_max_size> &output_datagram);
+      ParsedCRCElement<body_max_size> &output_crcelement);
 
  private:
   HAL::CRC32 &crc32c_;
