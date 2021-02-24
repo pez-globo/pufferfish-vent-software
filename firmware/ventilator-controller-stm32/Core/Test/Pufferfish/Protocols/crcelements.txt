@@ -1,103 +1,130 @@
 /* compute_body_crc
-Scenario: CRCElement: The compute_body_crc function correctly computes crc from body
-  GIVEN("A CRC element initialized with an empty payload")
-    WHEN("the crc is computed from the payload")
-      THEN("the computed crc is equal to the expected crc")
+Scenario: CRCElement: The compute_body_crc method correctly computes the CRC of a payload from a CRCElement body given as input
+  GIVEN("A CRC element initialized with an empty payload of capacity 250 bytes")
+    WHEN("the crc is computed on an input_buffer with empty payload")
+      THEN("the computed CRC is '0x00000000'")
 
-  GIVEN("A CRC Element initialized with the payload '123456789'")
-    WHEN("the crc is computed from the payload")
-      THEN("the computed crc is equal to the expected crc")
+    WHEN("the crc is computed on an input_buffer with payload '123456789'")
+      THEN("the computed crc is '0xe3069283'")
 
-  GIVEN("A crc element is initalised with payload 0x00")
-    WHEN("the crc is computed from the payload")
-      THEN("the computed crc is equal to the expected crc")
+    WHEN("the CRC is computed on an input_buffer with payload '0x00' ")
+      THEN("the computed crc is '0x527d5351'")
 
-  GIVEN("A crc element is initalised with payload 0x01")
-    WHEN("the crc is computed from the payload")
-      THEN("the computed crc is equal to the expected crc")
+    WHEN("the crc is computed on an input_buffer with payload '0x01' ")
+      THEN("the computed crc is '0xa016d052'")
 
 /* write function
 Scenario: CRCElement: The write function correctly generates body from computed crc and payload
   GIVEN("A crc element initalised with payload=[0x01, 0x02, 0x05]")
     WHEN("The crc and payload are written to the output buffer")
-      THEN("crc computed in write method is same as crcchecker compute")
+      THEN("the crc accessor method returns 0 before the write method is called")
+      THEN("After the write method is called, the crc accessor method returns a value equal to the result of directly computing a CRC on the payload.")
+      THEN("The CRC field of the body's header matches the value returned by the crc accessor method.")
+      THEN("The body's payload section correctly stores the payload as 0x01 0x02 0x05")
       THEN("The output buffer is as expected")
 
   GIVEN("A crc element is initalised with an empty payload")
     WHEN("The crc and payload are written to the output buffer")
-      THEN("The CRC returned by the crc() method is equal to 0")
+      THEN("the crc accessor method returns 0 before the write method is called")
+      THEN("The CRC field of the body's header matches the value returned by the crc accessor method.")
+      THEN("The body's payload section is empty")
       THEN("The output buffer is as expected")
 
 /* parse function
-Scenario: CRCElement: The parse function correctly updates internal crc and payload fields from the input buffer
-
+Scenario: CRCElement: The parse method correctly updates its internal crc value and the constructor's payload buffer from the input buffer
   GIVEN("A CRC Element initialized with an empty payload buffer with a capacity of 254 bytes")
 
-    WHEN("A body with crc more than 4 bytes and equal to the crc of the payload is parsed")
-      THEN("the parse method reports ok status")
-      THEN("crc returned from the crc() method is same as the crc of the payload in input body")
-      THEN("payload returned from the payload() method is equal to the payload from the body")
-
-    WHEN("A body of less than 4 bytes is parsed")
+    WHEN("A body without a complete 4-byte header is parsed")
       THEN("the parse method reports out of bounds status")
 
-    WHEN("A body with crc and payload is given, where the crc is not equal to the actual crc of the payload")
+    WHEN("A body with a complete 4-byte header, and a payload consistent with the CRC field of the header, is parsed")
       THEN("the parse method reports ok status")
-      THEN("The crc returned from the crc() method is equal to the crc in the body/input_buffer")
-      THEN("The crc returned from the crc() method is not equal to the actual crc for the given payload")
-      THEN("The payload returned from the payload() method is equal to the payload from the body")
+      THEN("the value returned by the crc accessor method is equal to the crc field of the input body's header")
+      THEN("the payload returned from the payload accessor method is equal to the payload from the body")
+      THEN("the payload given in the CRCElement constructor is independent of the input body")
+      THEN("the payload accessor method returns a reference to the payload buffer given in the CRCElement constructor") 
+
+    WHEN("A body with a complete 4-byte header, and a payload inconsistent with the CRC field of the header, is parsed")
+      THEN("the parse method reports ok status")
+      THEN("the value returned by the crc accessor method is equal to the crc field of the input body's header")
+      THEN("the value returned by the crc accessor method is inconsistent with the payload")
+      THEN("the payload returned from the payload accessor method is equal to the payload from the body")
+      THEN("the payload given in the CRCElement constructor is independent of the input body")
+      THEN("the payload accessor method returns a reference to the payload buffer given in the CRCElement constructor")
+
+  GIVEN("A CRC Element initialized with a non-empty payload buffer of capacity 254 bytes")
+    WHEN("A body with a complete 4-byte header, and a payload consistent with the CRC field of the header, is parsed")
+      THEN("the crc accessor method returns 0 before the parse method is called")
+      THEN("the payload returned from the payload accessor method is equal to the payload buffer given in the CRCElement constructor")
+      THEN("the parse method reports ok status")
+      THEN("the value returned by the crc accessor method is equal to the crc field of the input body's header")
+      THEN("the payload returned from the payload accessor method is equal to the payload from the body")
+      THEN("the payload given in the CRCElement constructor is independent of the input body")
+      THEN("the payload accessor method returns a reference to the payload buffer given in the CRCElement constructor")
 
 /* write parse roundtrip
-Scenario: The crc element correctly writes and parses to a buffer
+Scenario: CRCElement correctly preserves data in roundtrip writing and parsing
 
   GIVEN("A CRC Element initialized with a non empty payload buffer with a capacity of 254 bytes")
 
     WHEN("A body with crc and payload is generated, parsed and generated again")
       # write  
-      THEN("The status of write function returns ok")
-      THEN("The crc from the crc element is equal to expected")
-      THEN("The payload of the crc element is as expected")
+      THEN("the crc accessor method returns 0 before the first write method is called")
+      THEN("The first write method call returns ok status")
+      THEN("After the first write method is called, the crc accessor method returns a value equal to the result of directly computing a CRC on the payload.")
+      THEN("The CRC field of the body's header matches the value returned by the crc accessor method.")
+      THEN("The body's payload section correctly stores the payload as '0x01 0x05 0x01 0x02 0x03 0x04 0x05'")
       THEN("The output buffer is as expected")
       # parse
-      THEN("The status of parse function returns ok")
-      THEN("The crc from the CRCElement is equal to the crc in the body")
-      THEN("payload from the CRCElement is equal to the expected payload from the body")
+      THEN("The parse method reports ok status")
+      THEN("the value returned by the crc accessor method is equal to the crc field of the input body's header")
+      THEN("the payload returned from the payload accessor method is equal to the payload from the body")
+      THEN("the payload given in the CRCElement constructor is independent of the input body")
+      THEN("the payload accessor method returns a reference to the payload buffer given in the CRCElement constructor")
       # write  
-      THEN("The status of write function returns ok")
-      THEN("The crc from the crc element is equal to expected")
-      THEN("The payload of the crc element is as expected")
+      THEN("The second write method call returns ok status")
+      THEN("After the second write method is called, the crc accessor method returns a value equal to the result of directly computing a CRC on the payload.")
+      THEN("The CRC field of the body's header matches the value returned by the crc accessor method.")
+      THEN("The body's payload section correctly stores the payload as '0x01 0x05 0x01 0x02 0x03 0x04 0x05'")
       THEN("The output buffer is as expected")
 
-
 /* CRCElementReceiver
-Scenario: CRCElementReceiver: The crc element receiver correctly parses datagrams into payloads
+Scenario: CRCElementReceiver correctly parses CRCElement bodies and performs consistency checking on them
 
   GIVEN("A CRC element receiver of capacity 254 bytes")
-    WHEN("A body with crc more than 4 bytes and equal to the crc of the payload is given to the crc_element receiver")
+    WHEN("A body with a complete 4-byte header, and a payload consistent with the CRC field of the header, is given to the receiver")
       THEN("the transform method reports ok status")
-      THEN("crc returned from the crc() method is equal to the crc in the body/input_buffer")
-      THEN("payload returned from the payload() method is equal to the payload from the body")
+      THEN("the value returned by the crc accessor method is equal to the crc field of the input body's header")
+      THEN("the payload returned from the payload accessor method is equal to the payload from the body")
+      THEN("the payload buffer updated in the CRCElement is independent of the input body")
 
-    WHEN("body with 0 bytes is given to the crc element receiver")
+    WHEN("A body without a complete 4-byte header and empty payload is given to the crc element receiver")
       THEN("the transform status is equal to invalid parse")
-      THEN("the crc in output crc_element is equal to the given crc in input_buffer")
+      THEN("the value returned by the crc accessor method is equal to 0x00000000r")
+      THEN("The body's payload section is empty")
 
     WHEN("body with less than 4 bytes is given to the crc element receiver")
       // body of length 1,2,3 bytes is passed, passing 4 bytes will give a invalid_crc error instead
       THEN("the transform status is equal to invalid parse") // for each time
-      THEN("The crc returned from the crc() method is equal to 0") // for each time
+      THEN("the value returned by the crc accessor method is equal to 0x00000000") // for each time
 
-    WHEN("The CRC stored in the input body is inconsistent with the payload stored in the input body")
+    WHEN("A body with a complete 4-byte header, and a payload inconsistent with the CRC field of the header, is given to the receiver")
       THEN("the transform method reports invalid crc status")
-      THEN("the crc returned from the crc() method is equal to the invalid crc given in input body")
+      THEN("the value returned by the crc accessor method is equal to the crc field of the input body's header")
+
+  GIVEN("A CRC element receiver of capacity 10 bytes")
+    WHEN("A body with a complete 4-byte header, And a payload of size 20 bytes completely filled with data")
+      THEN("the transform method reports ok status")
+      THEN("the output buffer contains only 4 bytes of crc + 6 bytes of the payload")
 
 /* CRCElementSender
-Scenario: CRCElementSender: The crc element receiver correctly generates datagrams from payload
+Scenario: CRCElementSender: correctly generates CRCElement bodies from payloads
 
   GIVEN("A CRC element sender of capacity 254 bytes")
     WHEN("A payload is given along with a sufficiently large output buffer")
       THEN("the transform status is ok")
       THEN("output buffer is as expected, equal to (crc + input_buffer)")
+      THEN("The CRC field of the output buffer's header is consistent with the input_payload.")
 
   GIVEN("A CRC element sender of buffer size 20 bytes")
     WHEN("The output buffer is not large enough for the input payload")

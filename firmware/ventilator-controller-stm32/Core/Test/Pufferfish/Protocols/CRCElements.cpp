@@ -22,103 +22,85 @@ namespace PF = Pufferfish;
 constexpr size_t buffer_size = 254UL;
 using TestCRCElementProps = PF::Protocols::CRCElementProps<buffer_size>;
 using TestCRCElement = PF::Protocols::CRCElement<TestCRCElementProps::PayloadBuffer>;
+using TestConstructedCRCElement = PF::Protocols::CRCElement<TestCRCElementProps::PayloadBuffer>;
 using TestCRCElementHeaderProps = PF::Protocols::CRCElementHeaderProps;
 
 SCENARIO(
-    "Protocols::CRCElement: The compute_body_crc function correctly computes crc from body",
+    "Protocols::CRCElement: The TestCRCElement::compute_body_crc function correctly computes crc "
+    "from body",
     "[CRCElement]") {
   PF::HAL::SoftCRC32 crc32c{PF::HAL::crc32c_params};
   GIVEN("A CRC element initialized with an empty payload") {
-    TestCRCElementProps::PayloadBuffer input_payload;
+    WHEN("the crc is computed on an input_buffer with empty payload") {
+      PF::Util::ByteVector<buffer_size> buffer;
+      TestCRCElementProps::PayloadBuffer input_payload;
 
-    TestCRCElement crc_element{input_payload};
-
-    WHEN("the crc is computed from the payload") {
-      // Calculated using the Sunshine Online CRC Calculator
-      uint32_t expected_crc = 0x00000000;
-
-      TestCRCElementProps::PayloadBuffer output_payload;
-      output_payload.resize(TestCRCElementHeaderProps::header_size + input_payload.size());
-      output_payload.copy_from(
+      buffer.copy_from(
           input_payload.buffer(), input_payload.size(), TestCRCElementHeaderProps::payload_offset);
 
-      auto computed_crc = TestCRCElement::compute_body_crc(output_payload, crc32c);
+      auto computed_crc = TestCRCElement::compute_body_crc(buffer, crc32c);
 
-      THEN("the computed crc is equal to the expected crc") {
+      THEN("the computed CRC is '0x00000000") {
+        // Calculated using the Sunshine Online CRC Calculator
+        uint32_t expected_crc = 0x00000000;
         REQUIRE(computed_crc == expected_crc);
       }
     }
-  }
 
-  GIVEN("A CRC Element initialized with the payload '123456789'") {
-    TestCRCElementProps::PayloadBuffer input_payload;
-    auto data = std::string("123456789");
-    for (auto& ch : data) {
-      input_payload.push_back(ch);
-    }
+    WHEN("the crc is computed on an input_buffer with payload '123456789'") {
+      TestCRCElementProps::PayloadBuffer input_payload;
+      auto data = std::string("123456789");
+      for (auto& ch : data) {
+        input_payload.push_back(ch);
+      }
 
-    TestCRCElement crc_element{input_payload};
-
-    WHEN("the crc is computed from the payload") {
-      // Calculated using the Sunshine Online CRC Calculator
-      uint32_t expected_crc = 0xe3069283;
-
-      TestCRCElementProps::PayloadBuffer output_payload;
-      output_payload.resize(TestCRCElementHeaderProps::header_size + input_payload.size());
-      output_payload.copy_from(
+      PF::Util::ByteVector<buffer_size> buffer;
+      buffer.resize(TestCRCElementHeaderProps::header_size + input_payload.size());
+      buffer.copy_from(
           input_payload.buffer(), input_payload.size(), TestCRCElementHeaderProps::payload_offset);
 
-      auto computed_crc = TestCRCElement::compute_body_crc(output_payload, crc32c);
+      auto computed_crc = TestCRCElement::compute_body_crc(buffer, crc32c);
 
-      THEN("the computed crc is equal to the expected crc") {
+      THEN("the computed crc is '0xe3069283'") {
+        // Calculated using the Sunshine Online CRC Calculator
+        uint32_t expected_crc = 0xe3069283;
         REQUIRE(computed_crc == expected_crc);
       }
     }
-  }
 
-  GIVEN("A crc element is initalised with payload 0x00") {
-    TestCRCElementProps::PayloadBuffer input_payload;
-    input_payload.push_back(0x00);
+    WHEN("the CRC is computed on an input_buffer with payload '0x00'") {
+      TestCRCElementProps::PayloadBuffer input_payload;
+      input_payload.push_back(0x00);
 
-    TestCRCElement crc_element{input_payload};
-
-    WHEN("the crc is computed from the payload") {
-      // Calculated using the Sunshine Online CRC Calculator
-      uint32_t expected_crc = 0x527d5351;
-
-      TestCRCElementProps::PayloadBuffer output_payload;
-
-      output_payload.resize(TestCRCElementHeaderProps::header_size + input_payload.size());
-      output_payload.copy_from(
+      PF::Util::ByteVector<buffer_size> buffer;
+      buffer.resize(TestCRCElementHeaderProps::header_size + input_payload.size());
+      buffer.copy_from(
           input_payload.buffer(), input_payload.size(), TestCRCElementHeaderProps::payload_offset);
 
-      auto computed_crc = TestCRCElement::compute_body_crc(output_payload, crc32c);
+      auto computed_crc = TestCRCElement::compute_body_crc(buffer, crc32c);
 
-      THEN("the computed crc is equal to the expected crc") {
+      THEN("the computed crc is '0x527d5351'") {
+        // Calculated using the Sunshine Online CRC Calculator
+        uint32_t expected_crc = 0x527d5351;
         REQUIRE(computed_crc == expected_crc);
       }
     }
-  }
 
-  GIVEN("A crc element is initalised with payload 0x01") {
-    TestCRCElementProps::PayloadBuffer input_payload;
-    input_payload.push_back(0x01);
+    WHEN("the crc is computed on an input_buffer with payload '0x01'") {
+      TestCRCElementProps::PayloadBuffer input_payload;
+      input_payload.push_back(0x01);
 
-    TestCRCElement crc_element{input_payload};
+      PF::Util::ByteVector<buffer_size> buffer;
 
-    WHEN("the crc is computed from the payload") {
-      // Calculated using the Sunshine Online CRC Calculator
-      uint32_t expected_crc = 0xa016d052;
-
-      TestCRCElementProps::PayloadBuffer output_payload;
-
-      output_payload.resize(TestCRCElementHeaderProps::header_size + input_payload.size());
-      output_payload.copy_from(
+      buffer.resize(TestCRCElementHeaderProps::header_size + input_payload.size());
+      buffer.copy_from(
           input_payload.buffer(), input_payload.size(), TestCRCElementHeaderProps::payload_offset);
 
-      auto computed_crc = TestCRCElement::compute_body_crc(output_payload, crc32c);
+      auto computed_crc = TestCRCElement::compute_body_crc(buffer, crc32c);
 
-      THEN("the computed crc is equal to the expected crc") {
+      THEN("the computed crc is '0xa016d052") {
+        // Calculated using the Sunshine Online CRC Calculator
+        uint32_t expected_crc = 0xa016d052;
         REQUIRE(computed_crc == expected_crc);
       }
     }
@@ -137,10 +119,13 @@ SCENARIO(
       input_payload.push_back(bytes);
     }
 
-    TestCRCElement crc_element{input_payload};
+    TestConstructedCRCElement crc_element{input_payload};
     WHEN("The crc and payload are written to the output buffer") {
       TestCRCElementProps::PayloadBuffer output_buffer;
-      auto expected = std::string("\xD7\x91\x15\xF6\x01\x02\x05");
+
+      THEN("the crc accessor method returns 0 before the write method is called") {
+        REQUIRE(crc_element.crc() == 0x00000000);
+      }
 
       auto write_status = crc_element.write(output_buffer, crc32c);
       auto crc_compute = crc32c.compute(input_payload.buffer(), input_payload.size());
@@ -149,23 +134,45 @@ SCENARIO(
         REQUIRE(write_status == PF::IndexStatus::ok);
         REQUIRE(crc_element.crc() == crc_compute);
       }
+      THEN(
+          "The CRC field of the body's header matches the value returned by the crc accessor "
+          "method.") {
+        uint32_t crc_header = 0xd79115f6;
+        REQUIRE(crc_header == crc_element.crc());
+      }
+      THEN("The body's payload section correctly stores the payload as 0x01 0x02 0x05") {
+        REQUIRE(output_buffer.operator[](TestCRCElementHeaderProps::payload_offset) == data[0]);
+        REQUIRE(output_buffer.operator[](TestCRCElementHeaderProps::payload_offset + 1) == data[1]);
+        REQUIRE(output_buffer.operator[](TestCRCElementHeaderProps::payload_offset + 2) == data[2]);
+      }
 
-      THEN("The output buffer is as expected") { REQUIRE(output_buffer == expected); }
+      THEN("The output buffer is as expected") {
+        auto expected = std::string("\xD7\x91\x15\xF6\x01\x02\x05");
+        REQUIRE(output_buffer == expected);
+      }
     }
   }
 
   GIVEN("A crc element is initalised with an empty payload") {
     TestCRCElementProps::PayloadBuffer input_payload;
 
-    TestCRCElement crc_element{input_payload};
-
+    TestConstructedCRCElement crc_element{input_payload};
     WHEN("The crc and payload are written to the output buffer") {
       PF::Util::ByteVector<buffer_size> output_buffer;
 
       auto write_status = crc_element.write(output_buffer, crc32c);
-      auto crc_payload = crc_element.crc();
       THEN("The write status reports ok") { REQUIRE(write_status == PF::IndexStatus::ok); }
-      THEN("The CRC returned by the crc() method is equal to 0") { REQUIRE(crc_payload == 0); }
+      THEN(
+          "The CRC field of the body's header matches the value returned by the crc accessor "
+          "method.") {
+        uint32_t crc_header = 0x00000000;
+        REQUIRE(crc_header == crc_element.crc());
+      }
+      THEN("The body's payload section is empty") {
+        constexpr size_t payload_size = 250UL;
+        PF::Util::ByteVector<payload_size> expected;
+        REQUIRE(crc_element.payload() == expected);
+      }
       THEN("The output buffer is as expected") {
         auto expected_buffer = std::string("\x00\x00\x00\x00", 4);
         REQUIRE(output_buffer == expected_buffer);
@@ -175,43 +182,15 @@ SCENARIO(
 }
 
 SCENARIO(
-    "Protocols::CRCElement: The parse function correctly updates internal crc and payload fields "
-    "from the input buffer",
+    "Protocols::CRCElement: The parse method correctly updates its internal crc value and the "
+    "constructor's payload buffer from the input buffer",
     "[CRCElement]") {
-  GIVEN("A CRC Element initialized with an empty payload buffer with a capacity of 254 bytes") {
-    constexpr size_t buffer_size = 254UL;
-    using TestCRCElementProps = PF::Protocols::CRCElementProps<buffer_size>;
-    using TestCRCElement = PF::Protocols::CRCElement<TestCRCElementProps::PayloadBuffer>;
-    PF::HAL::SoftCRC32 crc32c{PF::HAL::crc32c_params};
+  PF::HAL::SoftCRC32 crc32c{PF::HAL::crc32c_params};
 
+  GIVEN("A CRCElement constructed with an empty payload buffer with a capacity of 254 bytes") {
     TestCRCElementProps::PayloadBuffer payload;
 
     TestCRCElement crc_element{payload};
-
-    WHEN("A body with crc more than 4 bytes and equal to the crc of the payload is parsed") {
-      // Calculated using the Sunshine Online CRC Calculator
-      uint32_t expected_crc = 0x98DBE355;
-
-      auto body = std::string("\x98\xdb\xe3\x55\x01\x05\x01\x02\x03\x04\x05", 11);
-      auto expected_payload = std::string("\x01\x05\x01\x02\x03\x04\x05", 7);
-
-      PF::Util::ByteVector<buffer_size> input_buffer;
-      PF::Util::convert_string_to_byte_vector(body, input_buffer);
-
-      auto parse_status = crc_element.parse(input_buffer);
-      auto crc_check = crc_element.crc();
-      const auto& payload_check = crc_element.payload();
-
-      THEN("the parse method reports ok status") { REQUIRE(parse_status == PF::IndexStatus::ok); }
-
-      THEN("crc returned from the crc() method is equal to the crc in the body/input_buffer") {
-        REQUIRE(crc_check == expected_crc);
-      }
-
-      THEN("payload returned from the payload() method is equal to the payload from the body") {
-        REQUIRE(payload_check == expected_payload);
-      }
-    }
 
     WHEN("A body of less than 4 bytes is parsed") {
       auto body = std::string("\x98\xdb\xe3", 3);
@@ -227,40 +206,155 @@ SCENARIO(
     }
 
     WHEN(
-        "A body with crc and payload is given, where the crc is not equal to the actual crc of the "
-        "payload") {
-      auto body = std::string("\x12\x34\x56\x78\x03\x04\x00\xed\x30\x00", 10);
-      auto expected_payload = std::string("\x03\x04\x00\xed\x30\x00", 6);
-
-      // Calculated using the Sunshine Online CRC Calculator
-      uint32_t expected_crc = 0x6D551F4C;
+        "A body with a complete 4-byte header, and a payload consistent with the CRC field of the "
+        "header, is parsed") {
+      auto body = std::string("\x98\xdb\xe3\x55\x01\x05\x01\x02\x03\x04\x05", 11);
 
       PF::Util::ByteVector<buffer_size> input_buffer;
       PF::Util::convert_string_to_byte_vector(body, input_buffer);
 
       auto parse_status = crc_element.parse(input_buffer);
-      auto crc_check = crc_element.crc();
-
-      auto payload_check = crc_element.payload();
 
       THEN("the parse method reports ok status") { REQUIRE(parse_status == PF::IndexStatus::ok); }
-      THEN("The crc returned from the crc() method is equal to the crc in the body/input_buffer") {
-        uint32_t crc_body = 0x12345678;
-        REQUIRE(crc_check == crc_body);
+      THEN(
+          "the value returned by the crc accessor method is equal to the crc field of the input "
+          "body's header") {
+        // Calculated using the Sunshine Online CRC Calculator
+        uint32_t expected_crc = 0x98DBE355;
+        REQUIRE(crc_element.crc() == expected_crc);
+      }
+      auto expected_payload = std::string("\x01\x05\x01\x02\x03\x04\x05", 7);
+      THEN(
+          "the payload returned from the payload accessor method is equal to the payload from the "
+          "body") {
+        REQUIRE(crc_element.payload() == expected_payload);
+      }
+      THEN("the payload given in the CRCElement constructor is independent of the input body") {
+        // change the input_buffer
+        input_buffer.push_back(0x06);
+
+        REQUIRE(crc_element.payload() == expected_payload);
       }
       THEN(
-          "The crc returned from the crc() method is not equal to the actual crc for the given "
-          "payload") {
-        REQUIRE(crc_check != expected_crc);
+          "the payload accessor method returns a reference to the payload buffer given in the "
+          "CRCElement constructor") {
+        // change the payload buffer given to the constructor
+        payload.push_back(0x06);
+
+        // expected buffer returned by the payload accessor method
+        auto expected = std::string("\x01\x05\x01\x02\x03\x04\x05\x06", 8);
+        REQUIRE(crc_element.payload() == expected);
       }
-      THEN("The payload returned from the payload() method is equal to the payload from the body") {
-        REQUIRE(payload_check == expected_payload);
+    }
+
+    WHEN(
+        "A body with a complete 4-byte header, and a payload inconsistent with the CRC field of "
+        "the header, is parsed") {
+      auto body = std::string("\x12\x34\x56\x78\x03\x04\x00\xed\x30\x00", 10);
+
+      PF::Util::ByteVector<buffer_size> input_buffer;
+      PF::Util::convert_string_to_byte_vector(body, input_buffer);
+
+      auto parse_status = crc_element.parse(input_buffer);
+
+      THEN("the parse method reports ok status") { REQUIRE(parse_status == PF::IndexStatus::ok); }
+      THEN(
+          "the value returned by the crc accessor method is equal to the crc field of the input "
+          "body's header") {
+        uint32_t crc_body = 0x12345678;
+        REQUIRE(crc_element.crc() == crc_body);
+      }
+      THEN("the value returned by the crc accessor method is inconsistent with the payload") {
+        // Calculated using the Sunshine Online CRC Calculator
+        uint32_t actual_crc = 0x6D551F4C;
+        REQUIRE(crc_element.crc() != actual_crc);
+      }
+      auto expected_payload = std::string("\x03\x04\x00\xed\x30\x00", 6);
+      THEN(
+          "the payload returned from the payload accessor method is equal to the payload from the "
+          "body") {
+        REQUIRE(crc_element.payload() == expected_payload);
+      }
+      THEN("the payload given in the CRCElement constructor is independent of the input body") {
+        // change the input_buffer
+        input_buffer.push_back(0x06);
+
+        REQUIRE(crc_element.payload() == expected_payload);
+      }
+      THEN(
+          "the payload accessor method returns a reference to the payload buffer given in the "
+          "CRCElement constructor") {
+        // change the payload buffer given to the constructor
+        payload.push_back(0x06);
+
+        // expected buffer returned by the payload accessor method
+        auto expected = std::string("\x03\x04\x00\xed\x30\x00\x06", 7);
+        REQUIRE(crc_element.payload() == expected);
+      }
+    }
+  }
+
+  GIVEN("A CRC Element initialized with a non-empty payload buffer of capacity 254 bytes") {
+    TestCRCElementProps::PayloadBuffer payload;
+    auto data = std::string("\x12\x13\x14\x15\x16", 5);
+    PF::Util::convert_string_to_byte_vector(data, payload);
+
+    TestCRCElement crc_element{payload};
+
+    WHEN(
+        "A body with a complete 4-byte header, and a payload consistent with the CRC field of the "
+        "header, is parsed") {
+      auto body = std::string("\x2B\x01\xD0\x2C\x01\x06\x11\x22\x33\x44\x55\x66", 12);
+
+      PF::Util::ByteVector<buffer_size> input_buffer;
+      PF::Util::convert_string_to_byte_vector(body, input_buffer);
+
+      THEN("the crc accessor method returns 0 before the parse method is called") {
+        REQUIRE(crc_element.crc() == 0x00000000);
+      }
+      THEN(
+          "the payload returned from the payload accessor method is equal to the payload buffer "
+          "given in the CRCElement constructor") {
+        REQUIRE(crc_element.payload() == data);
+      }
+
+      auto parse_status = crc_element.parse(input_buffer);
+
+      THEN("the parse method reports ok status") { REQUIRE(parse_status == PF::IndexStatus::ok); }
+      THEN(
+          "the value returned by the crc accessor method is equal to the crc field of the input "
+          "body's header") {
+        // Calculated using the Sunshine Online CRC Calculator
+        uint32_t expected_crc = 0x2B01D02C;
+        REQUIRE(crc_element.crc() == expected_crc);
+      }
+      auto expected_payload = std::string("\x01\x06\x11\x22\x33\x44\x55\x66", 8);
+      THEN(
+          "the payload returned from the payload accessor method is equal to the payload from the "
+          "body") {
+        REQUIRE(crc_element.payload() == expected_payload);
+      }
+      THEN("the payload given in the CRCElement constructor is independent of the input body") {
+        // change the input_buffer
+        input_buffer.push_back(0x06);
+
+        REQUIRE(crc_element.payload() == expected_payload);
+      }
+      THEN(
+          "the payload accessor method returns a reference to the payload buffer given in the "
+          "CRCElement constructor") {
+        // change the payload buffer given to the constructor
+        payload.push_back(0x06);
+
+        // expected buffer returned by the payload accessor method
+        auto expected = std::string("\x01\x06\x11\x22\x33\x44\x55\x66\x06", 9);
+        REQUIRE(crc_element.payload() == expected);
       }
     }
   }
 }
 
-SCENARIO("Protocols::CRCElement: The crc element correctly writes and parses to a buffer") {
+SCENARIO("Protocols::CRCElement: correctly preserves data in roundtrip writing and parsing") {
   GIVEN("A CRC Element initialized with a non empty payload buffer with a capacity of 254 bytes") {
     constexpr size_t buffer_size = 254UL;
     using TestCRCElementProps = PF::Protocols::CRCElementProps<buffer_size>;
@@ -279,51 +373,96 @@ SCENARIO("Protocols::CRCElement: The crc element correctly writes and parses to 
     WHEN("A body with crc and payload is generated, parsed and generated again") {
       PF::Util::ByteVector<buffer_size> output_buffer;
 
+      THEN("the crc accessor method returns 0 before the first write method is called") {
+        REQUIRE(crc_element.crc() == 0x00000000);
+      }
       auto write_status = crc_element.write(output_buffer, crc32c);
 
-      THEN("The status of write function returns ok") {
+      THEN("The first write method call returns ok status") {
         REQUIRE(write_status == PF::IndexStatus::ok);
       }
-      THEN("The crc from the crc element is equal to expected") {
+      THEN(
+          "After the first write method is called, the crc accessor method returns a value equal "
+          "to the result of directly computing a CRC on the payload") {
+        auto crc_compute = crc32c.compute(payload.buffer(), payload.size());
+        REQUIRE(crc_element.crc() == crc_compute);
+      }
+      THEN(
+          "The CRC field of the body's header matches the value returned by the crc accessor "
+          "method.") {
         // Calculated using the Sunshine Online CRC Calculator
         uint32_t expected_crc = 0x98DBE355;
         REQUIRE(crc_element.crc() == expected_crc);
       }
-      THEN("The payload of the crc element is as expected") {
-        auto expected_payload = std::string("\x01\x05\x01\x02\x03\x04\x05");
+      THEN(
+          "The body's payload section correctly stores the payload as '0x01 0x05 0x01 0x02 0x03 "
+          "0x04 0x05'") {
+        auto expected_payload = std::string("\x01\x05\x01\x02\x03\x04\x05", 7);
         REQUIRE(crc_element.payload() == expected_payload);
       }
       THEN("The output buffer is as expected") {
-        auto expected_buffer = std::string("\x98\xDB\xE3\x55\x01\x05\x01\x02\x03\x04\x05");
+        auto expected_buffer = std::string("\x98\xDB\xE3\x55\x01\x05\x01\x02\x03\x04\x05", 11);
         REQUIRE(output_buffer == expected_buffer);
       }
 
       auto parse_status = crc_element.parse(output_buffer);
-      THEN("The status of parse function returns ok") {
-        REQUIRE(parse_status == PF::IndexStatus::ok);
-      }
-      THEN("The crc from the CRCElement is equal to the crc in the body") {
+      THEN("The parse method reports ok status") { REQUIRE(parse_status == PF::IndexStatus::ok); }
+      THEN(
+          "the value returned by the crc accessor method is equal to the crc field of the input "
+          "body's header") {
         uint32_t crc_body = 0x98DBE355;
         REQUIRE(crc_element.crc() == crc_body);
       }
-      THEN("payload from the CRCElement is equal to the expected payload from the body") {
-        auto expected_payload = std::string("\x01\x05\x01\x02\x03\x04\x05");
+      THEN(
+          "the payload returned from the payload accessor method is equal to the payload from the "
+          "body") {
+        auto expected_payload = std::string("\x01\x05\x01\x02\x03\x04\x05", 7);
+        REQUIRE(crc_element.payload() == expected_payload);
+      }
+
+      THEN("the payload given in the CRCElement constructor is independent of the input body") {
+        // change the input_buffer
+        output_buffer.push_back(0x06);
+
+        auto expected_payload = std::string("\x01\x05\x01\x02\x03\x04\x05", 7);
+        REQUIRE(crc_element.payload() == expected_payload);
+      }
+      THEN(
+          "the payload accessor method returns a reference to the payload buffer given in the "
+          "CRCElement constructor") {
+        // change the payload buffer given to the constructor
+        payload.push_back(0x06);
+
+        // expected buffer returned by the payload accessor method
+        auto expected_payload = std::string("\x01\x05\x01\x02\x03\x04\x05\x06", 8);
         REQUIRE(crc_element.payload() == expected_payload);
       }
 
       auto write = crc_element.write(output_buffer, crc32c);
-      THEN("The status of write function returns ok") { REQUIRE(write == PF::IndexStatus::ok); }
-      THEN("The crc from the crc element is equal to expected") {
+      THEN("The second write method call returns ok status") {
+        REQUIRE(write == PF::IndexStatus::ok);
+      }
+      THEN(
+          "After the second write method is called, the crc accessor method returns a value equal "
+          "to the result of directly computing a CRC on the payload") {
+        auto crc_compute = crc32c.compute(payload.buffer(), payload.size());
+        REQUIRE(crc_element.crc() == crc_compute);
+      }
+      THEN(
+          "The CRC field of the body's header matches the value returned by the crc accessor "
+          "method.") {
         // Calculated using the Sunshine Online CRC Calculator
         uint32_t expected_crc = 0x98DBE355;
         REQUIRE(crc_element.crc() == expected_crc);
       }
-      THEN("The payload of the crc element is as expected") {
-        auto expected_payload = std::string("\x01\x05\x01\x02\x03\x04\x05");
+      THEN(
+          "The body's payload section correctly stores the payload as '0x01 0x05 0x01 0x02 0x03 "
+          "0x04 0x05'") {
+        auto expected_payload = std::string("\x01\x05\x01\x02\x03\x04\x05", 7);
         REQUIRE(crc_element.payload() == expected_payload);
       }
       THEN("The output buffer is as expected") {
-        auto expected_buffer = std::string("\x98\xDB\xE3\x55\x01\x05\x01\x02\x03\x04\x05");
+        auto expected_buffer = std::string("\x98\xDB\xE3\x55\x01\x05\x01\x02\x03\x04\x05", 11);
         REQUIRE(output_buffer == expected_buffer);
       }
     }
@@ -331,8 +470,8 @@ SCENARIO("Protocols::CRCElement: The crc element correctly writes and parses to 
 }
 
 SCENARIO(
-    "Protocols::CRCElementReceiver: The crc element receiver correctly parses datagrams into "
-    "payloads",
+    "Protocols::CRCElementReceiver: correctly parses CRCElement bodies and performs consistency "
+    "checking on them",
     "[CRCElementReceiver]") {
   GIVEN("A CRC element receiver of capacity 254 bytes") {
     constexpr size_t buffer_size = 254UL;
@@ -350,30 +489,39 @@ SCENARIO(
     WHEN(
         "A body with crc more than 4 bytes and equal to the crc of the payload is given to the "
         "crc_element receiver") {
-      auto body = std::string("\x98\xdb\xe3\x55\x01\x05\x01\x02\x03\x04\x05", 11);
+      auto body = std::string("\x44\xeb\x77\x5f\x01\x07\x07\x12\x36\x57\x66\x77\x18", 13);
       PF::Util::ByteVector<buffer_size> input_buffer;
       PF::Util::convert_string_to_byte_vector(body, input_buffer);
 
-      uint32_t expected_crc = 0x98dbe355;
-      auto expected_payload = std::string("\x01\x05\x01\x02\x03\x04\x05", 7);
-
       auto transform_status = crc_element_receiver.transform(input_buffer, crc_element);
-      auto payload = crc_element.payload();
 
       THEN("the transform method reports ok status") {
         REQUIRE(transform_status == TestCRCElementReceiver::Status::ok);
       }
-
-      THEN("the crc returned from the crc() method is equal to the crc in the body/input_buffer") {
+      THEN(
+          "the value returned by the crc accessor method is equal to the crc field of the input "
+          "body's header") {
+        uint32_t expected_crc = 0x44EB775F;
         REQUIRE(crc_element.crc() == expected_crc);
       }
+      THEN(
+          "the payload returned from the payload accessor method is equal to the payload from the "
+          "body") {
+        auto expected_payload = std::string("\x01\x07\x07\x12\x36\x57\x66\x77\x18", 9);
+        REQUIRE(crc_element.payload() == expected_payload);
+      }
+      THEN("the payload buffer updated in the CRCElement is independent of the input body") {
+        // change input buffer
+        input_buffer.push_back(0x01);
 
-      THEN("the payload returned from the payload() method is equal to the payload from the body") {
-        REQUIRE(payload == expected_payload);
+        auto expected_payload = std::string("\x01\x07\x07\x12\x36\x57\x66\x77\x18", 9);
+        REQUIRE(crc_element.payload() == expected_payload);
       }
     }
 
-    WHEN("body with 0 bytes is given to the crc element receiver") {
+    WHEN(
+        "A body without a complete 4-byte header and empty payload is given to the crc element "
+        "receiver") {
       TestCRCElementProps::PayloadBuffer input_payload;
       TestCRCElement crc_element{input_payload};
 
@@ -387,7 +535,7 @@ SCENARIO(
         REQUIRE(transform_status == TestCRCElementReceiver::Status::invalid_parse);
       }
 
-      THEN("The crc returned from the crc() method is equal to 0") {
+      THEN("the value returned by the crc accessor method is equal to 0x00000000") {
         REQUIRE(crc_element.crc() == expected_crc);
       }
     }
@@ -409,7 +557,7 @@ SCENARIO(
       THEN("the transform status is equal to invalid parse") {
         REQUIRE(status == TestCRCElementReceiver::Status::invalid_parse);
       }
-      THEN("The crc returned from the crc() method is equal to 0") {
+      THEN("the value returned by the crc accessor method is equal to 0") {
         uint32_t expected_crc = 0x00;
         REQUIRE(crc_element.crc() == expected_crc);
       }
@@ -426,7 +574,7 @@ SCENARIO(
       THEN("the transform status is equal to invalid parse") {
         REQUIRE(first == TestCRCElementReceiver::Status::invalid_parse);
       }
-      THEN("The crc returned from the crc() method is equal to 0") {
+      THEN("the value returned by the crc accessor method is equal to 0") {
         uint32_t expected_crc = 0x00;
         REQUIRE(crc_element.crc() == expected_crc);
       }
@@ -443,7 +591,7 @@ SCENARIO(
       THEN("the transform status is equal to invalid parse") {
         REQUIRE(second == TestCRCElementReceiver::Status::invalid_parse);
       }
-      THEN("The crc returned from the crc() method is equal to 0") {
+      THEN("the value returned by the crc accessor method is equal to 0") {
         uint32_t expected_crc = 0x00;
         REQUIRE(crc_element.crc() == expected_crc);
       }
@@ -465,7 +613,8 @@ SCENARIO(
       }
 
       THEN(
-          "the crc returned from the crc() method is equal to the invalid crc given in input "
+          "the value returned by the crc accessor method is equal to the invalid crc given in "
+          "input "
           "body") {
         REQUIRE(crc_element.crc() == expected_crc);
       }
@@ -488,10 +637,6 @@ SCENARIO(
     WHEN("A payload is given along with a sufficiently large output buffer") {
       auto body = std::string("\x13\x03\x05\x06\x23", 5);
 
-      // Calculated using the Sunshine Online CRC Calculator
-      uint32_t expected_crc = 0x81FC3457;
-      auto expected_output = std::string("\x81\xfc\x34\x57\x13\x03\x05\x06\x23", 9);
-
       TestCRCElementProps::PayloadBuffer input_payload;
       PF::Util::convert_string_to_byte_vector(body, input_payload);
 
@@ -503,7 +648,14 @@ SCENARIO(
         REQUIRE(transform_status == TestCRCElementSender::Status::ok);
       }
       THEN("output buffer is as expected, equal to (crc + input_buffer)") {
+        auto expected_output = std::string("\x81\xfc\x34\x57\x13\x03\x05\x06\x23", 9);
         REQUIRE(output_buffer == expected_output);
+      }
+      THEN("The CRC field of the output buffer's header is consistent with the input_payload.") {
+        // Calculated using the Sunshine Online CRC Calculator
+        uint32_t expected_crc = 0x81FC3457;
+        auto crc_compute = crc32c.compute(input_payload.buffer(), input_payload.size());
+        REQUIRE(expected_crc == crc_compute);
       }
     }
   }
