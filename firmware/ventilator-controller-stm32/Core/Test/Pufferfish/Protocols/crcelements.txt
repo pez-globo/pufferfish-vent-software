@@ -14,7 +14,7 @@ Scenario: CRCElement: The compute_body_crc method correctly computes the CRC of 
       THEN("the computed crc is '0xa016d052'")
 
 /* write function
-Scenario: CRCElement: The write function correctly generates body from computed crc and payload
+Scenario: ConstructedCRCElement: The write method correctly generates a body from the payload given in the constructor
   GIVEN("A crc element initalised with payload=[0x01, 0x02, 0x05]")
     WHEN("The crc and payload are written to the output buffer")
       THEN("the crc accessor method returns 0 before the write method is called")
@@ -32,7 +32,7 @@ Scenario: CRCElement: The write function correctly generates body from computed 
 
 /* parse function
 Scenario: CRCElement: The parse method correctly updates its internal crc value and the constructor's payload buffer from the input buffer
-  GIVEN("A CRC Element initialized with an empty payload buffer with a capacity of 254 bytes")
+  GIVEN("A CRCElement constructed with an empty payload buffer with a capacity of 254 bytes")
 
     WHEN("A body without a complete 4-byte header is parsed")
       THEN("the parse method reports out of bounds status")
@@ -52,7 +52,7 @@ Scenario: CRCElement: The parse method correctly updates its internal crc value 
       THEN("the payload given in the CRCElement constructor is independent of the input body")
       THEN("the payload accessor method returns a reference to the payload buffer given in the CRCElement constructor")
 
-  GIVEN("A CRC Element initialized with a non-empty payload buffer of capacity 254 bytes")
+  GIVEN("A CRCElement constructed with a non-empty payload buffer of capacity 254 bytes")
     WHEN("A body with a complete 4-byte header, and a payload consistent with the CRC field of the header, is parsed")
       THEN("the crc accessor method returns 0 before the parse method is called")
       THEN("the payload returned from the payload accessor method is equal to the payload buffer given in the CRCElement constructor")

@@ -108,8 +108,8 @@ SCENARIO(
 }
 
 SCENARIO(
-    "Protocols::CRCElement: The write function correctly generates body from computed crc and "
-    "payload",
+    "Protocols::ConstructedCRCElement: The write method correctly generates a body from the "
+    "payload given in the constructor",
     "[CRCElement]") {
   PF::HAL::SoftCRC32 crc32c{PF::HAL::crc32c_params};
   GIVEN("A crc element initalised with payload=[0x01, 0x02, 0x05]") {
@@ -294,7 +294,7 @@ SCENARIO(
     }
   }
 
-  GIVEN("A CRC Element initialized with a non-empty payload buffer of capacity 254 bytes") {
+  GIVEN("A CRCElement constructed with a non-empty payload buffer of capacity 254 bytes") {
     TestCRCElementProps::PayloadBuffer payload;
     auto data = std::string("\x12\x13\x14\x15\x16", 5);
     PF::Util::convert_string_to_byte_vector(data, payload);
