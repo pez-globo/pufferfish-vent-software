@@ -69,9 +69,7 @@ SCENARIO(
       THEN("The output method reports ok status") {
         REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::ok);
       }
-      AND_THEN("The output buffer is set to an empty buffer") {
-        REQUIRE(output_buffer.empty() == true);
-      }
+      THEN("The output buffer is empty") { REQUIRE(output_buffer.empty() == true); }
     }
   }
 
@@ -107,6 +105,12 @@ SCENARIO(
       THEN("The output method reports ok status") {
         REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::ok);
       }
+      THEN("The output buffer is as expected") {
+        for (size_t i = 0; i < buffer_size; ++i) {
+          uint8_t val = 10;
+          REQUIRE(output_buffer.operator[](i) == val);
+        }
+      }
     }
   }
 
@@ -136,6 +140,8 @@ SCENARIO(
         REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::waiting);
       }
 
+      THEN("The output buffer is empty") { REQUIRE(output_buffer.empty() == true); }
+
       uint8_t delimiter = 0x00;
       status = chunks.input(delimiter, input_overwritten);
 
@@ -148,13 +154,11 @@ SCENARIO(
       THEN("The output method reports ok status") {
         REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::ok);
       }
-      AND_THEN("The output buffer is set to an empty buffer") {
-        PF::Util::ByteVector<buffer_size> expected_buffer;
+      THEN("The output buffer is as expected") {
         for (size_t i = 0; i < buffer_size; ++i) {
           uint8_t val = 10;
-          expected_buffer.push_back(val);
+          REQUIRE(output_buffer.operator[](i) == val);
         }
-        REQUIRE(output_buffer == expected_buffer);
       }
     }
   }
@@ -212,6 +216,13 @@ SCENARIO("Protocols::ChunkSplitter correctly handles unacceptably long input chu
       THEN("the output method reports invalid_length status") {
         REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::invalid_length);
       }
+
+      THEN("The output buffer is as expected") {
+        for (size_t i = 0; i < buffer_size; ++i) {
+          uint8_t val = 128;
+          REQUIRE(output_buffer.operator[](i) == val);
+        }
+      }
     }
 
     WHEN("Output is called after a non-delimiter byte is passed as input") {
@@ -224,6 +235,13 @@ SCENARIO("Protocols::ChunkSplitter correctly handles unacceptably long input chu
       THEN("the output method reports invalid_length status") {
         REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::invalid_length);
       }
+
+      THEN("The output buffer is as expected") {
+        for (size_t i = 0; i < buffer_size; ++i) {
+          uint8_t val = 128;
+          REQUIRE(output_buffer.operator[](i) == val);
+        }
+      }
     }
 
     WHEN("The 257th delimiter byte is passed as input, and output is called") {
@@ -235,6 +253,13 @@ SCENARIO("Protocols::ChunkSplitter correctly handles unacceptably long input chu
       output_status = chunks.output(output_buffer);
       THEN("the output method reports ok status") {
         REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::ok);
+      }
+
+      THEN("The output buffer is as expected") {
+        for (size_t i = 0; i < buffer_size; ++i) {
+          uint8_t val = 128;
+          REQUIRE(output_buffer.operator[](i) == val);
+        }
       }
     }
   }
@@ -290,8 +315,10 @@ SCENARIO(
       }
 
       THEN("The output buffer is as expected") {
-        auto expected = std::string("\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80", 10);
-        REQUIRE(output_buffer == expected);
+        for (size_t i = 0; i < size - 1; ++i) {
+          uint8_t val = 128;
+          REQUIRE(output_buffer.operator[](i) == val);
+        }
       }
     }
   }
@@ -319,6 +346,7 @@ SCENARIO("Protocols::Chunksplitter correctly handles delimeters other than 0x00"
       THEN("The output method returns waiting status") {
         REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::waiting);
       }
+      THEN("The output buffer is set to an empty buffer") { REQUIRE(buffer.empty() == true); }
     }
 
     WHEN("The output is called after delimeter equal to 0x01 is passed as input") {
@@ -332,6 +360,13 @@ SCENARIO("Protocols::Chunksplitter correctly handles delimeters other than 0x00"
       PF::Protocols::ChunkOutputStatus output_status = chunks.output(buffer);
       THEN("the output status is equal to ok") {
         REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::ok);
+      }
+
+      THEN("The output buffer is as expected") {
+        for (size_t i = 0; i < buffer_size; ++i) {
+          uint8_t val = 128;
+          REQUIRE(buffer.operator[](i) == val);
+        }
       }
     }
   }
@@ -357,6 +392,7 @@ SCENARIO("Protocols::Chunksplitter correctly handles delimeters other than 0x00"
       THEN("The output method returns waiting status") {
         REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::waiting);
       }
+      THEN("The output buffer is set to an empty buffer") { REQUIRE(buffer.empty() == true); }
     }
 
     WHEN("The output is called after delimeter equal to 0xff is passed as input") {
@@ -370,6 +406,13 @@ SCENARIO("Protocols::Chunksplitter correctly handles delimeters other than 0x00"
       PF::Protocols::ChunkOutputStatus output_status = chunks.output(buffer);
       THEN("the output status is equal to ok") {
         REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::ok);
+      }
+
+      THEN("The output buffer is as expected") {
+        for (size_t i = 0; i < buffer_size; ++i) {
+          uint8_t val = 128;
+          REQUIRE(buffer.operator[](i) == val);
+        }
       }
     }
   }
@@ -394,6 +437,7 @@ SCENARIO("Protocols::Chunksplitter correctly handles delimeters other than 0x00"
       THEN("the output method reports ok status") {
         REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::waiting);
       }
+      THEN("The output buffer is set to an empty buffer") { REQUIRE(buffer.empty() == true); }
     }
 
     WHEN("Output is called after passing delimiter equal to 0x01 as input") {
@@ -407,6 +451,13 @@ SCENARIO("Protocols::Chunksplitter correctly handles delimeters other than 0x00"
       PF::Protocols::ChunkOutputStatus output_status = chunks.output(buffer);
       THEN("the output method reports invalid length status") {
         REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::invalid_length);
+      }
+
+      THEN("The output buffer is as expected") {
+        for (size_t i = 0; i < buffer_size; ++i) {
+          uint8_t val = 128;
+          REQUIRE(buffer.operator[](i) == val);
+        }
       }
     }
   }
@@ -431,12 +482,14 @@ SCENARIO("Protocols::Chunksplitter correctly handles delimeters other than 0x00"
       THEN("the output method reports ok status") {
         REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::waiting);
       }
+
+      THEN("The output buffer is set to an empty buffer") { REQUIRE(buffer.empty() == true); }
     }
 
     WHEN("The delimiter equal to 0x01 is passed as input") {
       uint8_t new_val = 1;
       status = chunks.input(new_val, input_overwritten);
-      THEN("the input method reports ok status") {
+      THEN("the input method reports output_ready status") {
         REQUIRE(status == PF::Protocols::ChunkInputStatus::output_ready);
       }
 
@@ -446,18 +499,15 @@ SCENARIO("Protocols::Chunksplitter correctly handles delimeters other than 0x00"
         REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::ok);
       }
 
-      AND_THEN("The output buffer contains delimiter") {
-        auto expected = std::string(
-            "\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80"
-            "\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80"
-            "\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80"
-            "\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80"
-            "\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80"
-            "\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80\x80"
-            "\x80\x80\x01",
-            129);
+      THEN("The output buffer contains delimiter") {
+        // first 128 bytes of the buffer are 0x80
+        for (size_t i = 0; i < (buffer_size / 2) - 1; ++i) {
+          uint8_t val = 128;
+          REQUIRE(buffer.operator[](i) == val);
+        }
 
-        REQUIRE(buffer == expected);
+        // last byte of the buffer is the delimiter
+        REQUIRE(buffer.operator[](128) == 1);
       }
     }
   }
@@ -480,7 +530,6 @@ SCENARIO(
         "input to the chunksplitter is '0x01 0x02 0x03 0x00 0x04 0x05 0x00' and output is called "
         "between the delimiter chunks") {
       auto input_data = PF::Util::make_array<uint8_t>(0x01, 0x02, 0x03, 0x00, 0x04, 0x05, 0x00);
-
       for (size_t i = 0; i < 4; ++i) {
         input_status = chunks.input(input_data[i], input_overwritten);
       }
@@ -577,7 +626,7 @@ SCENARIO("Protocols::ChunkMerger behaves correctly", "[chunks]") {
       THEN("The transform method reports ok status") {
         REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::ok);
       }
-      AND_THEN("The ChunkMerger appends a delimeter") {
+      THEN("The ChunkMerger appends a delimeter") {
         auto expected = std::string("\x0A\x0A\x0A\x0A\x0A\x0A\x0A\x0A\x0A\x00", 10);
         REQUIRE(buffer == expected);
       }
@@ -617,7 +666,7 @@ SCENARIO("Protocols::ChunkMerger behaves correctly", "[chunks]") {
       THEN("The transform method reports ok status") {
         REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::ok);
       }
-      AND_THEN("The ChunkMerger appends a delimeter") {
+      THEN("The ChunkMerger appends a delimeter") {
         auto expected = std::string("\x0A\x0A\x0A\x0A\x0A\x0A\x0A\x0A\x00\x00", 10);
         REQUIRE(buffer == expected);
       }
@@ -640,7 +689,7 @@ SCENARIO("Protocols::ChunkMerger behaves correctly", "[chunks]") {
       THEN("The transform method reports ok status") {
         REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::ok);
       }
-      AND_THEN("The ChunkMerger appends a delimeter") {
+      THEN("The ChunkMerger appends a delimeter") {
         auto expected = std::string("\x00\x0A\x0A\x0A\x0A\x0A\x0A\x0A\x0A\x00", 10);
         REQUIRE(buffer == expected);
       }
@@ -663,7 +712,7 @@ SCENARIO("Protocols::ChunkMerger behaves correctly", "[chunks]") {
       THEN("The transform method reports ok status") {
         REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::ok);
       }
-      AND_THEN("The ChunkMerger appends a delimeter") {
+      THEN("The ChunkMerger appends a delimeter") {
         auto expected = std::string("\x01\x02\x00\x03\x00\x04\x05\x00\x07\x00", 10);
         REQUIRE(buffer == expected);
       }
@@ -691,7 +740,7 @@ SCENARIO("Protocols::ChunkMerger behaves correctly", "[chunks]") {
       THEN("The transform method reports ok status") {
         REQUIRE(output_status == PF::Protocols::ChunkOutputStatus::ok);
       }
-      AND_THEN("The ChunkMerger appends a delimeter") {
+      THEN("The ChunkMerger appends a delimeter") {
         auto expected = std::string("\x0A\x0A\x0A\x0A\x0A\x0A\x0A\x0A\x0A\x01", 10);
         REQUIRE(buffer == expected);
       }

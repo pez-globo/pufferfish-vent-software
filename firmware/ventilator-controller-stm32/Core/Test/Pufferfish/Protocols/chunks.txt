@@ -8,20 +8,21 @@ Scenario: ChunkSplitter correctly handles input chunks of acceptable lengths
       THEN("The output method reports waiting status")
       THEN("The input method reports output_ready status")
       THEN("The output method reports ok status")
-      AND_THEN("The output buffer is as expected")
+      THEN("The output buffer is as expected")
 
   GIVEN("A uint8_t chunksplitter with an empty internal buffer")
     WHEN("A delimiter is passed and output is called")
       THEN("The output method reports ok status")      
-      AND_THEN("The output buffer is set to an empty buffer")
+      THEN("The output buffer is empty")
 
   GIVEN("A uint8_t chunksplitter with an empty internal buffer of capacity 256 bytes")
     WHEN("256 non-delimiter bytes are passed as input, and 257th byte is passed as a delimiter, and output is called between each input")
       THEN("The input method reports ok status")
       THEN("The output method reports waiting status")
+      THEN("The output buffer is empty") {
       THEN("The input method reports output_ready status")
       THEN("The output method reports ok status")
-      AND_THEN("The output buffer is as expected")
+      THEN("The output buffer is as expected")
 
 Scenario: ChunkSplitter correctly handles unacceptably long input chunks
 
@@ -37,14 +38,17 @@ Scenario: ChunkSplitter correctly handles unacceptably long input chunks
       THEN("The input method reports invalid_length status")
       THEN("The input method reports output ready status")
       THEN("the output method reports invalid_length status")
+      THEN("The output buffer is as expected")
 
     WHEN("a non-delimiter byte is passed as input and output is called ")
       THEN("The input method reports invalid_length status")
       THEN("the output method reports invalid_length status")
+      THEN("The output buffer is as expected")
 
     WHEN("A delimeter byte is passed as input and output is called")
       THEN("The input method reports output_ready status")
       THEN("the output method reports ok status")
+      THEN("The output buffer is as expected")
 
 Scenario: After output is consumed, ChunkSplitter's behavior resets to that of a ChunkSplitter with an empty buffer
 
@@ -54,13 +58,14 @@ Scenario: After output is consumed, ChunkSplitter's behavior resets to that of a
       THEN("The output method reports waiting status")
       THEN("The input method reports output_ready status")
       THEN("The output method reports ok status")
-      AND_THEN("The output buffer is as expected")
+      THEN("The output buffer is as expected")
 
 Scenario: chunksplitter correctly handles delimeters other than 0x00
 
   GIVEN("A uint8_t chunksplitter with a completely full internal buffer of capacity 256 bytes, with no delimiters which is equal to 0x01")
     WHEN("The output method is called")
       THEN("The output method returns waiting status")
+      THEN("The output buffer is empty")
 
     WHEN("delimeter 0x01 is passed as input and output is called")
       THEN("the input method reports output ready status")
@@ -79,10 +84,12 @@ Scenario: chunksplitter correctly handles delimeters other than 0x00
   GIVEN("A uint8_t chunksplitter with a completely full internal buffer of capacity 256 bytes, with include_delimeter bool equal to true")
     WHEN("The output method is called")
       THEN("the output method reports ok status")
+      THEN("The output buffer is as expected")
 
     WHEN("delimeter 0x01 is passed as input and output is called")
       THEN("the input method reports invalid_length status") // as the buffer is full
       THEN("the output method reports invalid length status")
+      THEN("The output buffer is as expected")
 
   GIVEN("A uint8_t chunksplitter with a partially filled internal buffer of capacity 256 bytes, with include_delimeter bool equal to true")
     WHEN("The output method is called")
@@ -114,32 +121,32 @@ Scenario: Protocols::ChunkMerger behaves correctly
   GIVEN("A ChunkMerger with delimiter equal to 0x00")
     WHEN("A partially full buffer of size 10 bytes is passed as input to transform method")
       THEN("The transform method reports ok status")
-      AND_THEN("The ChunkMerger appends a delimeter")
+      THEN("The ChunkMerger appends a delimeter")
 
     WHEN("Completely full buffer of size 30 bytes is passed as input to transform method")
       THEN("The transform method reports out_of_bounds status")
-      AND_THEN("The delimeter is not appended to the buffer")
+      THEN("The delimeter is not appended to the buffer")
 
     WHEN("An input data with it's last byte equal to the delimiter is passed to transform")
       THEN("The transform method reports ok status")
-      AND_THEN("The ChunkMerger appends a delimeter") 
+      THEN("The ChunkMerger appends a delimeter") 
       // assertion done on buffer as expected
 
     WHEN("An input data with it's first byte equal to the delimiter is passed to transform")
       THEN("The transform method reports ok status")
-      AND_THEN("The ChunkMerger appends a delimeter") 
+      THEN("The ChunkMerger appends a delimeter") 
       // assertion done on buffer as expected
 
     WHEN("An input data with multiple delimited chunks is passed as input to transform")
       THEN("The transform method reports ok status")
-      AND_THEN("The ChunkMerger appends a delimeter") 
+      THEN("The ChunkMerger appends a delimeter") 
 
   GIVEN("A ChunkMerger with delimeter equal to 0x01")
     WHEN("A partially full buffer of size 10 bytes is passed as input to transform method")
       THEN("The transform method reports ok status")
-      AND_THEN("The ChunkMerger appends a delimeter")
+      THEN("The ChunkMerger appends a delimeter")
 
     WHEN("Completely full buffer of size 30 bytes is passed as input to transform method")
       THEN("The transform method reports out_of_bounds status")
-      AND_THEN("The delimeter is not appended to the buffer")
+      THEN("The delimeter is not appended to the buffer")
 
