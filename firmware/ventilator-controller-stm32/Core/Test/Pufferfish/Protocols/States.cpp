@@ -621,7 +621,7 @@ SCENARIO(
 
   GIVEN(
       "A StateSynchronizer object constructed with an output schedule array of 4 message "
-      "types and a all_states object") {
+      "types and a all_states object and on the 1st entry") {
     constexpr auto state_sync_schedule = PF::Util::make_array<const StateOutputScheduleEntry>(
         StateOutputScheduleEntry{10, MessageTypes::parameters_request},
         StateOutputScheduleEntry{10, MessageTypes::parameters},
@@ -708,6 +708,253 @@ SCENARIO(
           "values") {
         REQUIRE(output_state.value.parameters.flow == 80);
         REQUIRE(output_state.value.parameters.ventilating == false);
+      }
+    }
+  }
+
+  GIVEN(
+      "A StateSynchronizer object constructed with an output schedule array of 4 message "
+      "types and a all_states object") {
+    constexpr auto state_sync_schedule = PF::Util::make_array<const StateOutputScheduleEntry>(
+        StateOutputScheduleEntry{10, MessageTypes::parameters_request},
+        StateOutputScheduleEntry{10, MessageTypes::parameters},
+        StateOutputScheduleEntry{10, MessageTypes::sensor_measurements},
+        StateOutputScheduleEntry{10, MessageTypes::cycle_measurements});
+
+    using BackendStateSynchronizer = PF::Protocols::
+        StateSynchronizer<States, StateSegment, MessageTypes, state_sync_schedule.size()>;
+
+    const BackendStateSynchronizer::OutputStatus output_ok =
+        BackendStateSynchronizer::OutputStatus::ok;
+    const BackendStateSynchronizer::OutputStatus waiting =
+        BackendStateSynchronizer::OutputStatus::waiting;
+
+    States states{};
+
+    StateSegment input_state;
+    StateSegment output_state;
+
+    // creation of all_states object
+    ParametersRequest parameters_request;
+    memset(&parameters_request, 0, sizeof(parameters_request));
+    parameters_request.fio2 = 56;
+    parameters_request.mode = VentilationMode_hfnc;
+    input_state.set(parameters_request);
+    auto input_pr = states.input(input_state);
+    REQUIRE(input_pr == States::InputStatus::ok);
+
+    Parameters parameters;
+    memset(&parameters, 0, sizeof(parameters));
+    parameters.flow = 60;
+    parameters.ventilating = true;
+    input_state.set(parameters);
+    auto input_parameters = states.input(input_state);
+    REQUIRE(input_parameters == States::InputStatus::ok);
+
+    SensorMeasurements sensor_measurements;
+    memset(&sensor_measurements, 0, sizeof(sensor_measurements));
+    sensor_measurements.paw = 20;
+    sensor_measurements.spo2 = 94;
+    input_state.set(sensor_measurements);
+    auto input_sm = states.input(input_state);
+    REQUIRE(input_sm == States::InputStatus::ok);
+
+    CycleMeasurements cycle_measurements;
+    memset(&cycle_measurements, 0, sizeof(cycle_measurements));
+    cycle_measurements.rr = 20;
+    input_state.set(cycle_measurements);
+    auto input_cm = states.input(input_state);
+    REQUIRE(input_cm == States::InputStatus::ok);
+
+    states.input(input_state);
+
+    BackendStateSynchronizer synchronizer{states, state_sync_schedule};
+
+    // Intent: make 40 seconds pass equal to the timeout for the last entry
+    WHEN("the synchronizer is on the 0th entry and its clock advances by 40 seconds") {
+      uint32_t time = 40;
+      synchronizer.input(time);
+
+      auto status = synchronizer.output(output_state);
+
+      THEN("The output status returns ok") { REQUIRE(status == output_ok); }
+      THEN("Only one schedule entry is advanced and the tag of the output state is parameters") {
+        REQUIRE(output_state.tag == MessageTypes::parameters_request);
+      }
+      THEN(
+          "The output StateSegment fields are set and match the parameters of the "
+          "all_states object") {
+        REQUIRE(output_state.value.parameters_request.fio2 == 56);
+        REQUIRE(output_state.value.parameters_request.mode == VentilationMode_hfnc);
+      }
+    }
+
+    // Intent: advance the synchronizer clock in-between the timeouts of the entries
+    WHEN("The synchronizer is on the 0th entry and its clock advances in between the timeouts") {
+      // 1st entry
+      uint32_t time = 15;
+      synchronizer.input(time);
+
+      auto first_status = synchronizer.output(output_state);
+
+      THEN("The output status returns ok") { REQUIRE(first_status == output_ok); }
+      THEN(
+          "Only one schedule entry is advanced and the tag of the output state is "
+          "parameters_request") {
+        REQUIRE(output_state.tag == MessageTypes::parameters_request);
+      }
+      THEN(
+          "The output StateSegment fields are set and match the parameters of the "
+          "all_states object") {
+        REQUIRE(output_state.value.parameters_request.fio2 == 56);
+        REQUIRE(output_state.value.parameters_request.mode == VentilationMode_hfnc);
+      }
+
+      // 2nd entry
+      uint32_t second_time = 25;
+      synchronizer.input(second_time);
+
+      auto second_status = synchronizer.output(output_state);
+
+      THEN("The output status returns ok") { REQUIRE(second_status == output_ok); }
+      THEN("Only one schedule entry is advanced and the tag of the output state is parameters") {
+        REQUIRE(output_state.tag == MessageTypes::parameters);
+      }
+      THEN(
+          "The output StateSegment fields are set and match the parameters of the "
+          "all_states object") {
+        REQUIRE(output_state.value.parameters.flow == 60);
+        REQUIRE(output_state.value.parameters.ventilating == true);
+      }
+
+      // 3rd entry
+      uint32_t third_time = 35;
+      synchronizer.input(third_time);
+
+      auto third_status = synchronizer.output(output_state);
+
+      THEN("The output status returns ok") { REQUIRE(third_status == output_ok); }
+      THEN(
+          "Only one schedule entry is advanced and the tag of the output state is "
+          "sensor_measurements") {
+        REQUIRE(output_state.tag == MessageTypes::sensor_measurements);
+      }
+      THEN(
+          "The output StateSegment fields are set and match the parameters of the "
+          "all_states object") {
+        REQUIRE(output_state.value.sensor_measurements.paw == 20);
+        REQUIRE(output_state.value.sensor_measurements.spo2 == 94);
+      }
+
+      // 4th entry
+      uint32_t final_time = 45;
+      synchronizer.input(final_time);
+
+      auto final_status = synchronizer.output(output_state);
+      THEN("The output status returns ok") { REQUIRE(final_status == output_ok); }
+      THEN(
+          "Only one schedule entry is advanced and the tag of the output state is "
+          "cycle_measurements") {
+        REQUIRE(output_state.tag == MessageTypes::cycle_measurements);
+      }
+      THEN(
+          "The output StateSegment fields are set and match the parameters of the "
+          "all_states object") {
+        REQUIRE(output_state.value.cycle_measurements.rr == 20);
+      }
+    }
+
+    WHEN(
+        "The synchroniser is on the 0th entry, advances till the last entry and resets back to 0th "
+        "entry") {
+      // 1st entry
+      uint32_t time = 10;
+      synchronizer.input(time);
+
+      auto first_status = synchronizer.output(output_state);
+
+      THEN("The output status returns ok") { REQUIRE(first_status == output_ok); }
+      THEN(
+          "Only one schedule entry is advanced and the tag of the output state is "
+          "parameters_request") {
+        REQUIRE(output_state.tag == MessageTypes::parameters_request);
+      }
+      THEN(
+          "The output StateSegment fields are set and match the parameters of the "
+          "all_states object") {
+        REQUIRE(output_state.value.parameters_request.fio2 == 56);
+        REQUIRE(output_state.value.parameters_request.mode == VentilationMode_hfnc);
+      }
+
+      // 2nd entry
+      uint32_t second_time = 20;
+      synchronizer.input(second_time);
+
+      auto second_status = synchronizer.output(output_state);
+
+      THEN("The output status returns ok") { REQUIRE(second_status == output_ok); }
+      THEN("Only one schedule entry is advanced and the tag of the output state is parameters") {
+        REQUIRE(output_state.tag == MessageTypes::parameters);
+      }
+      THEN(
+          "The output StateSegment fields are set and match the parameters of the "
+          "all_states object") {
+        REQUIRE(output_state.value.parameters.flow == 60);
+        REQUIRE(output_state.value.parameters.ventilating == true);
+      }
+
+      // 3rd entry
+      uint32_t third_time = 30;
+      synchronizer.input(third_time);
+
+      auto third_status = synchronizer.output(output_state);
+
+      THEN("The output status returns ok") { REQUIRE(third_status == output_ok); }
+      THEN(
+          "Only one schedule entry is advanced and the tag of the output state is "
+          "sensor_measurements") {
+        REQUIRE(output_state.tag == MessageTypes::sensor_measurements);
+      }
+      THEN(
+          "The output StateSegment fields are set and match the parameters of the "
+          "all_states object") {
+        REQUIRE(output_state.value.sensor_measurements.paw == 20);
+        REQUIRE(output_state.value.sensor_measurements.spo2 == 94);
+      }
+
+      // 4th entry
+      uint32_t fourth_time = 40;
+      synchronizer.input(fourth_time);
+
+      auto fourth_status = synchronizer.output(output_state);
+      THEN("The output status returns ok") { REQUIRE(fourth_status == output_ok); }
+      THEN(
+          "Only one schedule entry is advanced and the tag of the output state is "
+          "cycle_measurements") {
+        REQUIRE(output_state.tag == MessageTypes::cycle_measurements);
+      }
+      THEN(
+          "The output StateSegment fields are set and match the parameters of the "
+          "all_states object") {
+        REQUIRE(output_state.value.cycle_measurements.rr == 20);
+      }
+
+      // 0th entry
+      uint32_t final_time = 80;
+      synchronizer.input(final_time);
+
+      auto final_status = synchronizer.output(output_state);
+      THEN("The output status returns ok") { REQUIRE(final_status == output_ok); }
+      THEN(
+          "Only one schedule entry is advanced and the tag of the output state is "
+          "parameters_request") {
+        REQUIRE(output_state.tag == MessageTypes::parameters_request);
+      }
+      THEN(
+          "The output StateSegment fields are set and match the parameters of the "
+          "all_states object") {
+        REQUIRE(output_state.value.parameters_request.fio2 == 56);
+        REQUIRE(output_state.value.parameters_request.mode == VentilationMode_hfnc);
       }
     }
   }

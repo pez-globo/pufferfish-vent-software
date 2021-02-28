@@ -87,10 +87,11 @@ GIVEN("A StateSynchronizer object constructed with output schedule array contain
     WHEN("The output is called on a scheduler array with unknown message type")
       THEN("The output status returns invalid type")
 
-GIVEN("A StateSynchronizer object constructed with an output schedule array of 4 message types and a all_states object")
+GIVEN("A StateSynchronizer object constructed with an output schedule array of 4 message types and a all_states object and on 0th entry")
     // array = 0 - parameters_req: 10, 1 - parameters: 10, 2- sensor_meausrements: 10, 3- cycle_measurements: 10
 
-    WHEN("The new current time is greater than the timeouts of all the schedule entries")
+    // Intent: make an exceptionally long time pass between schedule entries, longer than their timeouts
+    WHEN("The synchroniser is on the 1st entry and it's clock advances by 100 seconds")
       // 1st entry
       THEN("The ouptut status returns ok")
       // assertion
@@ -105,3 +106,22 @@ GIVEN("A StateSynchronizer object constructed with an output schedule array of 4
     WHEN("The State segment fields for the next entry are changed before it's timeout")
       THEN("The ouptut status returns ok")
       THEN("The output StateSegment fields are set and match the parameters of the changed field values")
+
+GIVEN("A StateSynchronizer object constructed with an output schedule array of 4 message types and a all_states object")
+
+    // Intent: make 40 seconds pass which is equal to the timeout for the last entry
+    WHEN("the synchronizer is on the 0th entry and its clock advances by 40 seconds") {
+      // 1st entry
+      THEN("The ouptut status returns ok")
+      // assertion
+      THEN("The tag of the output StateSegment object is equal to parameters_req")
+      THEN("The output StateSegment fields are set and match the parameters_req of the all_states object")
+
+    // Intent: advance the synchronizer clock in-between the timeouts of the entries
+    WHEN("The synchronizer is on the 0th entry and its clock advances in between the timeouts") {
+
+      // cycle between 4 entries with clock advancing in between their timeouts
+
+    // Intent: advance to the last entry and back to the 0th entry
+    WHEN("The synchroniser is on the 0th entry, advances till the last entry and resets back to 0th entry")
+      // cycle between 4 entries with clock advancing equal to their timeouts
