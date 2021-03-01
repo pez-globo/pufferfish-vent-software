@@ -1,6 +1,6 @@
 /* chunks
 
-Scenario: ChunkSplitter correctly handles input chunks of acceptable lengths
+Scenario: ChunkSplitter constructed with 0x00 sequence and include_delimeter equal to false correctly handles input chunks of acceptable lengths
 
   GIVEN("A char chunk splitter with an empty internal buffer of 102 bytes")
     WHEN("102 non-delimiter bytes are passed as input, and 103rd byte is passed as a delimiter, and output is called between each input")
@@ -16,6 +16,13 @@ Scenario: ChunkSplitter correctly handles input chunks of acceptable lengths
       THEN("The output buffer is empty")
 
   GIVEN("A uint8_t chunksplitter with an empty internal buffer of capacity 256 bytes")
+    WHEN("255 non-delimiter bytes are passed as input, and 256th byte is passed as a delimiter, output method is called after that") {      
+      THEN("The input method reports ok status") {
+      THEN("The input method reports output_ready status") {
+      THEN("The output method reports ok status") {
+      THEN("The output buffer is as expected") {      
+
+  GIVEN("A uint8_t chunksplitter with an empty internal buffer of capacity 256 bytes")
     WHEN("256 non-delimiter bytes are passed as input, and 257th byte is passed as a delimiter, and output is called between each input")
       THEN("The input method reports ok status")
       THEN("The output method reports waiting status")
@@ -24,7 +31,30 @@ Scenario: ChunkSplitter correctly handles input chunks of acceptable lengths
       THEN("The output method reports ok status")
       THEN("The output buffer is as expected")
 
-Scenario: ChunkSplitter correctly handles unacceptably long input chunks
+Scenario: ChunkSplitter constructed with 0x00 sequence and include_delimeter equal to true correctly handles input chunks of acceptable lengths
+
+  GIVEN("A uint8_t chunksplitter with an empty internal buffer")
+    WHEN("A delimiter is passed and output is called")
+      THEN("The output method reports ok status")      
+      THEN("The output buffer is empty")
+
+  GIVEN("A uint8_t chunksplitter with an empty internal buffer of capacity 256 bytes")
+    WHEN("255 non-delimiter bytes are passed as input, and 256th byte is passed as a delimiter, output method is called after that") {      
+      THEN("The input method reports ok status") {
+      THEN("The input method reports output_ready status") {
+      THEN("The output method reports ok status") {
+      THEN("The output buffer is as expected") {
+
+  GIVEN("A uint8_t chunksplitter with an empty internal buffer of capacity 256 bytes")
+    WHEN("255 non-delimiter bytes are passed as input, and 256th byte is passed as a delimiter, and output is called between each input")
+      THEN("The input method reports ok status")
+      THEN("The output method reports waiting status")
+      THEN("The output buffer is empty") {
+      THEN("The input method reports output_ready status")
+      THEN("The output method reports ok status")
+      THEN("The output buffer is as expected")
+
+Scenario: ChunkSplitter constructed with 0x00 sequence and include_delimeter equal to false correctly handles unacceptably long input chunks
 
   GIVEN("A uint8_t chunk splitter with a completely full internal buffer of 256 bytes with no delimeters")
 
@@ -50,6 +80,31 @@ Scenario: ChunkSplitter correctly handles unacceptably long input chunks
       THEN("the output method reports ok status")
       THEN("The output buffer is as expected")
 
+Scenario: ChunkSplitter constructed with 0x00 sequence and include_delimeter equal to true correctly handles unacceptably long input chunks
+
+  GIVEN("A uint8_t chunk splitter with a completely full internal buffer of 256 bytes") {
+    WHEN("257th non-delimiter byte is passed as input") {
+      THEN("The input method reports invalid_length status") {
+
+    WHEN("More than 256 non-delimiter bytes are passed as input") {
+      THEN("The input method reports invalid_length status on 257th byte and for all the subsequent bytes")
+
+    WHEN("More than 256 non-delimiter bytes are passed as input, after which a delimiter is passed and output is called")
+      THEN("The input method reports invalid_length status")
+      THEN("The input method reports invalid_length status")
+      THEN("the output method reports invalid_length status")
+      THEN("The output buffer is as expected")
+
+    WHEN("a non-delimiter byte is passed as input and output is called ")
+      THEN("The input method reports invalid_length status")
+      THEN("the output method reports invalid_length status")
+      THEN("The output buffer is as expected")
+
+    WHEN("A delimeter byte is passed as input and output is called")
+      THEN("The input method reports invalid_length status")
+      THEN("the output method reports invalid_length status")
+      THEN("The output buffer is as expected")
+
 Scenario: After output is consumed, ChunkSplitter's behavior resets to that of a ChunkSplitter with an empty buffer
 
   GIVEN("A uint8_t ChunkSplitter completely filled with input data, and no delimiters are consumed with an output call")
@@ -60,7 +115,7 @@ Scenario: After output is consumed, ChunkSplitter's behavior resets to that of a
       THEN("The output method reports ok status")
       THEN("The output buffer is as expected")
 
-Scenario: chunksplitter correctly handles delimeters other than 0x00
+Scenario: chunksplitter correctly handles delimeters other than 0x00 and include_delimeter is false
 
   GIVEN("A uint8_t chunksplitter with a completely full internal buffer of capacity 256 bytes, with no delimiters which is equal to 0x01")
     WHEN("The output method is called")
@@ -81,17 +136,19 @@ Scenario: chunksplitter correctly handles delimeters other than 0x00
       THEN("the output status is equal to ok")
       THEN("The output buffer is as expected")
 
-  GIVEN("A uint8_t chunksplitter with a completely full internal buffer of capacity 256 bytes, with include_delimeter bool equal to true")
+Scenario: chunksplitter correctly handles delimeters other than 0x00 and include_delimeter is true
+
+  GIVEN("A uint8_t chunksplitter with a completely full internal buffer of capacity 256 bytes")
     WHEN("The output method is called")
-      THEN("the output method reports ok status")
-      THEN("The output buffer is as expected")
+      THEN("The output method returns waiting status")
+      THEN("The output buffer is set to an empty buffer")
 
     WHEN("delimeter 0x01 is passed as input and output is called")
       THEN("the input method reports invalid_length status") // as the buffer is full
       THEN("the output method reports invalid length status")
       THEN("The output buffer is as expected")
 
-  GIVEN("A uint8_t chunksplitter with a partially filled internal buffer of capacity 256 bytes, with include_delimeter bool equal to true")
+  GIVEN("A uint8_t chunksplitter with a partially filled internal buffer of capacity 256 bytes")
     WHEN("The output method is called")
       THEN("the output method reports ok status")
 
@@ -100,7 +157,7 @@ Scenario: chunksplitter correctly handles delimeters other than 0x00
       THEN("the output method reports ok status")
       THEN("The output buffer contains delimiter")
 
-Scenario: Chunksplitter correctly handles input of multiple delimited chunks before output consumes them
+Scenario: Chunksplitter constructed with sequence 0x00 and include_delimeter equal to false correctly handles input of multiple delimited chunks before output consumes them
 
   GIVEN("A uint8_t chunksplitter with an empty internal buffer of capacity 256 bytes")
     WHEN("input to the chunksplitter is '0x01 0x02 0x03 0x00 0x04 0x05 0x00' and output is called after each delimeter")
@@ -113,6 +170,20 @@ Scenario: Chunksplitter correctly handles input of multiple delimited chunks bef
       THEN("The input method reports output_ready status on the 4th byte") // delimeter byte
       THEN("The input method reports ok status and sets the input_overwritten flag on the 5th byte")
       THEN("The output buffer only contains the last chunk '0x04 0x05' ")
+
+Scenario: Chunksplitter constructed with sequence 0x00 and include_delimeter equal to true correctly handles input of multiple delimited chunks before output consumes them
+
+  GIVEN("A uint8_t chunksplitter with an empty internal buffer of capacity 256 bytes")
+    WHEN("input to the chunksplitter is '0x01 0x02 0x03 0x00 0x04 0x05 0x00' and output is called after each delimeter")
+      THEN("The input method reports output_ready status")
+      THEN("the output method reports ok status")
+      THEN("The output buffer is as expected '\x04\x05' ")
+
+    WHEN("input to the chunksplitter is '0x01 0x02 0x03 0x00 0x04 0x05' and output is not called after passing delimeter")
+      THEN("The input method reports ok status on the first 3 bytes")
+      THEN("The input method reports output_ready status on the 4th byte") // delimeter byte
+      THEN("The input method reports ok status and sets the input_overwritten flag on the 5th byte")
+      THEN("The output buffer only contains the last chunk '0x04 0x05' ")      
 
 /* ChunkMerger
 
