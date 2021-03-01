@@ -377,25 +377,36 @@ SCENARIO(
     }
   }
 
-  GIVEN("A CRCElement constructed with an empty payload buffer with a capacity of 254 bytes") {
+  GIVEN("A CRC element constructed with an empty payload buffer with a capacity of 10 bytes") {
+    constexpr size_t payload_size = 10;
+    using TestCRCElementProps = PF::Protocols::CRCElementProps<payload_size>;
     TestCRCElementProps::PayloadBuffer payload;
-    auto data = std::string("\x12\x13\x14\x15\x16", 5);
-    PF::Util::convert_string_to_byte_vector(data, payload);
-    PF::Util::ByteVector<buffer_size> output;
+    using TestCRCElement = PF::Protocols::CRCElement<TestCRCElementProps::PayloadBuffer>;
 
     TestCRCElement crc_element{payload};
 
-    WHEN("The input buffer size is greater than the ") {
-      constexpr size_t new_size = 254UL;
+    WHEN(
+        "A body of size 20 bytes with a complete 4-byte header, and a payload of capacity 16 bytes "
+        "is parsed") {
+      constexpr size_t new_size = 20;
       PF::Util::ByteVector<new_size> input_buffer;
 
-      for (size_t i = 0; i < new_size; ++i) {
+      auto data = std::string("\x18\xD5\xD6\x0A\x00\x14", 6);
+      PF::Util::convert_string_to_byte_vector(data, input_buffer);
+
+      for (size_t i = 0; i < 14; ++i) {
         uint8_t val = 10;
         input_buffer.push_back(val);
       }
 
       auto parse_status = crc_element.parse(input_buffer);
-      THEN("the parse method reports ok status") { REQUIRE(parse_status == PF::IndexStatus::ok); }
+      THEN("the parse method reports out of bounds status") {
+        REQUIRE(parse_status == PF::IndexStatus::out_of_bounds);
+      }
+      THEN("the constructor's payload buffer remains unchanged") {
+        auto expected = crc_element.payload();
+        REQUIRE(expected.empty() == true);
+      }
     }
   }
 }

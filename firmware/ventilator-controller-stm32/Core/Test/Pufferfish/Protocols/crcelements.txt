@@ -64,6 +64,11 @@ Scenario: CRCElement: The parse method correctly updates its internal crc value 
       THEN("the payload given in the CRCElement constructor is independent of the input body")
       THEN("the payload accessor method returns a reference to the payload buffer given in the CRCElement constructor")
 
+  GIVEN("A CRC element constructed with an empty payload buffer with a capacity of 10 bytes")
+    WHEN("A body of size 20 bytes with a complete 4-byte header, and a payload of capacity 16 bytes is parsed")
+      THEN("the parse method reports out of bounds status")
+      THEN("the constructor's payload buffer remains unchanged")
+
 /* write parse roundtrip
 Scenario: CRCElement correctly preserves data in roundtrip writing and parsing
 

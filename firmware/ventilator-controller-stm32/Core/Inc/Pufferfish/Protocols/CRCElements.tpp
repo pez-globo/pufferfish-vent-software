@@ -50,7 +50,8 @@ IndexStatus CRCElement<PayloadBuffer>::parse(const Util::ByteVector<input_size> 
       !std::is_const<PayloadBuffer>::value,
       "Parse method unavailable for CRCElements with const PayloadBuffer type");
 
-  if (input_buffer.size() < CRCElementHeaderProps::header_size) {
+  if (input_buffer.size() < CRCElementHeaderProps::header_size ||
+      input_buffer.size() > (payload_.max_size() + CRCElementHeaderProps::header_size)) {
     return IndexStatus::out_of_bounds;
   }
   Util::read_ntoh(input_buffer.buffer(), crc_);
@@ -77,10 +78,6 @@ template <size_t input_size>
 typename CRCElementReceiver<body_max_size>::Status CRCElementReceiver<body_max_size>::transform(
     const Util::ByteVector<input_size> &input_buffer,
     ParsedCRCElement<body_max_size> &output_crcelement) {
-  if (input_buffer.size() > body_max_size) {
-    return Status::invalid_parse;
-  }
-
   if (output_crcelement.parse(input_buffer) != IndexStatus::ok) {
     return Status::invalid_parse;
   }
