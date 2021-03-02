@@ -97,7 +97,7 @@ Scenario: CRCElement correctly preserves data in roundtrip writing and parsing
 /* CRCElementReceiver
 Scenario: CRCElementReceiver correctly parses CRCElement bodies and performs consistency checking on them
 
-  GIVEN("A CRC element receiver of capacity 254 bytes and output_crcelement constructed with an empty payload")
+  GIVEN("A CRC element receiver of capacity 254 bytes and output_crcelement constructed with an empty payload buffer")
     WHEN("A body with a complete 4-byte header, and a payload consistent with the CRC field of the header, is given to the receiver")
       THEN("the transform method reports ok status")
       THEN("After the transform method is called, the value returned by the crc accessor method of the output_crcelement is equal to the crc field of the input body's header")
@@ -107,18 +107,19 @@ Scenario: CRCElementReceiver correctly parses CRCElement bodies and performs con
     WHEN("An empty input_buffer is given to the crc element receiver")
       THEN("the transform method reports invalid parse status")
       THEN("After the transform method is called, the value returned by the crc accessor method of the output_crcelement is equal to 0x00000000")
-      THEN("The payload buffer returned by the payload accesor method is empty")
+      THEN("the payload returned from the payload accessor method of the output_crcelement is equal to the payload from the body")
 
     WHEN("body with less than 4 bytes is given to the crc element receiver")
       // body of length 1,2,3 bytes is passed, passing 4 bytes will give a invalid_crc error instead
       THEN("the transform method reports invalid parse status") // for each time
       THEN("After the transform method is called, the value returned by the crc accessor method of the output_crcelement is equal to 0x00000000") // for each time
+      THEN("the payload returned from the payload accessor method of the output_crcelement is equal to the payload from the body")
 
     WHEN("A body with a complete 4-byte header, and a payload inconsistent with the CRC field of the header, is given to the receiver")
       THEN("the transform method reports invalid crc status")
       THEN("After the transform method is called, the value returned by the crc accessor method is equal to the crc field of the input body's header")
 
-  GIVEN("A CRC element receiver of capacity 254 bytes and output_crcelement constructed with a payload buffer '0x01 0x05 0x12 0x13 0x14 0x15 0x16'")
+  GIVEN("A CRC element receiver of capacity 254 bytes and output_crcelement constructed with an empty payload buffer")
     WHEN("A body with a complete 4-byte header, and a payload consistent with the CRC field of the header, is given to the receiver")
       THEN("the transform method reports ok status")
       THEN("After the transform method is called, the value returned by the crc accessor method of the output_crcelement is equal to the crc field of the input body's header")
@@ -128,7 +129,14 @@ Scenario: CRCElementReceiver correctly parses CRCElement bodies and performs con
     WHEN("An empty input_buffer is given to the crc element receiver")
       THEN("the transform method reports invalid parse status")
       THEN("After the transform method is called, the value returned by the crc accessor method of the output_crcelement is equal to 0x00000000")
-      THEN("The payload buffer returned by the payload accesor method is empty")
+      THEN("After the transform method is called, the payload given in the ParsedCRCElement constructor remains unchanged")
+
+    WHEN("An empty input_buffer is given to the crc element receiver and output_crcelement with a non-zero crc member")
+      THEN("The write method of output_crcelement reports ok status")
+      THEN("The value returned by the crc accessor method of output_crcelement is '0x40D06D79'")
+      THEN("the transform status is equal to invalid parse")
+      THEN("After the transform method is called, the value returned by the crc accessor method of the output_crcelement is equal to 0x40D06D79")
+      THEN("After the transform method is called, the payload given in the ParsedCRCElement constructor remains unchanged")
 
   GIVEN("A CRC element receiver of capacity 10 bytes")
     WHEN("A body of size 20 bytes with a complete 4-byte header, and a payload of capacity 16 bytes is given to the receiver")

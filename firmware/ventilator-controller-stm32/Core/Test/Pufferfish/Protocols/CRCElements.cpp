@@ -611,7 +611,9 @@ SCENARIO(
         uint32_t expected_crc = 0x00000000;
         REQUIRE(crc_element.crc() == expected_crc);
       }
-      THEN("The payload buffer returned by the payload accesor method is empty") {
+      THEN(
+          "the payload returned from the payload accessor method is equal to the payload from the "
+          "body") {
         auto expected = crc_element.payload();
         REQUIRE(expected.empty() == true);
       }
@@ -637,6 +639,12 @@ SCENARIO(
         uint32_t expected_crc = 0x00;
         REQUIRE(crc_element.crc() == expected_crc);
       }
+      THEN(
+          "the payload returned from the payload accessor method of the output_crcelement is equal "
+          "to the payload from the body") {
+        auto expected = crc_element.payload();
+        REQUIRE(expected.empty() == true);
+      }
 
       // body of length 2 bytes
       auto input1 = std::string("\x01", 1);
@@ -656,6 +664,12 @@ SCENARIO(
         uint32_t expected_crc = 0x00;
         REQUIRE(crc_element.crc() == expected_crc);
       }
+      THEN(
+          "the payload returned from the payload accessor method of the output_crcelement is equal "
+          "to the payload from the body") {
+        auto expected = crc_element.payload();
+        REQUIRE(expected.empty() == true);
+      }
 
       // body of length 3 bytes
       auto input2 = std::string("\x00\x01", 2);
@@ -674,6 +688,12 @@ SCENARIO(
           "equal to 0") {
         uint32_t expected_crc = 0x00;
         REQUIRE(crc_element.crc() == expected_crc);
+      }
+      THEN(
+          "the payload returned from the payload accessor method of the output_crcelement is equal "
+          "to the payload from the body") {
+        auto expected = crc_element.payload();
+        REQUIRE(expected.empty() == true);
       }
     }
 
@@ -702,8 +722,8 @@ SCENARIO(
   }
 
   GIVEN(
-      "A CRC element receiver of capacity 254 bytes and output_crcelement constructed with a "
-      "payload buffer '0x01 0x05 0x12 0x13 0x14 0x15 0x16'") {
+      "A CRC element receiver of capacity 254 bytes and output_crcelement constructed with an "
+      "empty payload buffer") {
     constexpr size_t buffer_size = 254UL;
     using TestCRCElementProps = PF::Protocols::CRCElementProps<buffer_size>;
     using TestCRCElement = PF::Protocols::CRCElement<TestCRCElementProps::PayloadBuffer>;
@@ -766,7 +786,42 @@ SCENARIO(
         uint32_t expected_crc = 0x00000000;
         REQUIRE(crc_element.crc() == expected_crc);
       }
-      THEN("The payload buffer returned by the payload accesor method is empty") {
+      THEN(
+          "After the transform method is called, the payload given in the ParsedCRCElement "
+          "constructor remains unchanged") {
+        REQUIRE(crc_element.payload() == body);
+      }
+    }
+
+    WHEN(
+        "An empty input_buffer is given to the crc element receiver and output_crcelement with a "
+        "non-zero crc member") {
+      PF::Util::ByteVector<buffer_size> output_buffer;
+      auto write_status = crc_element.write(output_buffer, crc32c);
+      THEN("The write method of output_crcelement reports ok status") {
+        REQUIRE(write_status == PF::IndexStatus::ok);
+      }
+      THEN("The value returned by the crc accessor method of output_crcelement is '0x40D06D79'") {
+        uint32_t expected_crc = 0x40D06D79;
+        REQUIRE(crc_element.crc() == expected_crc);
+      }
+
+      PF::Util::ByteVector<buffer_size> input_buffer;
+
+      auto transform_status = crc_element_receiver.transform(input_buffer, crc_element);
+
+      THEN("the transform status is equal to invalid parse") {
+        REQUIRE(transform_status == TestCRCElementReceiver::Status::invalid_parse);
+      }
+      THEN(
+          "After the transform method is called, the value returned by the crc accessor method is "
+          "equal to '0x40D06D79'") {
+        uint32_t expected_crc = 0x40D06D79;
+        REQUIRE(crc_element.crc() == expected_crc);
+      }
+      THEN(
+          "After the transform method is called, the payload given in the ParsedCRCElement "
+          "constructor remains unchanged") {
         REQUIRE(crc_element.payload() == body);
       }
     }
