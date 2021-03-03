@@ -324,6 +324,28 @@ SCENARIO(
 
     TestCRCElement crc_element{payload};
 
+    WHEN("A body without a complete 4-byte header is parsed") {
+      auto body = std::string("\x98\xdb\xe3", 3);
+
+      PF::Util::ByteVector<buffer_size> input_buffer;
+      PF::Util::convert_string_to_byte_vector(body, input_buffer);
+
+      auto parse_status = crc_element.parse(input_buffer);
+
+      THEN("the parse method reports out of bounds status") {
+        REQUIRE(parse_status == PF::IndexStatus::out_of_bounds);
+      }
+      THEN("The bytes in the constructor's payload buffer are '0x12 0x13 0x14 0x15 0x16' ") {
+        auto data = PF::Util::make_array<uint8_t>(0x12, 0x13, 0x14, 0x15, 0x16);
+        for (size_t i = 0; i < 5; ++i) {
+          REQUIRE(payload.operator[](i) == data[i]);
+        }
+      }
+      THEN("The payload accesor method returns the constructor's payload buffer") {
+        REQUIRE(crc_element.payload() == data);
+      }
+    }
+
     WHEN(
         "A body with a complete 4-byte header, and a payload consistent with the CRC field of the "
         "header, is parsed") {
@@ -335,9 +357,13 @@ SCENARIO(
       THEN("the crc accessor method returns 0 before the parse method is called") {
         REQUIRE(crc_element.crc() == 0x00000000);
       }
-      THEN(
-          "the payload returned from the payload accessor method is equal to the payload buffer "
-          "given in the CRCElement constructor") {
+      THEN("The bytes in the constructor's payload buffer are '0x12 0x13 0x14 0x15 0x16' ") {
+        auto data = PF::Util::make_array<uint8_t>(0x12, 0x13, 0x14, 0x15, 0x16);
+        for (size_t i = 0; i < 5; ++i) {
+          REQUIRE(payload.operator[](i) == data[i]);
+        }
+      }
+      THEN("The payload accesor method returns the constructor's payload buffer") {
         REQUIRE(crc_element.payload() == data);
       }
 

@@ -55,9 +55,15 @@ Scenario: CRCElement: The parse method correctly updates its internal crc value 
       THEN("the payload accessor method returns a reference to the payload buffer given in the CRCElement constructor")
 
   GIVEN("A CRCElement constructed with a non-empty payload buffer of capacity 254 bytes")
+    WHEN("A body without a complete 4-byte header is parsed")
+      THEN("the parse method reports out of bounds status")
+      THEN("The bytes in the constructor's payload buffer are '0x12 0x13 0x14 0x15 0x16' ")
+      THEN("The payload accesor method returns the constructor's payload buffer")
+  
     WHEN("A body with a complete 4-byte header, and a payload consistent with the CRC field of the header, is parsed")
       THEN("the crc accessor method returns 0 before the parse method is called")
-      THEN("the payload returned from the payload accessor method is equal to the payload buffer given in the CRCElement constructor")
+      THEN("The bytes in the constructor's payload buffer are '0x12 0x13 0x14 0x15 0x16' ")
+      THEN("The payload accesor method returns the constructor's payload buffer")
       THEN("the parse method reports ok status")
       THEN("After the parse method is called, the value returned by the crc accessor method is equal to the crc field of the input body's header")
       THEN("the payload returned from the payload accessor method is equal to the payload from the body")
@@ -119,11 +125,11 @@ Scenario: CRCElementReceiver correctly parses CRCElement bodies and performs con
       THEN("the transform method reports invalid crc status")
       THEN("After the transform method is called, the value returned by the crc accessor method is equal to the crc field of the input body's header")
 
-  GIVEN("A CRC element receiver of capacity 254 bytes and output_crcelement constructed with an empty payload buffer")
+  GIVEN("A CRC element receiver of capacity 254 bytes and output_crcelement constructed with an non-empty payload buffer")
     WHEN("A body with a complete 4-byte header, and a payload consistent with the CRC field of the header, is given to the receiver")
       THEN("the transform method reports ok status")
       THEN("After the transform method is called, the value returned by the crc accessor method of the output_crcelement is equal to the crc field of the input body's header")
-      THEN("the payload returned from the payload accessor method of the output_crcelement is equal to the payload from the body")
+      THEN("the output_crcelement contains the payload buffer given to the constructor")
       THEN("the payload buffer updated in the CRCElement is independent of the input body")
   
     WHEN("An empty input_buffer is given to the crc element receiver")
