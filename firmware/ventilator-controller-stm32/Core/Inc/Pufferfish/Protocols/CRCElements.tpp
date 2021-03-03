@@ -49,9 +49,12 @@ IndexStatus CRCElement<PayloadBuffer>::parse(const Util::ByteVector<input_size> 
   static_assert(
       !std::is_const<PayloadBuffer>::value,
       "Parse method unavailable for CRCElements with const PayloadBuffer type");
+  static_assert(
+      Util::ByteVector<input_size>::max_size() <=
+          (PayloadBuffer::max_size() + CRCElementHeaderProps::header_size),
+      "Parse method unavailable as the input buffer size is too large");
 
-  if (input_buffer.size() < CRCElementHeaderProps::header_size ||
-      input_buffer.size() > (payload_.max_size() + CRCElementHeaderProps::header_size)) {
+  if (input_buffer.size() < CRCElementHeaderProps::header_size) {
     return IndexStatus::out_of_bounds;
   }
   Util::read_ntoh(input_buffer.buffer(), crc_);

@@ -29,7 +29,7 @@ class Vector {
   Vector() = default;
 
   [[nodiscard]] size_t size() const;
-  [[nodiscard]] constexpr size_t max_size() const { return array_size; }
+  [[nodiscard]] static constexpr size_t max_size() { return array_size; }
   [[nodiscard]] bool empty() const;
   [[nodiscard]] bool full() const;
   [[nodiscard]] size_t available() const;

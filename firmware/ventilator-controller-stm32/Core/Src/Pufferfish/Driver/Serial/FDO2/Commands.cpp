@@ -324,7 +324,7 @@ void write<Bcst>(const Bcst &request, ChunkBuffer &output_buffer) {
   std::ostringstream stream;
   stream.rdbuf()->pubsetbuf(
       output_buffer.buffer() + output_buffer.size(),
-      output_buffer.max_size() - output_buffer.size());
+      ChunkBuffer::max_size() - output_buffer.size());
   stream << request.interval;
   if (output_buffer.resize(output_buffer.size() + stream.tellp()) != IndexStatus::ok) {
     // TODO(lietk12): return error
