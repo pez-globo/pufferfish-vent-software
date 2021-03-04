@@ -125,6 +125,36 @@ Scenario: The parse function correctly updates the datagram's length member and 
       THEN("The payload buffer returned from the payload accessor method is equal to the payload buffer given in the constructor")
       THEN("The input buffer is unchanged after parse")
 
+Scenario: Datagram correctly preserves data in roundtrip writing and parsing
+  GIVEN("A datagram constructed with an non-empty payload buffer and sequence number equal to 0") {
+    WHEN("A body with seq, length and payload is generated, parsed into a new ParsedDatagram object, and generated again with a ConstructedDatagram object") {
+      // write
+      THEN("The first write method reports ok status")
+      THEN("After the first write method is called, The value returned by the seq accessor method is equal to 0")
+      THEN("the length accessor method returns a value equal to the size of the payload given in the constructor")
+      THEN("The buffer returned by the paylaod accessor method is same as the paylaod buffer given in the constructor")
+      THEN("The seq field of the body's header matches the value returned by the seq accessor method")
+      THEN("The length field of the body's header is equal to the size of the payload given in the constructor")
+      THEN("The body's payload section correctly stores the paylaod as '0x61 0x6a 0x1a 0x6a 0x29 0xcf 0x01 0x81 0xbe 0x9d'")
+      THEN("The output buffer is as expected")
+
+      // parse
+      THEN("The parse method reports ok status")
+      THEN("After the parse method is called, The value returned by the seq accessor method is equal to the sequence field of the input body's header")
+      THEN("The value returned by the length accessor method is equal to the length field of the input body's header")
+      THEN("The paylaod buffer returned by the paylaod accessor method is equal to '0x00' ")
+      THEN("The input buffer is unchanged after parse")      
+
+      // write
+      THEN("The second write method reports ok status")
+      THEN("After the second write method is called, The value returned by the seq accessor method is equal to 0")
+      THEN("the length accessor method returns a value equal to the size of the payload given in the constructor")
+      THEN("The buffer returned by the paylaod accessor method is same as the paylaod buffer given in the constructor")
+      THEN("The seq field of the body's header matches the value returned by the seq accessor method")
+      THEN("The length field of the body's header is equal to the size of the payload given in the constructor")
+      THEN("The body's payload section correctly stores the paylaod as '0x56 0xd6 0x42 0xc5 0xe1 0xf0 0x30 0xe5 0xc8 0x4d'")
+      THEN("The output buffer is as expected")
+
 /* Datagram Receiver
 
 Scenario: Datagram Receiver correctly parses datagram bodies and performs consistency checking on them

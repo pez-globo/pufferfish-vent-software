@@ -522,6 +522,150 @@ SCENARIO(
 }
 
 SCENARIO(
+    "Protocols: Datagram correctly preserves data in roundtrip writing and parsing", "[Datagram]") {
+  constexpr size_t buffer_size = 254UL;
+  using TestDatagramProps = PF::Protocols::DatagramProps<buffer_size>;
+  using TestConstructedDatagram = PF::Protocols::ConstructedDatagram<buffer_size>;
+  using TestParsedDatagram = PF::Protocols::ParsedDatagram<buffer_size>;
+
+  PF::Util::ByteVector<buffer_size> output_buffer;
+  GIVEN("A datagram constructed with an non-empty payload buffer and sequence number equal to 0") {
+    TestDatagramProps::PayloadBuffer input_payload;
+    auto body = std::string("\x61\x6a\x1a\x6a\x29\xcf\x01\x81\xbe\x9d", 10);
+    PF::Util::convert_string_to_byte_vector(body, input_payload);
+    TestConstructedDatagram datagram(input_payload);
+    TestParsedDatagram parsed_datagram(input_payload);
+
+    WHEN(
+        "A body with seq, length and payload is generated, parsed into a new ParsedDatagram "
+        "object, and generated again with a ConstructedDatagram object") {
+      PF::Util::ByteVector<buffer_size> output_buffer;
+      auto write_status = datagram.write(output_buffer);
+
+      THEN("The first write method reports ok status") {
+        REQUIRE(write_status == PF::IndexStatus::ok);
+      }
+      THEN(
+          "After the first write method is called, The value returned by the seq accessor method "
+          "is "
+          "equal to 0") {
+        REQUIRE(datagram.seq() == 0);
+      }
+      THEN(
+          "the length accessor method returns a value equal to the size of the payload given in "
+          "the constructor") {
+        REQUIRE(datagram.length() == 10);
+      }
+      THEN(
+          "The buffer returned by the paylaod accessor method is same as the paylaod buffer given "
+          "in the constructor") {
+        auto expected_payload = std::string("\x61\x6a\x1a\x6a\x29\xcf\x01\x81\xbe\x9d", 10);
+        REQUIRE(datagram.payload() == expected_payload);
+      }
+      THEN(
+          "The seq field of the body's header matches the value returned by the seq accessor "
+          "method") {
+        REQUIRE(output_buffer.operator[](0) == datagram.seq());
+      }
+      THEN(
+          "The length field of the body's header is equal to the size of the payload given in the "
+          "constructor") {
+        REQUIRE(output_buffer.operator[](1) == datagram.length());
+      }
+      THEN(
+          "The body's payload section correctly stores the paylaod as '0x61 0x6a 0x1a 0x6a 0x29 "
+          "0xcf 0x01 0x81 0xbe 0x9d'") {
+        for (size_t i = 2; i < 10; ++i) {
+          auto data = PF::Util::make_array<uint8_t>(
+              0x61, 0x6a, 0x1a, 0x6a, 0x29, 0xcf, 0x01, 0x81, 0xbe, 0x9d);
+          REQUIRE(output_buffer.operator[](i) == data[i - 2]);
+        }
+      }
+      THEN("The output buffer is as expected") {
+        auto expected_output = std::string("\x00\x0a\x61\x6a\x1a\x6a\x29\xcf\x01\x81\xbe\x9d", 12);
+        REQUIRE(output_buffer == expected_output);
+      }
+
+      // Parse
+      auto body = std::string("\x01\x0a\xca\x9b\xc7\xf9\x5c\x10\xa1\x77\x23\x82", 12);
+      PF::Util::ByteVector<buffer_size> input_buffer;
+      PF::Util::convert_string_to_byte_vector(body, input_buffer);
+      auto parse_status = parsed_datagram.parse(input_buffer);
+
+      THEN("The parse method reports ok status") { REQUIRE(parse_status == PF::IndexStatus::ok); }
+      THEN(
+          "After the parse method is called, The value returned by the seq accessor method is "
+          "equal to the sequence field of the input body's header") {
+        REQUIRE(parsed_datagram.seq() == 1);
+      }
+      THEN(
+          "The value returned by the length accessor method is equal to the length field of the "
+          "input body's header") {
+        REQUIRE(parsed_datagram.length() == 10);
+      }
+      THEN(
+          "The paylaod buffer returned by the paylaod accessor method is equal to the payload from "
+          "the body") {
+        auto expected_payload = std::string("\xca\x9b\xc7\xf9\x5c\x10\xa1\x77\x23\x82", 10);
+        REQUIRE(parsed_datagram.payload() == expected_payload);
+      }
+      THEN("The input buffer is unchanged after parse") { REQUIRE(input_buffer == body); }
+
+      // Write
+      auto final_data = std::string("\x56\xd6\x42\xc5\xe1\xf0\x30\xe5\xc8\x4d", 10);
+      TestDatagramProps::PayloadBuffer input_payload;
+      PF::Util::convert_string_to_byte_vector(final_data, input_payload);
+      TestConstructedDatagram write_datagram(input_payload);
+
+      PF::Util::ByteVector<buffer_size> final_buffer;
+      auto final_status = write_datagram.write(final_buffer);
+      THEN("The second write method reports ok status") {
+        REQUIRE(final_status == PF::IndexStatus::ok);
+      }
+      THEN(
+          "After the write method is called, The value returned by the seq accessor method is "
+          "equal to 0") {
+        REQUIRE(write_datagram.seq() == 0);
+      }
+      THEN(
+          "the length accessor method returns a value equal to the size of the payload given in "
+          "the constructor") {
+        REQUIRE(write_datagram.length() == 10);
+      }
+      THEN(
+          "The buffer returned by the paylaod accessor method is same as the paylaod buffer given "
+          "in the constructor") {
+        auto expected_payload = std::string("\x56\xd6\x42\xc5\xe1\xf0\x30\xe5\xc8\x4d", 10);
+        REQUIRE(write_datagram.payload() == expected_payload);
+      }
+      THEN(
+          "The seq field of the body's header matches the value returned by the seq accessor "
+          "method") {
+        REQUIRE(final_buffer.operator[](0) == write_datagram.seq());
+      }
+      THEN(
+          "The length field of the body's header is equal to the size of the payload given in the "
+          "constructor") {
+        REQUIRE(final_buffer.operator[](1) == write_datagram.length());
+      }
+      THEN(
+          "The body's payload section correctly stores the paylaod as '0x56 0xd6 0x42 0xc5 0xe1 "
+          "0xf0 0x30 0xe5 0xc8 0x4d'") {
+        for (size_t i = 2; i < 10; ++i) {
+          auto data = PF::Util::make_array<uint8_t>(
+              0x56, 0xd6, 0x42, 0xc5, 0xe1, 0xf0, 0x30, 0xe5, 0xc8, 0x4d);
+          REQUIRE(final_buffer.operator[](i) == data[i - 2]);
+        }
+      }
+      THEN("The output buffer is as expected") {
+        auto expected_output = std::string("\x00\x0a\x56\xd6\x42\xc5\xe1\xf0\x30\xe5\xc8\x4d", 12);
+        REQUIRE(final_buffer == expected_output);
+      }
+    }
+  }
+}
+
+SCENARIO(
     "Protocols::Datagram Receiver correctly parses datagram bodies and performs consistency "
     "checking on them",
     "[DatagramReceiver]") {
