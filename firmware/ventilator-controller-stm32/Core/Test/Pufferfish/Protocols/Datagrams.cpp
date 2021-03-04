@@ -41,7 +41,9 @@ SCENARIO(
       THEN("the value returned by the length accessor method is equal to 0") {
         REQUIRE(datagram.length() == 0);
       }
-      THEN("The output buffer is as expected") { auto expected = std::string("\x00\x00", 2); }
+      THEN("The output buffer is as expected '0x00 0x00' ") {
+        auto expected = std::string("\x00\x00", 2);
+      }
     }
   }
 
@@ -90,7 +92,7 @@ SCENARIO(
           REQUIRE(output_buffer.operator[](i) == data[i - 2]);
         }
       }
-      THEN("The output buffer is as expected") {
+      THEN("The output buffer is as expected '0x00 0x05 0x01 0x02 0x03 0x04 0x05' ") {
         auto expected_buffer = std::string("\x00\x05\x01\x02\x03\x04\x05", 7);
         REQUIRE(output_buffer == expected_buffer);
       }
@@ -136,7 +138,7 @@ SCENARIO(
           REQUIRE(output_buffer.operator[](i) == data[i - 2]);
         }
       }
-      THEN("The output buffer is as expected") {
+      THEN("The output buffer is as expected '0x00 0x06 0x01 0x02 0x03 0x04 0x05 0x02'") {
         auto expected_buffer = std::string("\x00\x06\x01\x02\x03\x04\x05\x02", 8);
         REQUIRE(output_buffer == expected_buffer);
       }
@@ -192,7 +194,7 @@ SCENARIO(
           REQUIRE(output_buffer.operator[](i) == data[i - 2]);
         }
       }
-      THEN("The output buffer is as expected") {
+      THEN("The output buffer is as expected '0x0a 0x06 0x12 0x23 0x34 0x45 0x56 0x67' ") {
         auto expected_buffer = std::string("\x0A\x06\x12\x23\x34\x45\x56\x37", 8);
         REQUIRE(output_buffer == expected_buffer);
       }
@@ -251,7 +253,7 @@ SCENARIO(
           REQUIRE(output_buffer.operator[](i) == data[i - 2]);
         }
       }
-      THEN("The output buffer is as expected") {
+      THEN("The output buffer is as expected '0xff 0x07 0x01 0x23 0x45 0x0a 0x4d 0x04 0x05'") {
         auto expected_buffer = std::string("\xFF\x07\x01\x23\x45\x0A\x4D\x04\x05", 9);
         REQUIRE(output_buffer == expected_buffer);
       }

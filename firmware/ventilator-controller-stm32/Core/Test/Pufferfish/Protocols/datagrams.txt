@@ -5,7 +5,7 @@ Scenario: The write method correctly generates a body from the paylaod and seque
     WHEN("The sequence, length and the paylaod are written to the output buffer")
       THEN("The write method reports ok status")
       THEN("the value returned by the length accessor method is equal to 0")
-      THEN("The output buffer is as expected")
+      THEN("The output buffer is as expected '0x00 0x00' ")
 
   GIVEN("A Datagram constructed with paylaod buffer as '0x01 0x02 0x03 0x04 0x05' and sequence equal to 0")
 
@@ -17,7 +17,7 @@ Scenario: The write method correctly generates a body from the paylaod and seque
       THEN("The seq field of the body's header matches the value returned by the seq accessor method")
       THEN("The length field of the body's header is equal to the size of the payload given in the constructor")
       THEN("The body's payload section correctly stores the paylaod as '0x01 0x02 0x03 0x04 0x05'")
-      THEN("The output buffer is as expected")
+      THEN("The output buffer is as expected '0x00 0x05 0x01 0x02 0x03 0x04 0x05' ")
 
     WHEN("The paylaod given to the constructor is altered ('0x01 0x02 0x03 0x04 0x05 0x02') before write method is called")
       THEN("The write method reports ok status")
@@ -27,7 +27,7 @@ Scenario: The write method correctly generates a body from the paylaod and seque
       THEN("The seq field of the body's header matches the value returned by the seq accessor method")
       THEN("The length field of the body's header is equal to the size of the altered paylaod")
       THEN("The body's payload section correctly stores the paylaod as '0x01 0x02 0x03 0x04 0x05 0x02'")
-      THEN("The output buffer is as expected")
+      THEN("The output buffer is as expected '0x00 0x06 0x01 0x02 0x03 0x04 0x05 0x02' ")
 
   GIVEN("A Datagram constructed with payload '0x12 0x23 0x34 0x45 0x56 0x67' and sequence equal to 10")
     WHEN("The sequence, length and paylaod are written to the output buffer")
@@ -38,7 +38,7 @@ Scenario: The write method correctly generates a body from the paylaod and seque
       THEN("The seq field of the body's header matches the value returned by the seq accessor method")
       THEN("The length field of the body's header is equal to the size of the payload given in the constructor")
       THEN("The body's payload section correctly stores the paylaod as '0x12 0x23 0x34 0x45 0x56 0x67'")
-      THEN("The output buffer is as expected")
+      THEN("The output buffer is as expected '0x0a 0x06 0x12 0x23 0x34 0x45 0x56 0x67' ")
 
   GIVEN("A Datagram constructed with paylaod '0x01 0x23 0x45 0x0a 0x4d 0x04 0x05' and a sequence ranging from 0 to 0xff")
     WHEN("The sequence, length and paylaod are written to the output buffer")
@@ -49,12 +49,12 @@ Scenario: The write method correctly generates a body from the paylaod and seque
       THEN("The seq field of the body's header matches the value returned by the seq accessor method")
       THEN("The length field of the body's header is equal to the size of the payload given in the constructor")
       THEN("The body's payload section correctly stores the paylaod as '0x01 0x23 0x45 0x0a 0x4d 0x04 0x05'")
-      THEN("The output buffer is as expected")
+      THEN("The output buffer is as expected '0xff 0x07 0x01 0x23 0x45 0x0a 0x4d 0x04 0x05' ")
 
   GIVEN("A Datagram constructed with payload '0x01 0x05 0x01 0x02 0x03 0x04 0x05 0x06 0x07 0x08' and sequence equal to 0")
     WHEN("The output buffer is too short and cannot hold the sequence, length fields and the paylaod buffer")
       THEN("The write method reports out of bounds status")
-      THEN("The output buffer is as expected")
+      THEN("The output buffer is as expected 'empty' ")
 
 /* Parse function
 
