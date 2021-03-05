@@ -15,8 +15,8 @@ FrameProps::InputStatus FrameReceiver::input(uint8_t new_byte) {
   return chunk_splitter_.input(new_byte);
 }
 
-FrameProps::OutputStatus FrameReceiver::output(FrameProps::ChunkBuffer &output_buffer) {
-  FrameProps::ChunkBuffer temp_buffer;
+FrameProps::OutputStatus FrameReceiver::output(FrameProps::PayloadBuffer &output_buffer) {
+  FrameProps::EncodedBuffer temp_buffer;
 
   // Chunk
   FrameProps::OutputStatus status = chunk_splitter_.output(temp_buffer);
@@ -36,7 +36,7 @@ FrameProps::OutputStatus FrameReceiver::output(FrameProps::ChunkBuffer &output_b
 // FrameSender
 
 FrameProps::OutputStatus FrameSender::transform(
-    const FrameProps::ChunkBuffer &input_buffer, FrameProps::ChunkBuffer &output_buffer) const {
+    const FrameProps::PayloadBuffer &input_buffer, FrameProps::ChunkBuffer &output_buffer) const {
   // COBS
   FrameProps::OutputStatus status = cobs_encoder.transform(input_buffer, output_buffer);
   if (status != FrameProps::OutputStatus::ok) {
