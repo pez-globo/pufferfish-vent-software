@@ -220,9 +220,17 @@ SCENARIO(
       THEN("the parse method reports out of bounds status") {
         REQUIRE(parse_status == PF::IndexStatus::out_of_bounds);
       }
-      THEN("the constructor's payload buffer remains unchanged") {
+      THEN("the crc accessor method returns 0") { REQUIRE(crc_element.crc() == 0); }
+      THEN(
+          "the payload accessor method returns a reference to the payload buffer given in the "
+          "CRCElement constructor") {
         auto expected = crc_element.payload();
         REQUIRE(expected.empty() == true);
+      }
+      THEN(
+          "the payload given in the CRCElement constructor is independent of the input buffer "
+          "body") {
+        REQUIRE(payload.empty() == true);
       }
     }
 
@@ -251,12 +259,6 @@ SCENARIO(
           "body") {
         REQUIRE(crc_element.payload() == expected_payload);
       }
-      THEN("the payload given in the CRCElement constructor is independent of the input body") {
-        // change the input_buffer
-        input_buffer.push_back(0x06);
-
-        REQUIRE(crc_element.payload() == expected_payload);
-      }
       THEN(
           "the payload accessor method returns a reference to the payload buffer given in the "
           "CRCElement constructor") {
@@ -266,6 +268,12 @@ SCENARIO(
         // expected buffer returned by the payload accessor method
         auto expected = std::string("\x01\x05\x01\x02\x03\x04\x05\x06", 8);
         REQUIRE(crc_element.payload() == expected);
+      }
+      THEN("the payload given in the CRCElement constructor is independent of the input body") {
+        // change the input_buffer
+        input_buffer.push_back(0x06);
+
+        REQUIRE(crc_element.payload() == expected_payload);
       }
     }
 
@@ -298,12 +306,6 @@ SCENARIO(
           "body") {
         REQUIRE(crc_element.payload() == expected_payload);
       }
-      THEN("the payload given in the CRCElement constructor is independent of the input body") {
-        // change the input_buffer
-        input_buffer.push_back(0x06);
-
-        REQUIRE(crc_element.payload() == expected_payload);
-      }
       THEN(
           "the payload accessor method returns a reference to the payload buffer given in the "
           "CRCElement constructor") {
@@ -313,6 +315,12 @@ SCENARIO(
         // expected buffer returned by the payload accessor method
         auto expected = std::string("\x03\x04\x00\xed\x30\x00\x06", 7);
         REQUIRE(crc_element.payload() == expected);
+      }
+      THEN("the payload given in the CRCElement constructor is independent of the input body") {
+        // change the input_buffer
+        input_buffer.push_back(0x06);
+
+        REQUIRE(crc_element.payload() == expected_payload);
       }
     }
   }
@@ -335,13 +343,27 @@ SCENARIO(
       THEN("the parse method reports out of bounds status") {
         REQUIRE(parse_status == PF::IndexStatus::out_of_bounds);
       }
-      THEN("The bytes in the constructor's payload buffer are '0x12 0x13 0x14 0x15 0x16' ") {
+      THEN(
+          "the value returned by the crc accessor method is equal to the crc field of the input "
+          "body's header") {
+        REQUIRE(crc_element.crc() == 0);
+      }
+      THEN("The payload buffer given to it's constructor is '0x12 0x13 0x14 0x15 0x16' ") {
         auto data = PF::Util::make_array<uint8_t>(0x12, 0x13, 0x14, 0x15, 0x16);
         for (size_t i = 0; i < 5; ++i) {
           REQUIRE(payload.operator[](i) == data[i]);
         }
       }
-      THEN("The payload accesor method returns the constructor's payload buffer") {
+      THEN(
+          "the payload accessor method returns a reference to the payload buffer given in the "
+          "CRCElement constructor") {
+        REQUIRE(crc_element.payload() == data);
+      }
+      THEN(
+          "the payload given in the CRCElement constructor is independent of the input buffer "
+          "body") {
+        input_buffer.push_back(0x06);
+
         REQUIRE(crc_element.payload() == data);
       }
     }
@@ -384,12 +406,6 @@ SCENARIO(
           "body") {
         REQUIRE(crc_element.payload() == expected_payload);
       }
-      THEN("the payload given in the CRCElement constructor is independent of the input body") {
-        // change the input_buffer
-        input_buffer.push_back(0x06);
-
-        REQUIRE(crc_element.payload() == expected_payload);
-      }
       THEN(
           "the payload accessor method returns a reference to the payload buffer given in the "
           "CRCElement constructor") {
@@ -399,6 +415,12 @@ SCENARIO(
         // expected buffer returned by the payload accessor method
         auto expected = std::string("\x01\x06\x11\x22\x33\x44\x55\x66\x06", 9);
         REQUIRE(crc_element.payload() == expected);
+      }
+      THEN("the payload given in the CRCElement constructor is independent of the input body") {
+        // change the input_buffer
+        input_buffer.push_back(0x06);
+
+        REQUIRE(crc_element.payload() == expected_payload);
       }
     }
   }
@@ -568,25 +590,28 @@ SCENARIO(
       THEN("the transform method reports ok status") {
         REQUIRE(transform_status == TestCRCElementReceiver::Status::ok);
       }
-      THEN(
-          "After the transform method is called, the value returned by the crc accessor method is "
-          "equal to the crc field of the input "
-          "body's header") {
-        uint32_t expected_crc = 0x44EB775F;
-        REQUIRE(crc_element.crc() == expected_crc);
-      }
-      THEN(
-          "the payload returned from the payload accessor method is equal to the payload from the "
-          "body") {
-        auto expected_payload = std::string("\x01\x07\x07\x12\x36\x57\x66\x77\x18", 9);
-        REQUIRE(crc_element.payload() == expected_payload);
-      }
-      THEN("the payload buffer updated in the CRCElement is independent of the input body") {
-        // change input buffer
-        input_buffer.push_back(0x01);
+      THEN("The ParsedCRCElement output parameter has the following properties") {
+        THEN(
+            "the value returned by it's crc accessor method is "
+            "equal to the crc field of the input "
+            "body's header") {
+          uint32_t expected_crc = 0x44EB775F;
+          REQUIRE(crc_element.crc() == expected_crc);
+        }
+        THEN("the payload given to it's constructor is empty")
+        THEN(
+            "Its payload accessor method returns a reference to the payload given in its "
+            "constructor") {
+          auto expected_payload = std::string("\x01\x07\x07\x12\x36\x57\x66\x77\x18", 9);
+          REQUIRE(crc_element.payload() == expected_payload);
+        }
+        THEN("the payload buffer updated in the CRCElement is independent of the input body") {
+          // change input buffer
+          input_buffer.push_back(0x01);
 
-        auto expected_payload = std::string("\x01\x07\x07\x12\x36\x57\x66\x77\x18", 9);
-        REQUIRE(crc_element.payload() == expected_payload);
+          auto expected_payload = std::string("\x01\x07\x07\x12\x36\x57\x66\x77\x18", 9);
+          REQUIRE(crc_element.payload() == expected_payload);
+        }
       }
     }
 
@@ -599,16 +624,25 @@ SCENARIO(
         REQUIRE(transform_status == TestCRCElementReceiver::Status::invalid_parse);
       }
       THEN(
-          "After the transform method is called, the value returned by the crc accessor method is "
-          "equal to 0x00000000") {
-        uint32_t expected_crc = 0x00000000;
-        REQUIRE(crc_element.crc() == expected_crc);
-      }
-      THEN(
-          "the payload returned from the payload accessor method is equal to the payload from the "
-          "body") {
-        auto expected = crc_element.payload();
-        REQUIRE(expected.empty() == true);
+          "After the transform method is called, The ParsedCRCElement output parameter has the "
+          "following properties : ") {
+        THEN(
+            "the value returned by it's crc accessor method is equal to the crc field of the input "
+            "body's header") {
+          uint32_t expected_crc = 0x00000000;
+          REQUIRE(crc_element.crc() == expected_crc);
+        }
+        THEN(
+            "Its payload accessor method returns a reference to the payload given in its "
+            "constructor") {
+          auto expected = crc_element.payload();
+          REQUIRE(expected.empty() == true);
+        }
+        THEN("The data in its payload is independent of the data in input_buffer") {
+          input_buffer.push_back(0x02);
+          auto expected = crc_element.payload();
+          REQUIRE(expected.empty() == true);
+        }
       }
     }
 
@@ -627,16 +661,25 @@ SCENARIO(
         REQUIRE(status == TestCRCElementReceiver::Status::invalid_parse);
       }
       THEN(
-          "After the transform method is called, the value returned by the crc accessor method is "
-          "equal to 0") {
-        uint32_t expected_crc = 0x00;
-        REQUIRE(crc_element.crc() == expected_crc);
-      }
-      THEN(
-          "the payload returned from the payload accessor method of the output_crcelement is equal "
-          "to the payload from the body") {
-        auto expected = crc_element.payload();
-        REQUIRE(expected.empty() == true);
+          "After the transform method is called, The ParsedCRCElement output parameter has the "
+          "following properties : ") {
+        THEN(
+            "the value returned by it's crc accessor method is equal to the crc field of the input "
+            "body's header") {
+          uint32_t expected_crc = 0x00;
+          REQUIRE(crc_element.crc() == expected_crc);
+        }
+        THEN(
+            "Its payload accessor method returns a reference to the payload given in its "
+            "constructor") {
+          auto expected = crc_element.payload();
+          REQUIRE(expected.empty() == true);
+        }
+        THEN("The data in its payload is independent of the data in input_buffer") {
+          input_buffer.push_back(0x02);
+          auto expected = crc_element.payload();
+          REQUIRE(expected.empty() == true);
+        }
       }
 
       // body of length 2 bytes
@@ -652,16 +695,25 @@ SCENARIO(
         REQUIRE(first == TestCRCElementReceiver::Status::invalid_parse);
       }
       THEN(
-          "After the transform method is called, the value returned by the crc accessor method is "
-          "equal to 0") {
-        uint32_t expected_crc = 0x00;
-        REQUIRE(crc_element.crc() == expected_crc);
-      }
-      THEN(
-          "the payload returned from the payload accessor method of the output_crcelement is equal "
-          "to the payload from the body") {
-        auto expected = crc_element.payload();
-        REQUIRE(expected.empty() == true);
+          "After the transform method is called, The ParsedCRCElement output parameter has the "
+          "following properties : ") {
+        THEN(
+            "the value returned by it's crc accessor method is equal to the crc field of the input "
+            "body's header") {
+          uint32_t expected_crc = 0x00;
+          REQUIRE(crc_element.crc() == expected_crc);
+        }
+        THEN(
+            "Its payload accessor method returns a reference to the payload given in its "
+            "constructor") {
+          auto expected = crc_element.payload();
+          REQUIRE(expected.empty() == true);
+        }
+        THEN("The data in its payload is independent of the data in input_buffer") {
+          input_buffer.push_back(0x02);
+          auto expected = crc_element.payload();
+          REQUIRE(expected.empty() == true);
+        }
       }
 
       // body of length 3 bytes
@@ -677,16 +729,25 @@ SCENARIO(
         REQUIRE(second == TestCRCElementReceiver::Status::invalid_parse);
       }
       THEN(
-          "After the transform method is called, the value returned by the crc accessor method is "
-          "equal to 0") {
-        uint32_t expected_crc = 0x00;
-        REQUIRE(crc_element.crc() == expected_crc);
-      }
-      THEN(
-          "the payload returned from the payload accessor method of the output_crcelement is equal "
-          "to the payload from the body") {
-        auto expected = crc_element.payload();
-        REQUIRE(expected.empty() == true);
+          "After the transform method is called, The ParsedCRCElement output parameter has the "
+          "following properties : ") {
+        THEN(
+            "the value returned by it's crc accessor method is equal to the crc field of the input "
+            "body's header") {
+          uint32_t expected_crc = 0x00;
+          REQUIRE(crc_element.crc() == expected_crc);
+        }
+        THEN(
+            "Its payload accessor method returns a reference to the payload given in its "
+            "constructor") {
+          auto expected = crc_element.payload();
+          REQUIRE(expected.empty() == true);
+        }
+        THEN("The data in its payload is independent of the data in input_buffer") {
+          input_buffer.push_back(0x02);
+          auto expected = crc_element.payload();
+          REQUIRE(expected.empty() == true);
+        }
       }
     }
 
@@ -704,19 +765,29 @@ SCENARIO(
       THEN("the transform method reports invalid crc status") {
         REQUIRE(transform_status == TestCRCElementReceiver::Status::invalid_crc);
       }
-
       THEN(
-          "After the transform method is called, the value returned by the crc accessor method is "
-          "equal to the crc field of the input "
-          "body's header") {
-        REQUIRE(crc_element.crc() == expected_crc);
+          "After the transform method is called, The ParsedCRCElement output parameter has the "
+          "following properties : ") {
+        THEN(
+            "the value returned by it's crc accessor method is equal to the crc field of the input "
+            "body's header") {
+          REQUIRE(crc_element.crc() == expected_crc);
+        }
+        auto expected = std::string("\x01\x05\x01\x02\x03\x04\x05", 7);
+        THEN(
+            "Its payload accessor method returns a reference to the payload given in its "
+            "constructor") {}
+        THEN("The data in its payload is independent of the data in input_buffer") {
+          input_buffer.push_back(0x02);
+          REQUIRE(crc_element.payload() == expected);
+        }
       }
     }
   }
 
   GIVEN(
       "A CRC element receiver of capacity 254 bytes and output_crcelement constructed with an "
-      "empty payload buffer") {
+      "non-empty payload buffer") {
     constexpr size_t buffer_size = 254UL;
     using TestCRCElementProps = PF::Protocols::CRCElementProps<buffer_size>;
     using TestCRCElement = PF::Protocols::CRCElement<TestCRCElementProps::PayloadBuffer>;
@@ -744,24 +815,27 @@ SCENARIO(
         REQUIRE(transform_status == TestCRCElementReceiver::Status::ok);
       }
       THEN(
-          "After the transform method is called, the value returned by the crc accessor method is "
-          "equal to the crc field of the input "
-          "body's header") {
-        uint32_t expected_crc = 0x44EB775F;
-        REQUIRE(crc_element.crc() == expected_crc);
-      }
-      THEN(
-          "the payload returned from the payload accessor method is equal to the payload from the "
-          "body") {
-        auto expected_payload = std::string("\x01\x07\x07\x12\x36\x57\x66\x77\x18", 9);
-        REQUIRE(crc_element.payload() == expected_payload);
-      }
-      THEN("the payload buffer updated in the CRCElement is independent of the input body") {
-        // change input buffer
-        input_buffer.push_back(0x01);
+          "After the transform method is called, The ParsedCRCElement output parameter has the "
+          "following properties : ") {
+        THEN(
+            "the value returned by it's crc accessor method is equal to the crc field of the input "
+            "body's header") {
+          uint32_t expected_crc = 0x44EB775F;
+          REQUIRE(crc_element.crc() == expected_crc);
+        }
+        THEN(
+            "Its payload accessor method returns a reference to the payload given in its "
+            "constructor") {
+          auto expected_payload = std::string("\x01\x07\x07\x12\x36\x57\x66\x77\x18", 9);
+          REQUIRE(crc_element.payload() == expected_payload);
+        }
+        THEN("The data in its payload is independent of the data in input_buffer") {
+          // change input buffer
+          input_buffer.push_back(0x01);
 
-        auto expected_payload = std::string("\x01\x07\x07\x12\x36\x57\x66\x77\x18", 9);
-        REQUIRE(crc_element.payload() == expected_payload);
+          auto expected_payload = std::string("\x01\x07\x07\x12\x36\x57\x66\x77\x18", 9);
+          REQUIRE(crc_element.payload() == expected_payload);
+        }
       }
     }
 
@@ -774,15 +848,23 @@ SCENARIO(
         REQUIRE(transform_status == TestCRCElementReceiver::Status::invalid_parse);
       }
       THEN(
-          "After the transform method is called, the value returned by the crc accessor method is "
-          "equal to 0x00000000") {
-        uint32_t expected_crc = 0x00000000;
-        REQUIRE(crc_element.crc() == expected_crc);
-      }
-      THEN(
-          "After the transform method is called, the payload given in the ParsedCRCElement "
-          "constructor remains unchanged") {
-        REQUIRE(crc_element.payload() == body);
+          "After the transform method is called, The ParsedCRCElement output parameter has the "
+          "following properties : ") {
+        THEN(
+            "the value returned by it's crc accessor method is equal to the crc field of the input "
+            "body's header") {
+          uint32_t expected_crc = 0x00000000;
+          REQUIRE(crc_element.crc() == expected_crc);
+        }
+        THEN(
+            "Its payload accessor method returns a reference to the payload given in its "
+            "constructor") {
+          REQUIRE(crc_element.payload() == body);
+        }
+        THEN("The data in its payload is independent of the data in input_buffer") {
+          input_buffer.push_back(0x02);
+          REQUIRE(crc_element.payload() == body);
+        }
       }
     }
 
@@ -807,15 +889,21 @@ SCENARIO(
         REQUIRE(transform_status == TestCRCElementReceiver::Status::invalid_parse);
       }
       THEN(
-          "After the transform method is called, the value returned by the crc accessor method is "
-          "equal to '0x40D06D79'") {
-        uint32_t expected_crc = 0x40D06D79;
-        REQUIRE(crc_element.crc() == expected_crc);
-      }
-      THEN(
-          "After the transform method is called, the payload given in the ParsedCRCElement "
-          "constructor remains unchanged") {
-        REQUIRE(crc_element.payload() == body);
+          "After the transform method is called, The ParsedCRCElement output parameter has the "
+          "following properties : ") {
+        THEN("the value returned by it's crc accessor method is equal to '0x40D06D79'") {
+          uint32_t expected_crc = 0x40D06D79;
+          REQUIRE(crc_element.crc() == expected_crc);
+        }
+        THEN(
+            "Its payload accessor method returns a reference to the payload given in its "
+            "constructor") {
+          REQUIRE(crc_element.payload() == body);
+        }
+        THEN("The data in its payload is independent of the data in input_buffer") {
+          input_buffer.push_back(0x02);
+          REQUIRE(crc_element.payload() == body);
+        }
       }
     }
   }
