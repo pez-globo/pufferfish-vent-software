@@ -56,14 +56,14 @@ class Datagram {
   PayloadBuffer &payload_;
 };
 
-// In this Datagram, the payload can only be set through the constructor, so
-// a const payload can be given in the constructor. However, the parse method
-// is not available, as it would modify the payload given in the constructor.
+// In this Datagram, the payload can be modified through the parse method, so
+// a const payload cannot be given in the constructor.
 template <size_t body_max_size>
 using ParsedDatagram = Datagram<typename DatagramProps<body_max_size>::PayloadBuffer>;
 
-// In this Datagram, the payload can be modified through the parse method, so
-// a const payload cannot be given in the constructor.
+// In this Datagram, the payload can only be set through the constructor, so
+// a const payload can be given in the constructor. However, the parse method
+// is not available, as it would modify the payload given in the constructor.
 template <size_t body_max_size>
 using ConstructedDatagram = Datagram<const typename DatagramProps<body_max_size>::PayloadBuffer>;
 
