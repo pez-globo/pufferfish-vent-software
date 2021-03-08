@@ -24,13 +24,12 @@ SCENARIO(
     "[Datagram]") {
   constexpr size_t buffer_size = 254UL;
   using TestDatagramProps = PF::Protocols::DatagramProps<buffer_size>;
-  using TestDatagram = PF::Protocols::Datagram<TestDatagramProps::PayloadBuffer>;
+  using TestDatagram = PF::Protocols::ConstructedDatagram<buffer_size>;
 
   PF::Util::ByteVector<buffer_size> output_buffer;
+  TestDatagramProps::PayloadBuffer input_payload;
 
   GIVEN("A Datagram constructed with an empty paylaod and sequence equal to 0") {
-    TestDatagramProps::PayloadBuffer input_payload;
-
     TestDatagram datagram(input_payload);
 
     WHEN("The sequence, length and paylaod are written to the output buffer") {
@@ -50,7 +49,6 @@ SCENARIO(
   GIVEN(
       "A Datagram constructed with paylaod buffer as '0x01 0x02 0x03 0x04 0x05' and sequence equal "
       "to 0") {
-    TestDatagramProps::PayloadBuffer input_payload;
     auto data = std::string("\x01\x02\x03\x04\x05", 5);
     PF::Util::convert_string_to_byte_vector(data, input_payload);
 
@@ -148,7 +146,6 @@ SCENARIO(
   GIVEN(
       "A Datagram constructed with payload '0x12 0x23 0x34 0x45 0x56 0x67' and sequence equal to "
       "10") {
-    TestDatagramProps::PayloadBuffer input_payload;
     auto data = std::string("\x12\x23\x34\x45\x56\67", 6);
     PF::Util::convert_string_to_byte_vector(data, input_payload);
 
@@ -204,7 +201,6 @@ SCENARIO(
   GIVEN(
       "A Datagram constructed with paylaod '0x01 0x23 0x45 0x0a 0x4d 0x04 0x05' and a sequence "
       "ranging from 0 to 0xff") {
-    TestDatagramProps::PayloadBuffer input_payload;
     auto data = std::string("\x01\x23\x45\x0a\x4d\x04\x05", 7);
     PF::Util::convert_string_to_byte_vector(data, input_payload);
 
@@ -263,7 +259,6 @@ SCENARIO(
   GIVEN(
       "A Datagram constructed with payload '0x01 0x05 0x01 0x02 0x03 0x04 0x05 0x06 0x07 0x08' and "
       "sequence equal to 0") {
-    TestDatagramProps::PayloadBuffer input_payload;
     auto payload = std::string("\x01\x05\x01\x02\x03\x04\x05\x06\x07\x08", 10);
     PF::Util::convert_string_to_byte_vector(payload, input_payload);
     TestDatagram datagram{input_payload};
@@ -289,14 +284,14 @@ SCENARIO(
   using TestDatagramProps = PF::Protocols::DatagramProps<buffer_size>;
   using TestDatagram = PF::Protocols::Datagram<TestDatagramProps::PayloadBuffer>;
 
+  TestDatagramProps::PayloadBuffer payload;
+  PF::Util::ByteVector<buffer_size> input_buffer;
+
   GIVEN("A Datagram constructed with an empty paylaod and sequence equal to 0") {
-    TestDatagramProps::PayloadBuffer payload;
     uint8_t seq = 0;
     TestDatagram datagram{payload, seq};
 
     WHEN("A body with a complete 2-byte header and an empty paylaod buffer is parsed") {
-      PF::Util::ByteVector<buffer_size> input_buffer;
-
       auto parse_status = datagram.parse(input_buffer);
 
       THEN("After the parse method is called, the seq accessor method returns 0") {
@@ -312,7 +307,6 @@ SCENARIO(
         "A body with a complete 2-byte header, and a non-empty paylaod buffer consistent with the "
         "length field of the header is parsed") {
       auto body = std::string("\x01\x05\xb5\x83\x6d\xf6\x1c\xf0\xb1\x58", 10);
-      PF::Util::ByteVector<buffer_size> input_buffer;
       PF::Util::convert_string_to_byte_vector(body, input_buffer);
 
       auto parse_status = datagram.parse(input_buffer);
@@ -327,23 +321,32 @@ SCENARIO(
           "input body's header") {
         REQUIRE(datagram.length() == 5);
       }
+      auto expected_payload = std::string("\xb5\x83\x6d\xf6\x1c\xf0\xb1\x58", 8);
       THEN(
           "The payload returned from the payload accessor method is equal to the payload from the "
           "body") {
-        auto expected_payload = std::string("\xb5\x83\x6d\xf6\x1c\xf0\xb1\x58", 8);
         REQUIRE(datagram.payload() == expected_payload);
       }
-      THEN("The input buffer is unchanged after parse") { REQUIRE(input_buffer == body); }
+      THEN(
+          "the payload accessor method returns a reference to the payload buffer given in the "
+          "Datagram constructor") {
+        payload.push_back(0x01);
+        auto expected_payload = std::string("\xb5\x83\x6d\xf6\x1c\xf0\xb1\x58\x01", 9);
+        REQUIRE(datagram.payload() == expected_payload);
+      }
+      THEN(
+          "the payload given in the Datagram constructor is independent of the input buffer body") {
+        input_buffer.push_back(0x02);
+        REQUIRE(datagram.payload() == expected_payload);
+      }
     }
   }
 
   GIVEN("A Datagram constructed with paylaod '0x01 0x02 0x03 0x04 0x05' and sequence equal to 0") {
     auto data = std::string("\x01\x02\x03\x04\x05", 5);
-    TestDatagramProps::PayloadBuffer payload;
     PF::Util::convert_string_to_byte_vector(data, payload);
     TestDatagram datagram{payload};
 
-    PF::Util::ByteVector<buffer_size> input_buffer;
     WHEN(
         "A body with a complete 2-byte header, and a non-empty paylaod buffer consistent with the "
         "length field of the header is parsed") {
@@ -362,13 +365,24 @@ SCENARIO(
           "input body's header") {
         REQUIRE(datagram.length() == 5);
       }
+      auto expected_payload = std::string("\xaa\x10\x8d\xf1\x05\x2c\x67\x0d\xa2\x1a", 10);
       THEN(
           "The payload returned from the payload accessor method is equal to the payload from the "
           "body") {
-        auto expected_payload = std::string("\xaa\x10\x8d\xf1\x05\x2c\x67\x0d\xa2\x1a", 10);
         REQUIRE(datagram.payload() == expected_payload);
       }
-      THEN("The input buffer is unchanged after parse") { REQUIRE(input_buffer == body); }
+      THEN(
+          "the payload accessor method returns a reference to the payload buffer given in the "
+          "Datagram constructor") {
+        payload.push_back(0x01);
+        auto expected_payload = std::string("\xaa\x10\x8d\xf1\x05\x2c\x67\x0d\xa2\x1a\x01", 11);
+        REQUIRE(datagram.payload() == expected_payload);
+      }
+      THEN(
+          "the payload given in the Datagram constructor is independent of the input buffer body") {
+        input_buffer.push_back(0x02);
+        REQUIRE(datagram.payload() == expected_payload);
+      }
     }
 
     WHEN(
@@ -396,7 +410,18 @@ SCENARIO(
           "from the body") {
         REQUIRE(datagram.payload() == expected_payload);
       }
-      THEN("The input buffer is unchanged after parse") { REQUIRE(input_buffer == body); }
+      THEN(
+          "the payload accessor method returns a reference to the payload buffer given in the "
+          "Datagram constructor") {
+        payload.push_back(0x01);
+        auto expected_payload = std::string("\x11\x12\x13\x14\x15\x01", 6);
+        REQUIRE(datagram.payload() == expected_payload);
+      }
+      THEN(
+          "the payload given in the Datagram constructor is independent of the input buffer body") {
+        input_buffer.push_back(0x02);
+        REQUIRE(datagram.payload() == expected_payload);
+      }
 
       input_buffer.push_back(0x16);
 
@@ -429,13 +454,21 @@ SCENARIO(
         REQUIRE(datagram.length() == 1);
       }
 
+      auto expected_payload = std::string("\x00", 1);
       THEN("The paylaod buffer returned by the paylaod accessor method is equal to '0x00' ") {
-        auto expected_payload = std::string("\x00", 1);
         REQUIRE(datagram.payload() == expected_payload);
       }
-      THEN("The input buffer is unchanged after parse") {
-        auto initial_buffer = std::string("\x00\x01\x00", 3);
-        REQUIRE(input_buffer == initial_buffer);
+      THEN(
+          "the payload accessor method returns a reference to the payload buffer given in the "
+          "Datagram constructor") {
+        payload.push_back(0x01);
+        auto expected_payload = std::string("\x00\x01", 2);
+        REQUIRE(datagram.payload() == expected_payload);
+      }
+      THEN(
+          "the payload given in the Datagram constructor is independent of the input buffer body") {
+        input_buffer.push_back(0x02);
+        REQUIRE(datagram.payload() == expected_payload);
       }
     }
 
@@ -458,13 +491,24 @@ SCENARIO(
           "input body's header") {
         REQUIRE(datagram.length() == 5);
       }
+      auto expected_payload = std::string("\x4B\xB6\x08\x37\x4F\xF9", 6);
       THEN(
           "The paylaod buffer returned by the paylaod accessor method is equal to the payload from "
           "the body") {
-        auto expected_payload = std::string("\x4B\xB6\x08\x37\x4F\xF9", 6);
         REQUIRE(datagram.payload() == expected_payload);
       }
-      THEN("The input buffer is unchanged after parse") { REQUIRE(input_buffer == body); }
+      THEN(
+          "the payload accessor method returns a reference to the payload buffer given in the "
+          "Datagram constructor") {
+        payload.push_back(0x01);
+        auto expected_payload = std::string("\x4B\xB6\x08\x37\x4F\xF9\x01", 7);
+        REQUIRE(datagram.payload() == expected_payload);
+      }
+      THEN(
+          "the payload given in the Datagram constructor is independent of the input buffer body") {
+        input_buffer.push_back(0x02);
+        REQUIRE(datagram.payload() == expected_payload);
+      }
     }
 
     WHEN(
@@ -488,15 +532,23 @@ SCENARIO(
           "input body's header") {
         REQUIRE(datagram.length() == 1);
       }
+      auto expected_payload = std::string("\x01", 1);
       THEN(
           "The payload buffer returned from the payload accessor method is equal to the payload "
           "from the body") {
-        auto expected_payload = std::string("\x01", 1);
         REQUIRE(datagram.payload() == expected_payload);
       }
-      THEN("The input buffer is unchanged after parse") {
-        auto initial_buffer = std::string("\x05\x01\x01", 3);
-        REQUIRE(input_buffer == initial_buffer);
+      THEN(
+          "the payload accessor method returns a reference to the payload buffer given in the "
+          "Datagram constructor") {
+        payload.push_back(0x01);
+        auto expected_payload = std::string("\x01\x01", 2);
+        REQUIRE(datagram.payload() == expected_payload);
+      }
+      THEN(
+          "the payload given in the Datagram constructor is independent of the input buffer body") {
+        input_buffer.push_back(0x02);
+        REQUIRE(datagram.payload() == expected_payload);
       }
     }
 
@@ -509,9 +561,31 @@ SCENARIO(
         REQUIRE(parse_status == PF::IndexStatus::out_of_bounds);
       }
       THEN(
+          "After the parse method is called, The value returned by the seq accessor method is "
+          "equal to the sequence field of the input body's header") {
+        REQUIRE(datagram.seq() == 0);
+      }
+      THEN(
+          "The value returned by the length accessor method is equal to the length of the payload "
+          "given in the constructor") {
+        REQUIRE(datagram.length() == 5);
+      }
+      auto expected = std::string("\x01\x02\x03\x04\x05", 5);
+      THEN(
           "The payload buffer returned from the payload accessor method is equal to the payload "
           "buffer given in the constructor") {
-        auto expected = std::string("\x01\x02\x03\x04\x05", 5);
+        REQUIRE(datagram.payload() == expected);
+      }
+      THEN(
+          "the payload accessor method returns a reference to the payload buffer given in the "
+          "Datagram constructor") {
+        payload.push_back(0x01);
+        auto expected = std::string("\x01\x02\x03\x04\x05\x01", 6);
+        REQUIRE(datagram.payload() == expected);
+      }
+      THEN(
+          "the payload given in the Datagram constructor is independent of the input buffer body") {
+        input_buffer.push_back(0x02);
         REQUIRE(datagram.payload() == expected);
       }
     }
@@ -671,20 +745,19 @@ SCENARIO(
     "Protocols::Datagram Receiver correctly parses datagram bodies and performs consistency "
     "checking on them",
     "[DatagramReceiver]") {
+  constexpr size_t buffer_size = 254UL;
+  using TestDatagramProps = PF::Protocols::DatagramProps<buffer_size>;
+  using TestDatagram = PF::Protocols::Datagram<TestDatagramProps::PayloadBuffer>;
+  using TestDatagramReceiver = PF::Protocols::DatagramReceiver<buffer_size>;
+
+  TestDatagramProps::PayloadBuffer payload;
+  TestDatagramReceiver datagram_receiver{};
+  PF::Util::ByteVector<buffer_size> input_buffer;
+
   GIVEN(
       "A Datagram receiver of buffer size 254 bytes and expected sequence number equal to 0, with "
       "output_datagram constructed with empty payload buffer") {
-    constexpr size_t buffer_size = 254UL;
-    using TestDatagramProps = PF::Protocols::DatagramProps<buffer_size>;
-    using TestDatagram = PF::Protocols::Datagram<TestDatagramProps::PayloadBuffer>;
-    using TestDatagramReceiver = PF::Protocols::DatagramReceiver<buffer_size>;
-
-    TestDatagramProps::PayloadBuffer payload;
     TestDatagram datagram{payload};
-
-    TestDatagramReceiver datagram_receiver{};
-
-    PF::Util::ByteVector<buffer_size> input_buffer;
 
     WHEN("A body with an incomplete 2-byte header and empty payload is given to the receiver") {
       input_buffer.push_back(0x00);
@@ -695,10 +768,29 @@ SCENARIO(
         REQUIRE(transform_status == TestDatagramReceiver::Status::invalid_parse);
       }
       THEN(
-          "The payload buffer returned by the payload accessor method of the output datagram "
-          "contains the buffer given in the constructor") {
-        auto payload = datagram.payload();
-        REQUIRE(payload.empty() == true);
+          "After the transform method is called, The ParsedDatagram output parameter has the "
+          "following properties : ") {
+        THEN(
+            "The value of sequence returned by the seq accessor method is equal to the sequence in "
+            "the body's header") {
+          REQUIRE(datagram.seq() == 0);
+        }
+        THEN(
+            "The value of length returned by the length accessor method is equal to the length "
+            "field of the body's header") {
+          REQUIRE(datagram.length() == 0);
+        }
+        THEN(
+            "Its payload accessor method returns a reference to the payload given in its "
+            "constructor") {
+          auto payload = datagram.payload();
+          REQUIRE(payload.empty() == true);
+        }
+        THEN("The data in its payload is independent of the data in input_buffer") {
+          input_buffer.push_back(0x01);
+          auto payload = datagram.payload();
+          REQUIRE(payload.empty() == true);
+        }
       }
     }
 
@@ -715,31 +807,33 @@ SCENARIO(
         REQUIRE(transform_status == TestDatagramReceiver::Status::invalid_length);
       }
       THEN(
-          "After the transform method is called, The value of sequence returned by the seq "
-          "accessor method of the output datagram is equal to the sequence in the body's header") {
-        REQUIRE(datagram.seq() == 0);
-      }
-      THEN(
-          "The value of length returned by the length accessor method of the output datagram is "
-          "equal to the length field of the body's header") {
-        REQUIRE(datagram.length() == 5);
-      }
-
-      auto expected_payload = std::string("\xaa\xd1\x64\xa8\x85\xf4", 6);
-      THEN(
-          "The value of length returned by the length accessor method of the output datagram is "
-          "inconsistent with the actual length of the payload buffer from the body") {
-        REQUIRE(datagram.length() != expected_payload.length());
-      }
-      THEN(
-          "The payload buffer returned by the payload accessor method of the output datagram is "
-          "equal to the payload from the body") {
-        REQUIRE(datagram.payload() == expected_payload);
-      }
-      THEN("the payload buffer updated in the datagram is independent of the input body") {
-        input_buffer.push_back(0x04);
-
-        REQUIRE(datagram.payload() == expected_payload);
+          "After the transform method is called, The ParsedDatagram output parameter has the "
+          "following properties : ") {
+        THEN(
+            "The value of sequence returned by the seq accessor method is equal to the sequence in "
+            "the body's header") {
+          REQUIRE(datagram.seq() == 0);
+        }
+        THEN(
+            "The value of length returned by the length accessor method is equal to the length "
+            "field of the body's header") {
+          REQUIRE(datagram.length() == 5);
+        }
+        auto expected_payload = std::string("\xaa\xd1\x64\xa8\x85\xf4", 6);
+        THEN(
+            "The value of length returned by the length accessor method is inconsistent with the "
+            "actual length of the payload buffer from the body") {
+          REQUIRE(datagram.length() != expected_payload.length());
+        }
+        THEN(
+            "Its payload accessor method returns a reference to the payload given in its "
+            "constructor") {
+          REQUIRE(datagram.payload() == expected_payload);
+        }
+        THEN("The data in its payload is independent of the data in input_buffer") {
+          input_buffer.push_back(0x04);
+          REQUIRE(datagram.payload() == expected_payload);
+        }
       }
     }
 
@@ -755,26 +849,28 @@ SCENARIO(
         REQUIRE(transform_status == TestDatagramReceiver::Status::invalid_sequence);
       }
       THEN(
-          "After the transform method is called, The value of sequence returned by the seq "
-          "accessor method of the output datagram is equal to the sequence in the body's header") {
-        REQUIRE(datagram.seq() == 4);
-      }
-      THEN(
-          "The value of length returned by the length accessor method of the output datagram is "
-          "equal to the length field of the body's header") {
-        REQUIRE(datagram.length() == 6);
-      }
-
-      auto expected_payload = std::string("\x5f\xee\x40\xeb\x41\x6e", 6);
-      THEN(
-          "The payload buffer returned by the payload accessor method of the output datagram is "
-          "equal to the payload from the body") {
-        REQUIRE(datagram.payload() == expected_payload);
-      }
-      THEN("the payload buffer updated in the datagram is independent of the input body") {
-        input_buffer.push_back(0x04);
-
-        REQUIRE(datagram.payload() == expected_payload);
+          "After the transform method is called, The ParsedDatagram output parameter has the "
+          "following properties : ") {
+        THEN(
+            "The value of sequence returned by the seq accessor method is equal to the sequence in "
+            "the body's header") {
+          REQUIRE(datagram.seq() == 4);
+        }
+        THEN(
+            "The value of length returned by the length accessor method is equal to the length "
+            "field of the body's header") {
+          REQUIRE(datagram.length() == 6);
+        }
+        auto expected_payload = std::string("\x5f\xee\x40\xeb\x41\x6e", 6);
+        THEN(
+            "Its payload accessor method returns a reference to the payload given in its "
+            "constructor") {
+          REQUIRE(datagram.payload() == expected_payload);
+        }
+        THEN("The data in its payload is independent of the data in input_buffer") {
+          input_buffer.push_back(0x04);
+          REQUIRE(datagram.payload() == expected_payload);
+        }
       }
     }
 
@@ -793,24 +889,27 @@ SCENARIO(
         REQUIRE(transform_status == TestDatagramReceiver::Status::ok);
       }
       THEN(
-          "After the transform method is called, The value of sequence returned by the seq "
-          "accessor method of the output datagram is equal to the sequence in the body's header") {
-        REQUIRE(datagram.seq() == 0);
-      }
-      THEN(
-          "The value of length returned by the length accessor method of the output datagram is "
-          "equal to the length field of the body's header") {
-        REQUIRE(datagram.length() == 5);
-      }
-      THEN(
-          "The payload buffer returned by the payload accessor method of the output datagram is "
-          "equal to the payload from the body") {
-        REQUIRE(datagram.payload() == expected_payload);
-      }
-      THEN("the payload buffer updated in the datagram is independent of the input body") {
-        input_buffer.push_back(0x04);
-
-        REQUIRE(datagram.payload() == expected_payload);
+          "After the transform method is called, The ParsedDatagram output parameter has the "
+          "following properties : ") {
+        THEN(
+            "The value of sequence returned by the seq accessor method is equal to the sequence in "
+            "the body's header") {
+          REQUIRE(datagram.seq() == 0);
+        }
+        THEN(
+            "The value of length returned by the length accessor method is equal to the length "
+            "field of the body's header") {
+          REQUIRE(datagram.length() == 5);
+        }
+        THEN(
+            "Its payload accessor method returns a reference to the payload given in its "
+            "constructor") {
+          REQUIRE(datagram.payload() == expected_payload);
+        }
+        THEN("The data in its payload is independent of the data in input_buffer") {
+          input_buffer.push_back(0x04);
+          REQUIRE(datagram.payload() == expected_payload);
+        }
       }
     }
   }
@@ -818,20 +917,10 @@ SCENARIO(
   GIVEN(
       "A Datagram receiver of buffer size 254 bytes and expected sequence number equal to 0, with "
       "output_datagram constructed with a non-empty payload buffer") {
-    constexpr size_t buffer_size = 254UL;
-    using TestDatagramProps = PF::Protocols::DatagramProps<buffer_size>;
-    using TestDatagram = PF::Protocols::Datagram<TestDatagramProps::PayloadBuffer>;
-    using TestDatagramReceiver = PF::Protocols::DatagramReceiver<buffer_size>;
-
-    TestDatagramProps::PayloadBuffer payload;
     auto body = std::string("\x51\xb0\x6e\xf7\x86\x71\xcd\x00", 8);
     PF::Util::convert_string_to_byte_vector(body, payload);
 
     TestDatagram datagram{payload};
-
-    TestDatagramReceiver datagram_receiver{};
-
-    PF::Util::ByteVector<buffer_size> input_buffer;
 
     WHEN("A body with an incomplete 2-byte header and empty payload is given to the receiver") {
       input_buffer.push_back(0x00);
@@ -842,19 +931,27 @@ SCENARIO(
         REQUIRE(transform_status == TestDatagramReceiver::Status::invalid_parse);
       }
       THEN(
-          "After the transform method is called, The seq accessor method of the output_datagram "
-          "returns 0") {
-        REQUIRE(datagram.seq() == 0);
-      }
-      THEN(
-          "The length accessor method of the output_datagram returns the length of the payload "
-          "buffer given in the constructor") {
-        REQUIRE(datagram.length() == 8);
-      }
-      THEN(
-          "The payload buffer returned by the payload accessor method of the output datagram "
-          "contains the buffer given in the constructor") {
-        REQUIRE(datagram.payload() == body);
+          "After the transform method is called, The ParsedDatagram output parameter has the "
+          "following properties : ") {
+        THEN(
+            "The value of sequence returned by the seq accessor method is equal to the sequence in "
+            "the body's header") {
+          REQUIRE(datagram.seq() == 0);
+        }
+        THEN(
+            "The value of length returned by the length accessor method is equal to the length "
+            "field of the body's header") {
+          REQUIRE(datagram.length() == 8);
+        }
+        THEN(
+            "Its payload accessor method returns a reference to the payload given in its "
+            "constructor") {
+          REQUIRE(datagram.payload() == body);
+        }
+        THEN("The data in its payload is independent of the data in input_buffer") {
+          input_buffer.push_back(0x02);
+          REQUIRE(datagram.payload() == body);
+        }
       }
     }
 
@@ -871,31 +968,33 @@ SCENARIO(
         REQUIRE(transform_status == TestDatagramReceiver::Status::invalid_length);
       }
       THEN(
-          "After the transform method is called, The value of sequence returned by the seq "
-          "accessor method of the output datagram is equal to the sequence in the body's header") {
-        REQUIRE(datagram.seq() == 0);
-      }
-      THEN(
-          "The value of length returned by the length accessor method of the output datagram is "
-          "equal to the length field of the body's header") {
-        REQUIRE(datagram.length() == 5);
-      }
-
-      auto expected_payload = std::string("\xaa\xd1\x64\xa8\x85\xf4", 6);
-      THEN(
-          "The value of length returned by the length accessor method of the output datagram is "
-          "inconsistent with the actual length of the payload buffer from the body") {
-        REQUIRE(datagram.length() != expected_payload.length());
-      }
-      THEN(
-          "The payload buffer returned by the payload accessor method of the output datagram is "
-          "equal to the payload from the body") {
-        REQUIRE(datagram.payload() == expected_payload);
-      }
-      THEN("the payload buffer updated in the datagram is independent of the input body") {
-        input_buffer.push_back(0x04);
-
-        REQUIRE(datagram.payload() == expected_payload);
+          "After the transform method is called, The ParsedDatagram output parameter has the "
+          "following properties : ") {
+        THEN(
+            "The value of sequence returned by the seq accessor method is equal to the sequence in "
+            "the body's header") {
+          REQUIRE(datagram.seq() == 0);
+        }
+        THEN(
+            "The value of length returned by the length accessor method is equal to the length "
+            "field of the body's header") {
+          REQUIRE(datagram.length() == 5);
+        }
+        auto expected_payload = std::string("\xaa\xd1\x64\xa8\x85\xf4", 6);
+        THEN(
+            "The value of length returned by the length accessor method is inconsistent with the "
+            "actual length of the payload buffer from the body") {
+          REQUIRE(datagram.length() != expected_payload.length());
+        }
+        THEN(
+            "Its payload accessor method returns a reference to the payload given in its "
+            "constructor") {
+          REQUIRE(datagram.payload() == expected_payload);
+        }
+        THEN("The data in its payload is independent of the data in input_buffer") {
+          input_buffer.push_back(0x04);
+          REQUIRE(datagram.payload() == expected_payload);
+        }
       }
     }
 
@@ -911,26 +1010,28 @@ SCENARIO(
         REQUIRE(transform_status == TestDatagramReceiver::Status::invalid_sequence);
       }
       THEN(
-          "After the transform method is called, The value of sequence returned by the seq "
-          "accessor method of the output datagram is equal to the sequence in the body's header") {
-        REQUIRE(datagram.seq() == 4);
-      }
-      THEN(
-          "The value of length returned by the length accessor method of the output datagram is "
-          "equal to the length field of the body's header") {
-        REQUIRE(datagram.length() == 6);
-      }
-
-      auto expected_payload = std::string("\x5f\xee\x40\xeb\x41\x6e", 6);
-      THEN(
-          "The payload buffer returned by the payload accessor method of the output datagram is "
-          "equal to the payload from the body") {
-        REQUIRE(datagram.payload() == expected_payload);
-      }
-      THEN("the payload buffer updated in the datagram is independent of the input body") {
-        input_buffer.push_back(0x04);
-
-        REQUIRE(datagram.payload() == expected_payload);
+          "After the transform method is called, The ParsedDatagram output parameter has the "
+          "following properties : ") {
+        THEN(
+            "The value of sequence returned by the seq accessor method is equal to the sequence in "
+            "the body's header") {
+          REQUIRE(datagram.seq() == 4);
+        }
+        THEN(
+            "The value of length returned by the length accessor method is equal to the length "
+            "field of the body's header") {
+          REQUIRE(datagram.length() == 6);
+        }
+        auto expected_payload = std::string("\x5f\xee\x40\xeb\x41\x6e", 6);
+        THEN(
+            "Its payload accessor method returns a reference to the payload given in its "
+            "constructor") {
+          REQUIRE(datagram.payload() == expected_payload);
+        }
+        THEN("The data in its payload is independent of the data in input_buffer") {
+          input_buffer.push_back(0x04);
+          REQUIRE(datagram.payload() == expected_payload);
+        }
       }
     }
 
@@ -948,26 +1049,28 @@ SCENARIO(
         REQUIRE(transform_status == TestDatagramReceiver::Status::ok);
       }
       THEN(
-          "After the transform method is called, The value of sequence returned by the seq "
-          "accessor method of the output datagram is equal to the sequence in the body's header") {
-        REQUIRE(datagram.seq() == 0);
-      }
-      THEN(
-          "The value of length returned by the length accessor method of the output datagram is "
-          "equal to the length field of the body's header") {
-        REQUIRE(datagram.length() == 12);
-      }
-
-      auto expected_payload = std::string("\x23\xce\xb3\x32\xca\x33\xa0\x97\x17\x2a\x2b\x85", 12);
-      THEN(
-          "The payload buffer returned by the payload accessor method of the output datagram is "
-          "equal to the payload from the body") {
-        REQUIRE(datagram.payload() == expected_payload);
-      }
-      THEN("the payload buffer updated in the datagram is independent of the input body") {
-        input_buffer.push_back(0x04);
-
-        REQUIRE(datagram.payload() == expected_payload);
+          "After the transform method is called, The ParsedDatagram output parameter has the "
+          "following properties : ") {
+        THEN(
+            "The value of sequence returned by the seq accessor method is equal to the sequence in "
+            "the body's header") {
+          REQUIRE(datagram.seq() == 0);
+        }
+        THEN(
+            "The value of length returned by the length accessor method is equal to the length "
+            "field of the body's header") {
+          REQUIRE(datagram.length() == 12);
+        }
+        auto expected_payload = std::string("\x23\xce\xb3\x32\xca\x33\xa0\x97\x17\x2a\x2b\x85", 12);
+        THEN(
+            "Its payload accessor method returns a reference to the payload given in its "
+            "constructor") {
+          REQUIRE(datagram.payload() == expected_payload);
+        }
+        THEN("The data in its payload is independent of the data in input_buffer") {
+          input_buffer.push_back(0x04);
+          REQUIRE(datagram.payload() == expected_payload);
+        }
       }
     }
   }
@@ -977,19 +1080,18 @@ SCENARIO(
     "Protocols::Datagram Receiver correctly reports incrementing, rollover, and resetting of "
     "expected sequence number",
     "[DatagramReceiver]") {
-  GIVEN("A Datagram receiver of buffer size 254 bytes and expected sequence number equal to 1") {
-    constexpr size_t buffer_size = 254UL;
-    using TestDatagramProps = PF::Protocols::DatagramProps<buffer_size>;
-    using TestDatagram = PF::Protocols::Datagram<TestDatagramProps::PayloadBuffer>;
-    using TestDatagramReceiver = PF::Protocols::DatagramReceiver<buffer_size>;
+  constexpr size_t buffer_size = 254UL;
+  using TestDatagramProps = PF::Protocols::DatagramProps<buffer_size>;
+  using TestDatagram = PF::Protocols::Datagram<TestDatagramProps::PayloadBuffer>;
+  using TestDatagramReceiver = PF::Protocols::DatagramReceiver<buffer_size>;
+  TestDatagramProps::PayloadBuffer payload;
+  TestDatagramReceiver datagram_receiver{};
+  PF::Util::ByteVector<buffer_size> input_buffer;
 
-    TestDatagramProps::PayloadBuffer payload;
+  GIVEN("A Datagram receiver of buffer size 254 bytes and expected sequence number equal to 1") {
     TestDatagram datagram{payload};
 
-    TestDatagramReceiver datagram_receiver{};
-
     auto body = std::string("\x00\x07\x48\x17\xb8\x67\x1c\x45\x28", 9);
-    PF::Util::ByteVector<buffer_size> input_buffer;
     PF::Util::convert_string_to_byte_vector(body, input_buffer);
 
     auto expected_payload = std::string("\x48\x17\xb8\x67\x1c\x45\x28", 7);
@@ -1011,20 +1113,28 @@ SCENARIO(
         REQUIRE(transform_status == TestDatagramReceiver::Status::ok);
       }
       THEN(
-          "After the first transform method is called, The value of sequence returned by the seq "
-          "accessor method of the output datagram is equal to the sequence in the body's header") {
-        REQUIRE(datagram.seq() == 1);
-      }
-      THEN(
-          "The value of length returned by the length accessor method of the output datagram is "
-          "equal to the length field of the body's header") {
-        REQUIRE(datagram.length() == 4);
-      }
-      THEN(
-          "The payload buffer returned by the payload accessor method of the output datagram is "
-          "equal to the payload from the body") {
+          "After the first transform method is called, The ParsedDatagram output parameter has the "
+          "following properties : ") {
+        THEN(
+            "The value of sequence returned by the seq accessor method is equal to the sequence in "
+            "the body's header") {
+          REQUIRE(datagram.seq() == 1);
+        }
+        THEN(
+            "The value of length returned by the length accessor method is equal to the length "
+            "field of the body's header") {
+          REQUIRE(datagram.length() == 4);
+        }
         auto expected_payload = std::string("\xc8\x8d\xdf\x84", 4);
-        REQUIRE(datagram.payload() == expected_payload);
+        THEN(
+            "Its payload accessor method returns a reference to the payload given in its "
+            "constructor") {
+          REQUIRE(datagram.payload() == expected_payload);
+        }
+        THEN("The data in its payload is independent of the data in input_buffer") {
+          input_buffer.push_back(0x01);
+          REQUIRE(datagram.payload() == expected_payload);
+        }
       }
 
       auto data = std::string("\x02\x05\x82\x93\xc8\x5f\x60", 7);
@@ -1036,20 +1146,28 @@ SCENARIO(
         REQUIRE(final_transform == TestDatagramReceiver::Status::ok);
       }
       THEN(
-          "After the second transform method is called, The value of sequence returned by the seq "
-          "accessor method of the output datagram is equal to the sequence in the body's header") {
-        REQUIRE(datagram.seq() == 2);
-      }
-      THEN(
-          "The value of length returned by the length accessor method of the output datagram is "
-          "equal to the length field of the body's header") {
-        REQUIRE(datagram.length() == 5);
-      }
-      THEN(
-          "The payload buffer returned by the payload accessor method of the output datagram is "
-          "equal to the payload from the body") {
+          "After the second transform method is called, The ParsedDatagram output parameter has "
+          "the following properties : ") {
+        THEN(
+            "The value of sequence returned by the seq accessor method is equal to the sequence in "
+            "the body's header") {
+          REQUIRE(datagram.seq() == 2);
+        }
+        THEN(
+            "The value of length returned by the length accessor method is equal to the length "
+            "field of the body's header") {
+          REQUIRE(datagram.length() == 5);
+        }
         auto expected_payload = std::string("\x82\x93\xc8\x5f\x60", 5);
-        REQUIRE(datagram.payload() == expected_payload);
+        THEN(
+            "Its payload accessor method returns a reference to the payload given in its "
+            "constructor") {
+          REQUIRE(datagram.payload() == expected_payload);
+        }
+        THEN("The data in its payload is independent of the data in input_buffer") {
+          input_buffer.push_back(0x01);
+          REQUIRE(datagram.payload() == expected_payload);
+        }
       }
     }
 
@@ -1061,24 +1179,32 @@ SCENARIO(
 
       auto transform_status = datagram_receiver.transform(input_buffer, datagram);
 
-      THEN("The firt transform method reports invalid sequence status") {
+      THEN("The first transform method reports invalid sequence status") {
         REQUIRE(transform_status == TestDatagramReceiver::Status::invalid_sequence);
       }
       THEN(
-          "After the first transform method is called, The value of sequence returned by the seq "
-          "accessor method of the output datagram is equal to the sequence in the body's header") {
-        REQUIRE(datagram.seq() == 2);
-      }
-      THEN(
-          "The value of length returned by the length accessor method of the output datagram is "
-          "equal to the length field of the body's header") {
-        REQUIRE(datagram.length() == 6);
-      }
-      THEN(
-          "The payload buffer returned by the payload accessor method of the output datagram is "
-          "equal to the payload from the body") {
+          "After the first transform method is called, The ParsedDatagram output parameter has the "
+          "following properties : ") {
+        THEN(
+            "The value of sequence returned by the seq accessor method is equal to the sequence in "
+            "the body's header") {
+          REQUIRE(datagram.seq() == 2);
+        }
+        THEN(
+            "The value of length returned by the length accessor method is equal to the length "
+            "field of the body's header") {
+          REQUIRE(datagram.length() == 6);
+        }
         auto expected_payload = std::string("\xdc\x53\x54\xeb\x12\xbd", 6);
-        REQUIRE(datagram.payload() == expected_payload);
+        THEN(
+            "Its payload accessor method returns a reference to the payload given in its "
+            "constructor") {
+          REQUIRE(datagram.payload() == expected_payload);
+        }
+        THEN("The data in its payload is independent of the data in input_buffer") {
+          input_buffer.push_back(0x01);
+          REQUIRE(datagram.payload() == expected_payload);
+        }
       }
 
       auto data = std::string("\x03\x07\x76\x36\xd3\x7b\xb4\x59\x20", 9);
@@ -1090,20 +1216,28 @@ SCENARIO(
         REQUIRE(final_status == TestDatagramReceiver::Status::ok);
       }
       THEN(
-          "After the second transform method is called, The value of sequence returned by the seq "
-          "accessor method of the output datagram is equal to the sequence in the body's header") {
-        REQUIRE(datagram.seq() == 3);
-      }
-      THEN(
-          "The value of length returned by the length accessor method of the output datagram is "
-          "equal to the length field of the body's header") {
-        REQUIRE(datagram.length() == 7);
-      }
-      THEN(
-          "The payload buffer returned by the payload accessor method of the output datagram is "
-          "equal to the payload from the body") {
+          "After the second transform method is called, The ParsedDatagram output parameter has "
+          "the following properties : ") {
+        THEN(
+            "The value of sequence returned by the seq accessor method is equal to the sequence in "
+            "the body's header") {
+          REQUIRE(datagram.seq() == 3);
+        }
+        THEN(
+            "The value of length returned by the length accessor method is equal to the length "
+            "field of the body's header") {
+          REQUIRE(datagram.length() == 7);
+        }
         auto expected_payload = std::string("\x76\x36\xd3\x7b\xb4\x59\x20", 7);
-        REQUIRE(datagram.payload() == expected_payload);
+        THEN(
+            "Its payload accessor method returns a reference to the payload given in its "
+            "constructor") {
+          REQUIRE(datagram.payload() == expected_payload);
+        }
+        THEN("The data in its payload is independent of the data in input_buffer") {
+          input_buffer.push_back(0x01);
+          REQUIRE(datagram.payload() == expected_payload);
+        }
       }
     }
 
@@ -1119,20 +1253,28 @@ SCENARIO(
         REQUIRE(transform_status == TestDatagramReceiver::Status::invalid_sequence);
       }
       THEN(
-          "After the first transform method is called, The value of sequence returned by the seq "
-          "accessor method of the output datagram is equal to the sequence in the body's header") {
-        REQUIRE(datagram.seq() == 0xff);
-      }
-      THEN(
-          "The value of length returned by the length accessor method of the output datagram is "
-          "equal to the length field of the body's header") {
-        REQUIRE(datagram.length() == 10);
-      }
-      THEN(
-          "The payload buffer returned by the payload accessor method of the output datagram is "
-          "equal to the payload from the body") {
+          "After the first transform method is called, The ParsedDatagram output parameter has the "
+          "following properties : ") {
+        THEN(
+            "The value of sequence returned by the seq accessor method is equal to the sequence in "
+            "the body's header") {
+          REQUIRE(datagram.seq() == 0xff);
+        }
+        THEN(
+            "The value of length returned by the length accessor method is equal to the length "
+            "field of the body's header") {
+          REQUIRE(datagram.length() == 10);
+        }
         auto expected_payload = std::string("\x30\xbe\xbd\x5c\x64\xa9\xdc\xd2\xde\x4b", 10);
-        REQUIRE(datagram.payload() == expected_payload);
+        THEN(
+            "Its payload accessor method returns a reference to the payload given in its "
+            "constructor") {
+          REQUIRE(datagram.payload() == expected_payload);
+        }
+        THEN("The data in its payload is independent of the data in input_buffer") {
+          input_buffer.push_back(0x01);
+          REQUIRE(datagram.payload() == expected_payload);
+        }
       }
 
       auto data = std::string("\x00\x09\xfc\x60\x67\x98\xa6\xf6\xac\xd3\x8e", 11);
@@ -1144,20 +1286,28 @@ SCENARIO(
         REQUIRE(final_status == TestDatagramReceiver::Status::ok);
       }
       THEN(
-          "After the second transform method is called, The value of sequence returned by the seq "
-          "accessor method of the output datagram is equal to the sequence in the body's header") {
-        REQUIRE(datagram.seq() == 0);
-      }
-      THEN(
-          "The value of length returned by the length accessor method of the output datagram is "
-          "equal to the length field of the body's header") {
-        REQUIRE(datagram.length() == 9);
-      }
-      THEN(
-          "The payload buffer returned by the payload accessor method of the output datagram is "
-          "equal to the payload from the body") {
+          "After the second transform method is called, The ParsedDatagram output parameter has "
+          "the following properties : ") {
+        THEN(
+            "The value of sequence returned by the seq accessor method is equal to the sequence in "
+            "the body's header") {
+          REQUIRE(datagram.seq() == 0);
+        }
+        THEN(
+            "The value of length returned by the length accessor method is equal to the length "
+            "field of the body's header") {
+          REQUIRE(datagram.length() == 9);
+        }
         auto expected_payload = std::string("\xfc\x60\x67\x98\xa6\xf6\xac\xd3\x8e", 9);
-        REQUIRE(datagram.payload() == expected_payload);
+        THEN(
+            "Its payload accessor method returns a reference to the payload given in its "
+            "constructor") {
+          REQUIRE(datagram.payload() == expected_payload);
+        }
+        THEN("The data in its payload is independent of the data in input_buffer") {
+          input_buffer.push_back(0x01);
+          REQUIRE(datagram.payload() == expected_payload);
+        }
       }
     }
 
@@ -1173,20 +1323,28 @@ SCENARIO(
         REQUIRE(first_transform == TestDatagramReceiver::Status::ok);
       }
       THEN(
-          "After the first transform method is called, The value of sequence returned by the seq "
-          "accessor method of the output datagram is equal to the sequence in the body's header") {
-        REQUIRE(datagram.seq() == 1);
-      }
-      THEN(
-          "The value of length returned by the length accessor method of the output datagram is "
-          "equal to the length field of the body's header") {
-        REQUIRE(datagram.length() == 5);
-      }
-      THEN(
-          "The payload buffer returned by the payload accessor method of the output datagram is "
-          "equal to the payload from the body") {
+          "After the transform method is called, The ParsedDatagram output parameter has the "
+          "following properties : ") {
+        THEN(
+            "The value of sequence returned by the seq accessor method is equal to the sequence in "
+            "the body's header") {
+          REQUIRE(datagram.seq() == 1);
+        }
+        THEN(
+            "The value of length returned by the length accessor method is equal to the length "
+            "field of the body's header") {
+          REQUIRE(datagram.length() == 5);
+        }
         auto expected_payload = std::string("\xf8\xa4\xdd\x84\x62", 5);
-        REQUIRE(datagram.payload() == expected_payload);
+        THEN(
+            "Its payload accessor method returns a reference to the payload given in its "
+            "constructor") {
+          REQUIRE(datagram.payload() == expected_payload);
+        }
+        THEN("The data in its payload is independent of the data in input_buffer") {
+          input_buffer.push_back(0x01);
+          REQUIRE(datagram.payload() == expected_payload);
+        }
       }
 
       auto data = std::string("\x0a\x05\xb5\xfb\xca\x82\xf2", 7);
@@ -1198,20 +1356,28 @@ SCENARIO(
         REQUIRE(second_transform == TestDatagramReceiver::Status::invalid_sequence);
       }
       THEN(
-          "After the second transform method is called, The value of sequence returned by the seq "
-          "accessor method of the output datagram is equal to the sequence in the body's header") {
-        REQUIRE(datagram.seq() == 10);
-      }
-      THEN(
-          "The value of length returned by the length accessor method of the output datagram is "
-          "equal to the length field of the body's header") {
-        REQUIRE(datagram.length() == 5);
-      }
-      THEN(
-          "The payload buffer returned by the payload accessor method of the output datagram is "
-          "equal to the payload from the body") {
+          "After the second transform method is called, The ParsedDatagram output parameter has "
+          "the following properties : ") {
+        THEN(
+            "The value of sequence returned by the seq accessor method is equal to the sequence in "
+            "the body's header") {
+          REQUIRE(datagram.seq() == 10);
+        }
+        THEN(
+            "The value of length returned by the length accessor method is equal to the length "
+            "field of the body's header") {
+          REQUIRE(datagram.length() == 5);
+        }
         auto expected_payload = std::string("\xb5\xfb\xca\x82\xf2", 5);
-        REQUIRE(datagram.payload() == expected_payload);
+        THEN(
+            "Its payload accessor method returns a reference to the payload given in its "
+            "constructor") {
+          REQUIRE(datagram.payload() == expected_payload);
+        }
+        THEN("The data in its payload is independent of the data in input_buffer") {
+          input_buffer.push_back(0x01);
+          REQUIRE(datagram.payload() == expected_payload);
+        }
       }
 
       auto input_data = std::string("\x0b\x05\x8b\xf2\x59\x90\x48", 7);
@@ -1223,39 +1389,37 @@ SCENARIO(
         REQUIRE(final_transform == TestDatagramReceiver::Status::ok);
       }
       THEN(
-          "After the third transform method is called, The value of sequence returned by the seq "
-          "accessor method of the output datagram is equal to the sequence in the body's header") {
-        REQUIRE(datagram.seq() == 11);
-      }
-      THEN(
-          "The value of length returned by the length accessor method of the output datagram is "
-          "equal to the length field of the body's header") {
-        REQUIRE(datagram.length() == 5);
-      }
-      THEN(
-          "The payload buffer returned by the payload accessor method of the output datagram is "
-          "equal to the payload from the body") {
+          "After the third transform method is called, The ParsedDatagram output parameter has the "
+          "following properties : ") {
+        THEN(
+            "The value of sequence returned by the seq accessor method is equal to the sequence in "
+            "the body's header") {
+          REQUIRE(datagram.seq() == 11);
+        }
+        THEN(
+            "The value of length returned by the length accessor method is equal to the length "
+            "field of the body's header") {
+          REQUIRE(datagram.length() == 5);
+        }
         auto expected_payload = std::string("\x8b\xf2\x59\x90\x48", 5);
-        REQUIRE(datagram.payload() == expected_payload);
+        THEN(
+            "Its payload accessor method returns a reference to the payload given in its "
+            "constructor") {
+          REQUIRE(datagram.payload() == expected_payload);
+        }
+        THEN("The data in its payload is independent of the data in input_buffer") {
+          input_buffer.push_back(0x01);
+          REQUIRE(datagram.payload() == expected_payload);
+        }
       }
     }
   }
 
   GIVEN("A Datagram receiver of buffer size 254 bytes and expected sequence number equal to 0xff") {
-    constexpr size_t buffer_size = 254UL;
-    using TestDatagramProps = PF::Protocols::DatagramProps<buffer_size>;
-    using TestDatagram = PF::Protocols::Datagram<TestDatagramProps::PayloadBuffer>;
-    using TestDatagramReceiver = PF::Protocols::DatagramReceiver<buffer_size>;
-
-    TestDatagramProps::PayloadBuffer payload;
     TestDatagram datagram{payload};
-
-    TestDatagramReceiver datagram_receiver{};
-
     auto body = std::string("\xff\x06\xcd\x6a\xc2\x7f\xa1\x5b", 8);
     auto expected_payload = std::string("\xcd\x6a\xc2\x7f\xa1\x5b", 6);
 
-    PF::Util::ByteVector<buffer_size> input_buffer;
     PF::Util::convert_string_to_byte_vector(body, input_buffer);
 
     auto transform_status = datagram_receiver.transform(input_buffer, datagram);
@@ -1275,20 +1439,28 @@ SCENARIO(
         REQUIRE(transform_status == TestDatagramReceiver::Status::ok);
       }
       THEN(
-          "After the first transform method is called, The value of sequence returned by the seq "
-          "accessor method of the output datagram is equal to the sequence in the body's header") {
-        REQUIRE(datagram.seq() == 0);
-      }
-      THEN(
-          "The value of length returned by the length accessor method of the output datagram is "
-          "equal to the length field of the body's header") {
-        REQUIRE(datagram.length() == 6);
-      }
-      THEN(
-          "The payload buffer returned by the payload accessor method of the output datagram is "
-          "equal to the payload from the body") {
+          "After the first transform method is called, The ParsedDatagram output parameter has the "
+          "following properties : ") {
+        THEN(
+            "The value of sequence returned by the seq accessor method is equal to the sequence in "
+            "the body's header") {
+          REQUIRE(datagram.seq() == 0);
+        }
+        THEN(
+            "The value of length returned by the length accessor method is equal to the length "
+            "field of the body's header") {
+          REQUIRE(datagram.length() == 6);
+        }
         auto expected_payload = std::string("\xfa\x5b\x28\x1a\x4b\x9d", 6);
-        REQUIRE(datagram.payload() == expected_payload);
+        THEN(
+            "Its payload accessor method returns a reference to the payload given in its "
+            "constructor") {
+          REQUIRE(datagram.payload() == expected_payload);
+        }
+        THEN("The data in its payload is independent of the data in input_buffer") {
+          input_buffer.push_back(0x01);
+          REQUIRE(datagram.payload() == expected_payload);
+        }
       }
 
       auto input_data = std::string("\x01\x06\xab\xda\x26\x64\x47\x9f", 8);
@@ -1300,20 +1472,28 @@ SCENARIO(
         REQUIRE(final_transform == TestDatagramReceiver::Status::ok);
       }
       THEN(
-          "After the second transform method is called, The value of sequence returned by the seq "
-          "accessor method of the output datagram is equal to the sequence in the body's header") {
-        REQUIRE(datagram.seq() == 1);
-      }
-      THEN(
-          "The value of length returned by the length accessor method of the output datagram is "
-          "equal to the length field of the body's header") {
-        REQUIRE(datagram.length() == 6);
-      }
-      THEN(
-          "The payload buffer returned by the payload accessor method of the output datagram is "
-          "equal to the payload from the body") {
+          "After the second transform method is called, The ParsedDatagram output parameter has "
+          "the following properties : ") {
+        THEN(
+            "The value of sequence returned by the seq accessor method is equal to the sequence in "
+            "the body's header") {
+          REQUIRE(datagram.seq() == 1);
+        }
+        THEN(
+            "The value of length returned by the length accessor method is equal to the length "
+            "field of the body's header") {
+          REQUIRE(datagram.length() == 6);
+        }
         auto expected_payload = std::string("\xab\xda\x26\x64\x47\x9f", 6);
-        REQUIRE(datagram.payload() == expected_payload);
+        THEN(
+            "Its payload accessor method returns a reference to the payload given in its "
+            "constructor") {
+          REQUIRE(datagram.payload() == expected_payload);
+        }
+        THEN("The data in its payload is independent of the data in input_buffer") {
+          input_buffer.push_back(0x01);
+          REQUIRE(datagram.payload() == expected_payload);
+        }
       }
     }
   }
@@ -1425,10 +1605,18 @@ SCENARIO(
       }
     }
   }
+}
 
+SCENARIO(
+    "Protocols:: Datagram Sender correctly reports incrementing and rollover of expected sequence "
+    "number",
+    "[DatagramSender]") {
   GIVEN("A Datagram sender of buffer size 254 bytes with next sequence equal to 0") {
+    constexpr size_t buffer_size = 254UL;
     using TestDatagramProps = PF::Protocols::DatagramProps<buffer_size>;
     using TestDatagram = PF::Protocols::Datagram<TestDatagramProps::PayloadBuffer>;
+    using TestDatagramSender = PF::Protocols::DatagramSender<buffer_size>;
+    TestDatagramSender datagram_sender{};
 
     WHEN("2 non-empty payloads of capacity 254 bytes is given to the sender") {
       auto data = std::string("\xc0\x18\x65\xd1\x03\x5c", 6);
