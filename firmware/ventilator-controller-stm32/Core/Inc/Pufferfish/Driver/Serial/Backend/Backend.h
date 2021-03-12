@@ -52,6 +52,7 @@ static const auto state_sync_schedule = Util::make_array<const StateOutputSchedu
 // Backend
 using BackendMessage = Protocols::Message<
     Application::StateSegment,
+    Application::MessageTypeValues,
     Protocols::DatagramProps<
         Driver::Serial::Backend::FrameProps::payload_max_size>::payload_max_size>;
 

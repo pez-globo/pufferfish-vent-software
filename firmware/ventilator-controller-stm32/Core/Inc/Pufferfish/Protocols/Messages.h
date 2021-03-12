@@ -19,7 +19,7 @@ enum class MessageStatus { ok = 0, invalid_length, invalid_type, invalid_encodin
 
 // Messages
 
-template <typename TaggedUnion, size_t max_size>
+template <typename TaggedUnion, typename MessageTypes, size_t max_size>
 class Message {
  public:
   static const size_t type_offset = 0;

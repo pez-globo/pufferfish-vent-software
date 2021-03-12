@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "Pufferfish/Util/Enums.h"
 #include "Pufferfish/Util/TaggedUnion.h"
 #include "mcu_pb.h"
 
@@ -23,6 +24,18 @@ enum class MessageTypes : uint8_t {
   alarm_limits = 6,
   alarm_limits_request = 7
 };
+
+// MessageTypeValues should include all defined values of MessageTypes
+using MessageTypeValues = Util::EnumValues<
+    MessageTypes,
+    MessageTypes::unknown,
+    MessageTypes::sensor_measurements,
+    MessageTypes::cycle_measurements,
+    MessageTypes::parameters,
+    MessageTypes::parameters_request,
+    MessageTypes::alarm_limits,
+    MessageTypes::alarm_limits_request
+>;
 
 // Since nanopb is running dynamically, we cannot have extensive compile-time type-checking.
 // It's not clear how we might use variants to replace this union, since the nanopb functions
