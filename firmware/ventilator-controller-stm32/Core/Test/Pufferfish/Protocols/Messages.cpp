@@ -42,7 +42,10 @@ SCENARIO(
       "A Message object constructed with StateSegment Taggedunion and a payload of size 252 "
       "bytes") {
     constexpr size_t payload_max_size = 252UL;
-    using TestMessage = PF::Protocols::Message<PF::Application::StateSegment, payload_max_size>;
+    using TestMessage = PF::Protocols::Message<
+        PF::Application::StateSegment,
+        PF::Application::MessageTypeValues,
+        payload_max_size>;
     TestMessage test_message;
     constexpr size_t buffer_size = 252UL;
     PF::Util::ByteVector<buffer_size> buffer;
@@ -303,7 +306,10 @@ SCENARIO(
       "A Message object constructed with StateSegment Taggedunion and a payload of size 126 "
       "bytes") {
     constexpr size_t payload_max_size = 126UL;
-    using TestMessage = PF::Protocols::Message<PF::Application::StateSegment, payload_max_size>;
+    using TestMessage = PF::Protocols::Message<
+        PF::Application::StateSegment,
+        PF::Application::MessageTypeValues,
+        payload_max_size>;
     TestMessage test_message;
     constexpr size_t buffer_size = 126UL;
     PF::Util::ByteVector<buffer_size> buffer;
@@ -331,7 +337,10 @@ SCENARIO(
       "A Message object constructed with StateSegment Taggedunion and a payload of size 508 "
       "bytes") {
     constexpr size_t payload_max_size = 508UL;
-    using TestMessage = PF::Protocols::Message<PF::Application::StateSegment, payload_max_size>;
+    using TestMessage = PF::Protocols::Message<
+        PF::Application::StateSegment,
+        PF::Application::MessageTypeValues,
+        payload_max_size>;
     TestMessage test_message;
     constexpr size_t buffer_size = 508UL;
     PF::Util::ByteVector<buffer_size> buffer;
@@ -365,7 +374,8 @@ SCENARIO(
       parameters_request = 3,
     };
     using TestTaggedUnion = PF::Util::TaggedUnion<PF::Application::StateSegmentUnion, MessageTypes>;
-    using TestMessage = PF::Protocols::Message<TestTaggedUnion, payload_max_size>;
+    using TestMessage = PF::Protocols::
+        Message<TestTaggedUnion, PF::Application::MessageTypeValues, payload_max_size>;
     TestMessage test_message;
     constexpr size_t buffer_size = 252UL;
     PF::Util::ByteVector<buffer_size> buffer;
@@ -408,7 +418,10 @@ SCENARIO(
       "A Message object constructed with StateSegment Taggedunion and a payload of size 252 "
       "bytes") {
     constexpr size_t payload_max_size = 252UL;
-    using TestMessage = PF::Protocols::Message<PF::Application::StateSegment, payload_max_size>;
+    using TestMessage = PF::Protocols::Message<
+        PF::Application::StateSegment,
+        PF::Application::MessageTypeValues,
+        payload_max_size>;
     TestMessage test_message;
     constexpr size_t buffer_size = 252UL;
     PF::Util::ByteVector<buffer_size> buffer;
@@ -438,19 +451,19 @@ SCENARIO(
       }
     }
 
-    // WHEN("The first byte of input buffer is greater than descriptor array size") {
-    //   PF::Util::ByteVector<buffer_size> input_buffer;
-    //   auto data = PF::Util::make_array<uint8_t>(0x08); // SIGSEGV - Segmentation violation signal
-    //   for (auto& input : data) {
-    //     input_buffer.push_back(input);
-    //   }
+    WHEN("The first byte of input buffer is greater than descriptor array size") {
+      PF::Util::ByteVector<buffer_size> input_buffer;
+      auto data = PF::Util::make_array<uint8_t>(0x08);  // SIGSEGV - Segmentation violation signal
+      for (auto& input : data) {
+        input_buffer.push_back(input);
+      }
 
-    //   auto parse_status = test_message.parse(input_buffer, BE::message_descriptors);
+      auto parse_status = test_message.parse(input_buffer, BE::message_descriptors);
 
-    //   THEN("The parse status is equal to invalid length") {
-    //     REQUIRE(parse_status == PF::Protocols::MessageStatus::invalid_type);
-    //   }
-    // }
+      THEN("The parse status is equal to invalid length") {
+        REQUIRE(parse_status == PF::Protocols::MessageStatus::invalid_type);
+      }
+    }
 
     WHEN("The data from an invalid buffer is parsed") {
       constexpr size_t buffer_size = 253UL;
@@ -615,7 +628,10 @@ SCENARIO(
       "A Message object constructed with StateSegment Taggedunion and a payload of size 252 "
       "bytes") {
     constexpr size_t payload_max_size = 252UL;
-    using TestMessage = PF::Protocols::Message<PF::Application::StateSegment, payload_max_size>;
+    using TestMessage = PF::Protocols::Message<
+        PF::Application::StateSegment,
+        PF::Application::MessageTypeValues,
+        payload_max_size>;
     TestMessage test_message;
     constexpr size_t buffer_size = 252UL;
     PF::Util::ByteVector<buffer_size> buffer;
@@ -688,7 +704,10 @@ SCENARIO(
     "[messages]") {
   GIVEN("A MessageReceiver object is constructed with default parameters") {
     constexpr size_t payload_max_size = 252UL;
-    using TestMessage = PF::Protocols::Message<PF::Application::StateSegment, payload_max_size>;
+    using TestMessage = PF::Protocols::Message<
+        PF::Application::StateSegment,
+        PF::Application::MessageTypeValues,
+        payload_max_size>;
     TestMessage test_message;
     constexpr size_t buffer_size = 252UL;
     PF::Util::ByteVector<buffer_size> buffer;
@@ -960,7 +979,10 @@ SCENARIO(
     "[messages]") {
   GIVEN("A MessageSender object is constructed with default parameters") {
     constexpr size_t payload_max_size = 252UL;
-    using TestMessage = PF::Protocols::Message<PF::Application::StateSegment, payload_max_size>;
+    using TestMessage = PF::Protocols::Message<
+        PF::Application::StateSegment,
+        PF::Application::MessageTypeValues,
+        payload_max_size>;
     TestMessage test_message;
     constexpr size_t buffer_size = 252UL;
     PF::Util::ByteVector<buffer_size> output_buffer;
