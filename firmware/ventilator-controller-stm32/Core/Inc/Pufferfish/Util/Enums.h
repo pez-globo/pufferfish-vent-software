@@ -23,7 +23,9 @@ template <typename Enum>
 class EnumValues<Enum> {
  public:
   template <typename Underlying>
-  static bool constexpr includes(Underlying /*value*/) { return false; }
+  static bool constexpr includes(Underlying /*value*/) {
+    return false;
+  }
 };
 
 template <typename Enum, Enum Value, Enum... Values>

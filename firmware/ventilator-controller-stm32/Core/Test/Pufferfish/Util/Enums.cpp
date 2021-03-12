@@ -9,26 +9,21 @@
  * Unit tests to confirm behavior of enums utilities
  *
  */
+#include "Pufferfish/Util/Enums.h"
+
 #include <algorithm>
 #include <limits>
-
-#include "Pufferfish/Util/Enums.h"
 
 #include "catch2/catch.hpp"
 
 namespace PF = Pufferfish;
 
-enum class TestEnum : uint8_t {
-  zero = 0,
-  two = 2,
-  three = 3,
-  seven = 7
-};
+enum class TestEnum : uint8_t { zero = 0, two = 2, three = 3, seven = 7 };
 
 SCENARIO("EnumValues includes defined values", "[enums]") {
   GIVEN("An EnumValues specialization covering all of a test enum") {
-    using EnumValues = PF::Util::EnumValues<
-        TestEnum, TestEnum::zero, TestEnum::two, TestEnum::three, TestEnum::seven>;
+    using EnumValues = PF::Util::
+        EnumValues<TestEnum, TestEnum::zero, TestEnum::two, TestEnum::three, TestEnum::seven>;
 
     WHEN("EnumValues is queried with an underlying value of the test enum") {
       std::array<uint8_t, 4> values{{0, 2, 3, 7}};
@@ -72,8 +67,8 @@ SCENARIO("EnumValues excludes undefined values", "[enums]") {
   }
 
   GIVEN("An EnumValues specialization covering all of a test enum") {
-    using EnumValues = PF::Util::EnumValues<
-        TestEnum, TestEnum::zero, TestEnum::two, TestEnum::three, TestEnum::seven>;
+    using EnumValues = PF::Util::
+        EnumValues<TestEnum, TestEnum::zero, TestEnum::two, TestEnum::three, TestEnum::seven>;
 
     WHEN("EnumValues is queried with any value other than an underlying value of the test enum") {
       std::array<uint8_t, 4> values{{0, 2, 3, 7}};
@@ -91,7 +86,9 @@ SCENARIO("EnumValues excludes undefined values", "[enums]") {
   GIVEN("An EnumValues specialization covering part of a test enum") {
     using EnumValues = PF::Util::EnumValues<TestEnum, TestEnum::zero, TestEnum::two>;
 
-    WHEN("EnumValues is queried with an underlying value of the test enum not covered by EnumValues") {
+    WHEN(
+        "EnumValues is queried with an underlying value of the test enum not covered by "
+        "EnumValues") {
       std::array<uint8_t, 2> values{{3, 7}};
 
       for (uint8_t value : values) {

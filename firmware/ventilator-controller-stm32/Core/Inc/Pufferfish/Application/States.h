@@ -34,8 +34,7 @@ using MessageTypeValues = Util::EnumValues<
     MessageTypes::parameters,
     MessageTypes::parameters_request,
     MessageTypes::alarm_limits,
-    MessageTypes::alarm_limits_request
->;
+    MessageTypes::alarm_limits_request>;
 
 // Since nanopb is running dynamically, we cannot have extensive compile-time type-checking.
 // It's not clear how we might use variants to replace this union, since the nanopb functions

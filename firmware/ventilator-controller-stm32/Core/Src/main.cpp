@@ -309,7 +309,7 @@ PF::Driver::Serial::Nonin::Sensor nonin_oem(nonin_oem_dev);
 // Initializables
 
 auto initializables = PF::Util::make_array<std::reference_wrapper<PF::Driver::Initializable>>(
-    sfm3019_air, sfm3019_o2, /*fdo2, */nonin_oem);
+    sfm3019_air, sfm3019_o2, /*fdo2, */ nonin_oem);
 std::array<PF::InitializableState, initializables.size()> initialization_states;
 
 /*

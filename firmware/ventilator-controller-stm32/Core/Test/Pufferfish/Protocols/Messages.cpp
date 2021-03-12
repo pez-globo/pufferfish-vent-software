@@ -453,10 +453,18 @@ SCENARIO(
 
     WHEN("The first byte of input buffer is greater than descriptor array size") {
       PF::Util::ByteVector<buffer_size> input_buffer;
-      auto data = PF::Util::make_array<uint8_t>(0x08);  // SIGSEGV - Segmentation violation signal
-      for (auto& input : data) {
-        input_buffer.push_back(input);
+      input_buffer.push_back(0x08);  // SIGSEGV - Segmentation violation signal
+
+      auto parse_status = test_message.parse(input_buffer, BE::message_descriptors);
+
+      THEN("The parse status is equal to invalid length") {
+        REQUIRE(parse_status == PF::Protocols::MessageStatus::invalid_type);
       }
+    }
+
+    WHEN("The value of the first byte of the input buffer is invalid") {
+      PF::Util::ByteVector<buffer_size> input_buffer;
+      input_buffer.push_back(0x01);
 
       auto parse_status = test_message.parse(input_buffer, BE::message_descriptors);
 
