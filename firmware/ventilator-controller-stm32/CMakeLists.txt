@@ -37,21 +37,28 @@ include_directories(
     ${CMAKE_CURRENT_LIST_DIR}/Core/Inc
 )
 
-if ("${CMAKE_BUILD_TYPE}" STREQUAL "TestCatch2")
+if (("${CMAKE_BUILD_TYPE}" STREQUAL "TestCatch2") OR ("${CMAKE_BUILD_TYPE}" STREQUAL "TestCoverage"))
     set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
-    include(CodeCoverage)
-    append_coverage_compiler_flags()
 
-    # disable all optimization
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0")
-    set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -O0")
-    set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fno-inline -fno-inline-small-functions -fno-default-inline")
+    set(TEST_LIBS Pufferfish)
 
-    setup_target_for_coverage_lcov(
-        NAME ${CMAKE_BUILD_TYPE}_coverage
-        EXECUTABLE ${CMAKE_BUILD_TYPE}
-        EXCLUDE "/usr/include/*" "Core/Inc/catch2/*" "Core/Test/*" "Core/Src/nanopb/*"
-    )
+    if ("${CMAKE_BUILD_TYPE}" STREQUAL "TestCoverage")
+        include(CodeCoverage)
+        append_coverage_compiler_flags()
+
+        # disable all optimization
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0")
+        set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -O0")
+        set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fno-inline -fno-inline-small-functions -fno-default-inline")
+
+        setup_target_for_coverage_lcov(
+            NAME ${CMAKE_BUILD_TYPE}_coverage
+            EXECUTABLE ${CMAKE_BUILD_TYPE}
+            EXCLUDE "/usr/include/*" "Core/Inc/catch2/*" "Core/Test/*" "Core/Src/nanopb/*"
+        )
+
+        set(TEST_LIBS ${TEST_LIBS} gcov)
+    endif ()
 
     file(
         GLOB_RECURSE LIBRARY_SOURCES
@@ -70,7 +77,13 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "TestCatch2")
     add_executable(${CMAKE_BUILD_TYPE} ${EXECUTABLE_SOURCES})
     include_directories("Core/Inc")
     include_directories("Core/Test/Inc")
-    target_link_libraries(${CMAKE_BUILD_TYPE} Pufferfish gcov)
+#    if ("${CMAKE_BUILD_TYPE}" STREQUAL "TestCoverage")
+#        target_link_libraries(${CMAKE_BUILD_TYPE} Pufferfish gcov)
+#    else ()
+#        target_link_libraries(${CMAKE_BUILD_TYPE} Pufferfish)
+#    endif ()
+    target_link_libraries(${CMAKE_BUILD_TYPE} ${TEST_LIBS})
+
 else ()
     add_definitions(-DUSE_HAL_DRIVER -DSTM32H743xx -DDEBUG)
 
