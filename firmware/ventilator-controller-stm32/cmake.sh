@@ -2,7 +2,7 @@
 
 BUILD_TARGET="$1"
 
-if [ "$BUILD_TARGET" == "TestCatch2" ]; then
+if [ "$BUILD_TARGET" == "TestCatch2" ] || [ "$BUILD_TARGET" == "TestCoverage" ]; then
   TOOLCHAIN_ARGS=""
 else
   TOOLCHAIN_ARGS="\
