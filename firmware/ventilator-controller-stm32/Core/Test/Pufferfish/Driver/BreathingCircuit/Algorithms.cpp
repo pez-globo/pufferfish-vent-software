@@ -28,7 +28,7 @@ SCENARIO("BreathingCircuit::PI behaves correctly", "[Algorithms]") {
       valve_test.transform(measurement, setpoint, actuation);
 
       THEN("the final time should be the same") {
-        REQUIRE(PF::Util::isEqualFloat(actuation, 0.0) == true);
+        REQUIRE(actuation == Approx(0));
       }
     }
 

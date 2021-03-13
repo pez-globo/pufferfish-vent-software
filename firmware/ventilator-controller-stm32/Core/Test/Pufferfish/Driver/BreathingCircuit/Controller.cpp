@@ -40,8 +40,7 @@ SCENARIO("BreathingCircuit::Controller behaves correctly", "[Controllers]") {
 
     WHEN("the device ventilating mode is not hfnc") {
       THEN("the final value should be as expected") {
-        //  REQUIRE(PF::Util::isEqualFloat(actuator_setpoints.flow_o2, 0.0) == true);
-        REQUIRE(PF::Util::isEqualFloat(actuator_setpoints.flow_air, 0.0) == true);
+        REQUIRE(actuator_setpoints.flow_air == Approx(0));
       }
     }
   }
@@ -69,8 +68,8 @@ SCENARIO("BreathingCircuit::Controller behaves correctly", "[Controllers]") {
 
     WHEN("the device is not ventilating") {
       THEN("the final value should be as expected") {
-        REQUIRE(PF::Util::isEqualFloat(actuator_setpoints.flow_o2, 0.0) == true);
-        REQUIRE(PF::Util::isEqualFloat(actuator_setpoints.flow_air, 0.0) == true);
+        REQUIRE(actuator_setpoints.flow_o2 == Approx(0));
+        REQUIRE(actuator_setpoints.flow_air == Approx(0));
       }
     }
   }
@@ -98,8 +97,6 @@ SCENARIO("BreathingCircuit::Controller behaves correctly", "[Controllers]") {
 
     WHEN("the device is ventilating") {
       THEN("the final value should be as expected") {
-        // REQUIRE(PF::Util::isEqualFloat(actuator_setpoints.flow_o2, 0.0) == false);
-        // REQUIRE(PF::Util::isEqualFloat(actuator_setpoints.flow_air, 0.0) == false);
       }
     }
   }

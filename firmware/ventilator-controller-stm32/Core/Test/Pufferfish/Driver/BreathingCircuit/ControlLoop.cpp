@@ -62,7 +62,7 @@ SCENARIO("BreathingCircuit::Controlloop behaves correctly", "[ControlLoop]") {
       hfnc_control_loop.update(current_time);
 
       THEN("sensor measurments flow is zero") {
-        REQUIRE(PF::Util::isEqualFloat(sensor_measurements.flow, 0) == true);
+        REQUIRE(sensor_measurements.flow == Approx(0));
       }
     }
 
@@ -80,7 +80,7 @@ SCENARIO("BreathingCircuit::Controlloop behaves correctly", "[ControlLoop]") {
       hfnc_control_loop.update(current_time);
 
       THEN("final values should be same") {
-        REQUIRE(PF::Util::isEqualFloat(sensor_measurements.flow, 0) == true);
+        REQUIRE(sensor_measurements.flow == Approx(0));
       }
     }
 
@@ -98,9 +98,6 @@ SCENARIO("BreathingCircuit::Controlloop behaves correctly", "[ControlLoop]") {
       control_loop.update(current_time);
 
       THEN("the actuator flow values should be non-zero") {
-        // will fail as we dont have proper output from sfm devices
-        // REQUIRE(PF::Util::isEqualFloat(actuator_setpoints.flow_o2, 0.0) == false);
-        // REQUIRE(PF::Util::isEqualFloat(actuator_setpoints.flow_air, 0.0) == false);
       }
     }
   }
