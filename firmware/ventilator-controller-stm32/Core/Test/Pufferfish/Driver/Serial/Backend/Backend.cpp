@@ -72,7 +72,7 @@ SCENARIO("Serial::Backend behaves correctly", "[Backend]") {
 
     constexpr size_t chunk_max_size = 256;
 
-    PF::Util::ByteVector<chunk_max_size> chunkBuffer;
+    PF::Util::ByteVector<chunk_max_size> chunk_buffer;
 
     ParametersRequest parameters_request;
     parameters_request.fio2 = 40;
@@ -83,7 +83,7 @@ SCENARIO("Serial::Backend behaves correctly", "[Backend]") {
     test_message.payload.set(parameters_request);
 
     WHEN("data is given to sender") {
-      auto status = backend_sender.transform(test_message, chunkBuffer);
+      auto status = backend_sender.transform(test_message, chunk_buffer);
 
       THEN("status should be ok") {
         REQUIRE(status == PF::Driver::Serial::Backend::BackendSender::Status::ok);
@@ -127,13 +127,13 @@ SCENARIO("Serial::Backend behaves correctly", "[Backend]") {
 
     WHEN("output from backend is taken") {
       constexpr size_t chunk_max_size = 256;
-      PF::Util::ByteVector<chunk_max_size> chunkBuffer;
+      PF::Util::ByteVector<chunk_max_size> chunk_buffer;
       PF::Driver::Serial::Backend::Backend::Status input_status;
       for (auto& ch : body) {
         auto input_status = backend.input(ch);
       }
 
-      auto status = backend.output(chunkBuffer);
+      auto status = backend.output(chunk_buffer);
 
       THEN("output status should be ok") {
         REQUIRE(input_status == PF::Driver::Serial::Backend::Backend::Status::ok);

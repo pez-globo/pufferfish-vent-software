@@ -15,6 +15,7 @@
 #include "Pufferfish/HAL/Mock/MockTime.h"
 #include "Pufferfish/Util/Endian.h"
 #include "catch2/catch.hpp"
+#include "math.h"
 
 namespace PF = Pufferfish;
 
@@ -28,7 +29,7 @@ SCENARIO("SFM3019: flow sensor behaves properly", "[sensor]") {
     auto body = std::string("\x04\x02\x60\x06\x11\xa9", 6);
 
     // write to the MOCKI2Cdevice by set_read
-    dev.set_read((const uint8_t*)body.c_str(), body.size());
+    dev.set_read(reinterpret_cast<const uint8_t*>(body.c_str()), body.size());
     PF::Driver::I2C::SFM3019::Device device{dev, gdev, gas};
 
     WHEN("the device is initialised") {
@@ -54,7 +55,7 @@ SCENARIO("SFM3019: flow sensor behaves properly", "[sensor]") {
       uint32_t time = 0;
       auto status = state_machine.update(time);
 
-      float flow;
+      float flow = NAN;
       auto output_status = sensor.output(flow);
 
       THEN("the final status should ok") {

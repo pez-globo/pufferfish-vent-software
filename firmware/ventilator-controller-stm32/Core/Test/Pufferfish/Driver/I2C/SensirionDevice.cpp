@@ -37,7 +37,7 @@ SCENARIO("SensirionDevice:: Sensirion device behaves properly", "[sensiriondevic
 
       constexpr size_t buffer_size = 254UL;
       PF::Util::ByteVector<buffer_size> input_buffer;
-      uint8_t buffer;
+      uint8_t buffer = 0;
       size_t count = buffer_size;
 
       // Read buffer written to mock device
@@ -56,7 +56,7 @@ SCENARIO("SensirionDevice:: Sensirion device behaves properly", "[sensiriondevic
 
       constexpr size_t buffer_size = 254UL;
       PF::Util::ByteVector<buffer_size> input_buffer;
-      uint8_t buffer;
+      uint8_t buffer = 0;
       size_t count = buffer_size;
 
       // Read buffer written to mock device
@@ -70,14 +70,14 @@ SCENARIO("SensirionDevice:: Sensirion device behaves properly", "[sensiriondevic
     }
 
     WHEN("Command and argument data is written into it") {
-      auto expected = std::string("\\x36\\x08\\x36\\x6A\\x09");
+      auto expected = std::string(R"(\x36\x08\x36\x6A\x09)");
       uint16_t command = 0x366A;
       auto status =
           sensirion_device.write(static_cast<uint16_t>(Command::start_measure_air), command);
 
       constexpr size_t buffer_size = 254UL;
       PF::Util::ByteVector<buffer_size> input_buffer;
-      uint8_t buffer;
+      uint8_t buffer = 0;
       size_t count = buffer_size;
 
       // Read buffer written to mock device

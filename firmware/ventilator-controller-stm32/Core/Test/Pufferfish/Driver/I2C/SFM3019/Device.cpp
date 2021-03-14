@@ -23,7 +23,7 @@ SCENARIO("SFM3019: flow sensor driver behaves properly", "[device]") {
   PF::Driver::I2C::SFM3019::GasType gas = PF::Driver::I2C::SFM3019::GasType::air;
 
   auto buffer = std::string("\x04\x02\x60\x06\x11\xa9\x12\x24\x74", 9);
-  dev.set_read((const uint8_t*)buffer.c_str(), buffer.size());
+  dev.set_read(reinterpret_cast<const uint8_t*>(buffer.c_str()), buffer.size());
 
   GIVEN("A Mock I2C device") {
     PF::Driver::I2C::SFM3019::Device device{dev, gdev, gas};
@@ -36,7 +36,7 @@ SCENARIO("SFM3019: flow sensor driver behaves properly", "[device]") {
     WHEN("reading product id") {
       uint32_t product_id = 0x04020611;
       auto buffer = std::string("\x04\x02\x60\x06\x11\xa9", 6);
-      dev.set_read((const uint8_t*)buffer.c_str(), buffer.size());
+      dev.set_read(reinterpret_cast<const uint8_t*>(buffer.c_str()), buffer.size());
 
       auto status = device.read_product_id(product_id);
 
@@ -66,7 +66,7 @@ SCENARIO("SFM3019: flow sensor driver behaves properly", "[device]") {
     }
 
     WHEN("A sample is given") {
-      PF::Driver::I2C::SFM3019::Sample sample;
+      PF::Driver::I2C::SFM3019::Sample sample{};
       PF::Driver::I2C::SFM3019::ConversionFactors conversion_factors;
       sample.raw_flow = 10;
       sample.flow = 2.5;

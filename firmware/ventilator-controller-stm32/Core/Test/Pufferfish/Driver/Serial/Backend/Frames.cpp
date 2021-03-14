@@ -83,9 +83,9 @@ SCENARIO("Serial::Frames behaves correctly", "[Backend]") {
       }
       constexpr size_t chunk_max_size = 256;
 
-      PF::Driver::Serial::Backend::FrameProps::PayloadBuffer PayloadBuffer;
+      PF::Driver::Serial::Backend::FrameProps::PayloadBuffer payload_buffer;
 
-      auto output_status = frame_receiver.output(PayloadBuffer);
+      auto output_status = frame_receiver.output(payload_buffer);
 
       THEN("output status should be ok") {
         REQUIRE(output_status == Pufferfish::Driver::Serial::Backend::FrameProps::OutputStatus::ok);

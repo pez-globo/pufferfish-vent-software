@@ -25,14 +25,14 @@ SCENARIO("BreathingCircuit::Controller behaves correctly", "[Controllers]") {
     parameters.fio2 = 30;
     parameters.flow = 40;
 
-    PF::Driver::BreathingCircuit::SensorVars sensor_vars;
+    PF::Driver::BreathingCircuit::SensorVars sensor_vars{};
     sensor_vars.flow_o2 = 21;
     sensor_vars.flow_air = 79;
     sensor_vars.po2 = 10;
 
     SensorMeasurements sensor_measurements;  // unused
-    PF::Driver::BreathingCircuit::ActuatorSetpoints actuator_setpoints;
-    PF::Driver::BreathingCircuit::ActuatorVars actuator_vars;
+    PF::Driver::BreathingCircuit::ActuatorSetpoints actuator_setpoints{};
+    PF::Driver::BreathingCircuit::ActuatorVars actuator_vars{};
 
     PF::Driver::BreathingCircuit::HFNCController controller;
     controller.transform(
@@ -53,14 +53,14 @@ SCENARIO("BreathingCircuit::Controller behaves correctly", "[Controllers]") {
     parameters.flow = 40;
     parameters.ventilating = false;
 
-    PF::Driver::BreathingCircuit::SensorVars sensor_vars;
+    PF::Driver::BreathingCircuit::SensorVars sensor_vars{};
     sensor_vars.flow_o2 = 21;
     sensor_vars.flow_air = 79;
     sensor_vars.po2 = 10;
 
     SensorMeasurements sensor_measurements;  // unused
-    PF::Driver::BreathingCircuit::ActuatorSetpoints actuator_setpoints;
-    PF::Driver::BreathingCircuit::ActuatorVars actuator_vars;
+    PF::Driver::BreathingCircuit::ActuatorSetpoints actuator_setpoints{};
+    PF::Driver::BreathingCircuit::ActuatorVars actuator_vars{};
 
     PF::Driver::BreathingCircuit::HFNCController controller;
     controller.transform(
@@ -82,14 +82,14 @@ SCENARIO("BreathingCircuit::Controller behaves correctly", "[Controllers]") {
     parameters.flow = 40;
     parameters.ventilating = true;
 
-    PF::Driver::BreathingCircuit::SensorVars sensor_vars;
+    PF::Driver::BreathingCircuit::SensorVars sensor_vars{};
     sensor_vars.flow_o2 = 21;
     sensor_vars.flow_air = 79;
     sensor_vars.po2 = 10;
 
     SensorMeasurements sensor_measurements;  // unused
-    PF::Driver::BreathingCircuit::ActuatorSetpoints actuator_setpoints;
-    PF::Driver::BreathingCircuit::ActuatorVars actuator_vars;
+    PF::Driver::BreathingCircuit::ActuatorSetpoints actuator_setpoints{};
+    PF::Driver::BreathingCircuit::ActuatorVars actuator_vars{};
 
     PF::Driver::BreathingCircuit::HFNCController controller;
     controller.transform(
