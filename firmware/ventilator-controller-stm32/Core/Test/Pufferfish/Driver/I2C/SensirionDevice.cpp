@@ -42,7 +42,7 @@ SCENARIO("SensirionDevice:: Sensirion device behaves properly", "[sensiriondevic
 
       // Read buffer written to mock device
       dev.get_write(input_buffer.buffer(), count);
-      auto read_buffer = PF::Util::convertByteVectorToHexString(input_buffer, count);
+      auto read_buffer = PF::Util::convert_byte_vector_to_hex_string(input_buffer, count);
 
       THEN("status should be ok") {
         REQUIRE(status == PF::I2CDeviceStatus::ok);
@@ -61,7 +61,7 @@ SCENARIO("SensirionDevice:: Sensirion device behaves properly", "[sensiriondevic
 
       // Read buffer written to mock device
       dev.get_write(input_buffer.buffer(), count);
-      auto read_buffer = PF::Util::convertByteVectorToHexString(input_buffer, count);
+      auto read_buffer = PF::Util::convert_byte_vector_to_hex_string(input_buffer, count);
 
       THEN("status should be ok") {
         REQUIRE(status == PF::I2CDeviceStatus::ok);
@@ -82,7 +82,7 @@ SCENARIO("SensirionDevice:: Sensirion device behaves properly", "[sensiriondevic
 
       // Read buffer written to mock device
       dev.get_write(input_buffer.buffer(), count);
-      auto read_buffer = PF::Util::convertByteVectorToHexString(input_buffer, count);
+      auto read_buffer = PF::Util::convert_byte_vector_to_hex_string(input_buffer, count);
 
       THEN("status should be ok") {
         REQUIRE(status == PF::I2CDeviceStatus::ok);

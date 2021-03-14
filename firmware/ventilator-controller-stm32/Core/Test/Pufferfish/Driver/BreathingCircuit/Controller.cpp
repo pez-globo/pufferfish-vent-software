@@ -40,7 +40,7 @@ SCENARIO("BreathingCircuit::Controller behaves correctly", "[Controllers]") {
 
     WHEN("the device ventilating mode is not hfnc") {
       THEN("the final value should be as expected") {
-        REQUIRE(actuator_setpoints.flow_air == Approx(0));
+        REQUIRE(actuator_setpoints.flow_air == Approx(0).margin(0.0002));
       }
     }
   }
