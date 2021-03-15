@@ -204,10 +204,7 @@ SCENARIO(
     auto data = std::string("\x01\x23\x45\x0a\x4d\x04\x05", 7);
     PF::Util::convert_string_to_byte_vector(data, input_payload);
 
-    uint8_t sequence = 0;
-    for (int i = 0; i <= 255; ++i) {
-      sequence = i;
-    }
+    uint8_t sequence = GENERATE(range(0, 256));
 
     TestDatagram datagram{input_payload, sequence};
 
@@ -250,8 +247,12 @@ SCENARIO(
         }
       }
       THEN("The output buffer is as expected '0xff 0x07 0x01 0x23 0x45 0x0a 0x4d 0x04 0x05'") {
-        auto expected_buffer = std::string("\xFF\x07\x01\x23\x45\x0A\x4D\x04\x05", 9);
-        REQUIRE(output_buffer == expected_buffer);
+        REQUIRE(output_buffer.operator[](0) == sequence);
+        REQUIRE(output_buffer.operator[](1) == 7);
+        for (size_t i = 2; i < 9; ++i) {
+          auto data = PF::Util::make_array<uint8_t>(0x01, 0x23, 0x45, 0x0a, 0x4d, 0x04, 0x05);
+          REQUIRE(output_buffer.operator[](i) == data[i - 2]);
+        }
       }
     }
   }
