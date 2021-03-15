@@ -64,7 +64,7 @@ bool convert_string_to_byte_vector(
 
 template <size_t payload_size>
 std::string convert_byte_vector_to_hex_string(
-    const Pufferfish::Util::ByteVector<payload_size>& input_buffer, const size_t &length) {
+    const Pufferfish::Util::ByteVector<payload_size>& input_buffer, const size_t& length) {
   std::string output_string;
   for (size_t i = 0; i < length; ++i) {
     auto& ch = input_buffer[i];
@@ -91,9 +91,9 @@ std::string convert_byte_vector_to_hex_string(
 }
 
 template <size_t payload_size>
-std::string convert_byte_vector_to_hex_string(const Pufferfish::Util::ByteVector<payload_size> &input_buffer) {
+std::string convert_byte_vector_to_hex_string(
+    const Pufferfish::Util::ByteVector<payload_size>& input_buffer) {
   return convert_byte_vector_to_hex_string(input_buffer, input_buffer.size());
 }
-
 
 }  // namespace Pufferfish::Util

@@ -20,7 +20,6 @@ SCENARIO("FDO2: SFM3000 flow meter behaves properly", "[commands]") {
     constexpr size_t buffer_size = 30UL;
     PF::Driver::Serial::FDO2::CommandSender command_sender{};
     PF::Driver::Serial::FDO2::Request request;
-    request.tag = PF::Driver::Serial::FDO2::CommandTypes::vers;
 
     PF::Util::Vector<char, buffer_size> output_buffer;
 
@@ -37,15 +36,7 @@ SCENARIO("FDO2: SFM3000 flow meter behaves properly", "[commands]") {
     constexpr size_t buffer_size = 102UL;
     PF::Driver::Serial::FDO2::CommandReceiver command_receiver{};
 
-    PF::Driver::Serial::FDO2::Responses::Vers vers{};
-    vers.device_id = 8;
-    vers.type = 15;
-    vers.num_channels = 1;
-    vers.firmware_rev = 341;
-
     PF::Driver::Serial::FDO2::Response response;
-    response.tag = PF::Driver::Serial::FDO2::CommandTypes::vers;
-    response.value.vers = vers;
 
     PF::Util::Vector<char, buffer_size> input_buffer;
     input_buffer.copy_from(PF::Driver::Serial::FDO2::Headers::vers, 0);

@@ -23,8 +23,8 @@ SCENARIO("SFM3019: flow sensor driver behaves properly", "[device]") {
   PF::HAL::MockI2CDevice gdev;
   PF::Driver::I2C::SFM3019::GasType gas = PF::Driver::I2C::SFM3019::GasType::air;
 
-  auto buffer = std::string("\x04\x02\x60\x06\x11\xa9\x12\x24\x74", 9);
-  dev.set_read(reinterpret_cast<const uint8_t*>(buffer.c_str()), buffer.size());
+  auto buffer = PF::Util::make_array<uint8_t>(0x04, 0x02, 0x60, 0x06, 0x11, 0xa9, 0x12, 0x24, 0x74);
+  dev.set_read(buffer.data(), buffer.size());
 
   GIVEN("A Mock I2C device") {
     PF::Driver::I2C::SFM3019::Device device{dev, gdev, gas};
@@ -56,27 +56,21 @@ SCENARIO("SFM3019: flow sensor driver behaves properly", "[device]") {
       uint8_t average_value = 129;
       auto status = device.set_averaging(average_value);
 
-      THEN("should return ok") {
-        REQUIRE(status == PF::I2CDeviceStatus::ok);
-      }
+      THEN("should return ok") { REQUIRE(status == PF::I2CDeviceStatus::ok); }
     }
     WHEN("requesting conversion factors") {
       auto status = device.request_conversion_factors();
-      THEN("should return ok") {
-        REQUIRE(status == PF::I2CDeviceStatus::ok);
-      }
+      THEN("should return ok") { REQUIRE(status == PF::I2CDeviceStatus::ok); }
     }
 
     WHEN("reading product id") {
-      uint32_t product_id;
-      auto buffer = PF::Util::make_array<uint8_t>(0x04, 0x02, 0x60, 0x06, 0x11, 0xa9);
-      dev.set_read(buffer.data(), buffer.size());
+      uint32_t product_id = 0;
+      // auto buffer = PF::Util::make_array<uint8_t>(0x04, 0x02, 0x60, 0x06, 0x11, 0xa9);
+      // dev.set_read(buffer.data(), buffer.size());
 
       auto status = device.read_product_id(product_id);
 
-      THEN("status should be ok") {
-        REQUIRE(status == PF::I2CDeviceStatus::ok);
-      }
+      THEN("status should be ok") { REQUIRE(status == PF::I2CDeviceStatus::ok); }
       THEN("The product id is as expected") {
         uint32_t expected = 0x04020611;
         REQUIRE(product_id == expected);
@@ -89,16 +83,14 @@ SCENARIO("SFM3019: flow sensor driver behaves properly", "[device]") {
     }
 
     WHEN("reading conversion factors after 20 us") {
-      auto buffer = PF::Util::make_array<uint8_t>(0x01, 0x02, 0x17, 0x04, 0x05, 0xF7);
-      dev.set_read(buffer.data(), buffer.size());
+      // auto buffer = PF::Util::make_array<uint8_t>(0x01, 0x02, 0x17, 0x04, 0x05, 0xF7);
+      // dev.set_read(buffer.data(), buffer.size());
 
       PF::Driver::I2C::SFM3019::ConversionFactors conversion_factors{};
 
       auto status = device.read_conversion_factors(conversion_factors);
 
-      THEN("status should be ok") {
-        REQUIRE(status == PF::I2CDeviceStatus::ok);
-      }
+      THEN("status should be ok") { REQUIRE(status == PF::I2CDeviceStatus::ok); }
     }
 
     WHEN("A sample is given") {
@@ -114,7 +106,6 @@ SCENARIO("SFM3019: flow sensor driver behaves properly", "[device]") {
 
       THEN("status should be ok") { REQUIRE(status == PF::I2CDeviceStatus::ok); }
     }
-
   }
 
   GIVEN("A Mock I2C device") {

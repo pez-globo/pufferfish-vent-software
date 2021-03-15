@@ -96,8 +96,7 @@ SCENARIO("BreathingCircuit::Controller behaves correctly", "[Controllers]") {
         time, parameters, sensor_vars, sensor_measurements, actuator_setpoints, actuator_vars);
 
     WHEN("the device is ventilating") {
-      THEN("the final value should be as expected") {
-      }
+      THEN("the final value should be as expected") {}
     }
   }
 }

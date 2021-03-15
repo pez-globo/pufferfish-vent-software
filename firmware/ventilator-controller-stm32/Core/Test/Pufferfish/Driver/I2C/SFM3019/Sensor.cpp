@@ -11,9 +11,9 @@
  */
 #include "Pufferfish/Driver/I2C/SFM3019/Sensor.h"
 
-#include "Pufferfish/Util/Array.h"
 #include "Pufferfish/HAL/Mock/MockI2CDevice.h"
 #include "Pufferfish/HAL/Mock/MockTime.h"
+#include "Pufferfish/Util/Array.h"
 #include "Pufferfish/Util/Endian.h"
 #include "catch2/catch.hpp"
 
@@ -41,7 +41,8 @@ SCENARIO("SFM3019: flow sensor behaves properly", "[sensor]") {
 
       sensor.setup();
 
-      // THEN("status should be equal to setup") { REQUIRE(status == PF::InitializableState::setup); }
+      // THEN("status should be equal to setup") { REQUIRE(status == PF::InitializableState::setup);
+      // }
     }
   }
 
@@ -52,10 +53,7 @@ SCENARIO("SFM3019: flow sensor behaves properly", "[sensor]") {
     PF::Driver::I2C::SFM3019::StateMachine state_machine{};
 
     WHEN("sensor output is calculated") {
-      uint32_t time = 0;
-      auto status = state_machine.update(time);
-
-      float flow;
+      float flow = 0;
       sensor.output(flow);
 
       THEN("the final status should ok") {

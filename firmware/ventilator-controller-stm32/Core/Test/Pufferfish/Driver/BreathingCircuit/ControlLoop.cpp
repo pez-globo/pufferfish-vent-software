@@ -43,10 +43,10 @@ SCENARIO("BreathingCircuit::Controlloop behaves correctly", "[ControlLoop]") {
 
     SensorMeasurements sensor_measurements;  // unused
     PF::HAL::MockPWM pwm_air{};
-    uint32_t duty_air = 0.5;
+    uint32_t duty_air = 1;
     pwm_air.set_duty_cycle_raw(duty_air);
     PF::HAL::MockPWM pwm_o2{};
-    uint32_t duty_02 = 0.5;
+    uint32_t duty_02 = 1;
     pwm_o2.set_duty_cycle_raw(duty_02);
 
     WHEN("parameters mode is not equal to hfnc") {
@@ -62,9 +62,7 @@ SCENARIO("BreathingCircuit::Controlloop behaves correctly", "[ControlLoop]") {
       uint32_t current_time = 20;
       hfnc_control_loop.update(current_time);
 
-      THEN("sensor measurments flow is zero") {
-        REQUIRE(sensor_measurements.flow == Approx(0));
-      }
+      THEN("sensor measurments flow is zero") { REQUIRE(sensor_measurements.flow == Approx(0)); }
     }
 
     WHEN("time is within timeout") {
@@ -77,12 +75,10 @@ SCENARIO("BreathingCircuit::Controlloop behaves correctly", "[ControlLoop]") {
       PF::Driver::BreathingCircuit::HFNCControlLoop hfnc_control_loop{
           parameters, sensor_measurements, sensor_air, sensor_o2, pwm_air, pwm_o2};
 
-      uint32_t current_time = 0.5;
+      uint32_t current_time = 2;
       hfnc_control_loop.update(current_time);
 
-      THEN("final values should be same") {
-        REQUIRE(sensor_measurements.flow == Approx(0));
-      }
+      THEN("final values should be same") { REQUIRE(sensor_measurements.flow == Approx(0)); }
     }
 
     WHEN("time is not within timeout") {
@@ -98,8 +94,7 @@ SCENARIO("BreathingCircuit::Controlloop behaves correctly", "[ControlLoop]") {
       uint32_t current_time = 24;
       control_loop.update(current_time);
 
-      THEN("the actuator flow values should be non-zero") {
-      }
+      THEN("the actuator flow values should be non-zero") {}
     }
   }
 }

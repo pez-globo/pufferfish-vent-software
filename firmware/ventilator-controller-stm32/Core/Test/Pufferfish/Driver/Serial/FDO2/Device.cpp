@@ -90,7 +90,7 @@ SCENARIO("FDO2: SFM3000 flow meter driver behaves properly", "[device]") {
     }
 
     WHEN("an output is sent") {
-      auto input_status = response_receiver.input(data[1]);
+      response_receiver.input(data[1]);
 
       PF::Driver::Serial::FDO2::Responses::Vers vers{};
       vers.device_id = 8;
@@ -106,7 +106,8 @@ SCENARIO("FDO2: SFM3000 flow meter driver behaves properly", "[device]") {
 
       THEN("status should be ok") {
         // REQUIRE(
-        //     output_status == PF::Driver::Serial::FDO2::ResponseReceiver::OutputStatus::available);
+        //     output_status ==
+        //     PF::Driver::Serial::FDO2::ResponseReceiver::OutputStatus::available);
         // will fail because of improper input data to Mock UART
       }
     }

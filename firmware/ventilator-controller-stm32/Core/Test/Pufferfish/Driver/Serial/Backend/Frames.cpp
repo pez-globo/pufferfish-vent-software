@@ -70,9 +70,7 @@ SCENARIO("Serial::Frames behaves correctly", "[Backend]") {
       PF::Driver::Serial::Backend::FrameProps::InputStatus input_status;
 
       for (uint8_t index = 0; index < 5; index++) {
-        auto input_status = frame_receiver.input(input_data[index]);
-      }
-      THEN("input status should be ok") {
+        frame_receiver.input(input_data[index]);
         // REQUIRE(input_status == PF::Driver::Serial::Backend::FrameProps::InputStatus::ok);
       }
     }
