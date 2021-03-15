@@ -68,10 +68,10 @@ SCENARIO("FDO2: flow sensor behaves properly", "[sensor]") {
 
       PF::Driver::Serial::FDO2::Sensor sensor(device, time);
 
-      auto setup_status = sensor.setup();
+      sensor.setup();
 
       uint32_t po2 = 20;
-      auto output_status = sensor.output(po2);
+      sensor.output(po2);
 
       THEN("the final status should ok") {
         // REQUIRE(output_status == PF::InitializableState::ok);

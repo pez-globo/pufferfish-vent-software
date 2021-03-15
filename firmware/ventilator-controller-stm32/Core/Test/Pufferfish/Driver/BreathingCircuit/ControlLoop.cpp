@@ -16,6 +16,7 @@
 #include "Pufferfish/HAL/Mock/MockPWM.h"
 #include "Pufferfish/HAL/Mock/MockTime.h"
 #include "Pufferfish/Test/Util.h"
+#include "Pufferfish/Util/Array.h"
 #include "catch2/catch.hpp"
 
 namespace PF = Pufferfish;
@@ -25,10 +26,10 @@ SCENARIO("BreathingCircuit::Controlloop behaves correctly", "[ControlLoop]") {
     bool resetter = false;
     PF::HAL::MockTime time;
     PF::HAL::MockI2CDevice dev;
-    auto body = std::string("\x2e\x04\x02\x06\x11", 5);
+    auto body = PF::Util::make_array<uint8_t>(0x2e, 0x04, 0x02, 0x06, 0x11);
 
     // wrtie to the MOCKI2Cdevice by set_read
-    dev.set_read(reinterpret_cast<const uint8_t*>(body.c_str()), body.size());
+    dev.set_read(body.data(), body.size());
 
     PF::HAL::MockI2CDevice gdev;
     PF::Driver::I2C::SFM3019::GasType gas_air = PF::Driver::I2C::SFM3019::GasType::air;

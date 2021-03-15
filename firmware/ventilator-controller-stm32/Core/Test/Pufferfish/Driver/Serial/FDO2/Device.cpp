@@ -48,14 +48,14 @@ SCENARIO("FDO2: SFM3000 flow meter driver behaves properly", "[device]") {
       response.set(vers);
       response.tag = PF::Driver::Serial::FDO2::CommandTypes::vers;
 
-      auto status = device.receive(response);
+      device.receive(response);
       THEN("status should be ok") {
         // REQUIRE(status == PF::Driver::Serial::FDO2::Device::Status::ok);
       }
     }
 
     WHEN("the device flashes led") {
-      auto status = device.flash_led();
+      device.flash_led();
       THEN("status should be ok") {
         // REQUIRE(status == PF::Driver::Serial::FDO2::Device::Status::ok);
       }
@@ -102,7 +102,7 @@ SCENARIO("FDO2: SFM3000 flow meter driver behaves properly", "[device]") {
       response.set(vers);
       response.tag = PF::Driver::Serial::FDO2::CommandTypes::vers;
 
-      auto output_status = response_receiver.output(response);
+      response_receiver.output(response);
 
       THEN("status should be ok") {
         // REQUIRE(

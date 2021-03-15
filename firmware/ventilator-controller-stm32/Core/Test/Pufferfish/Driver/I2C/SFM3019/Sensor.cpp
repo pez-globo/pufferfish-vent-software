@@ -11,11 +11,11 @@
  */
 #include "Pufferfish/Driver/I2C/SFM3019/Sensor.h"
 
+#include "Pufferfish/Util/Array.h"
 #include "Pufferfish/HAL/Mock/MockI2CDevice.h"
 #include "Pufferfish/HAL/Mock/MockTime.h"
 #include "Pufferfish/Util/Endian.h"
 #include "catch2/catch.hpp"
-#include "math.h"
 
 namespace PF = Pufferfish;
 
@@ -26,10 +26,10 @@ SCENARIO("SFM3019: flow sensor behaves properly", "[sensor]") {
   bool resetter = false;
 
   GIVEN("A Mock I2C device") {
-    auto body = std::string("\x04\x02\x60\x06\x11\xa9", 6);
+    auto body = PF::Util::make_array<uint8_t>(0x04, 0x02, 0x06, 0x11, 0x00);
 
     // write to the MOCKI2Cdevice by set_read
-    dev.set_read(reinterpret_cast<const uint8_t*>(body.c_str()), body.size());
+    dev.set_read(body.data(), body.size());
     PF::Driver::I2C::SFM3019::Device device{dev, gdev, gas};
 
     WHEN("the device is initialised") {
@@ -39,7 +39,7 @@ SCENARIO("SFM3019: flow sensor behaves properly", "[sensor]") {
 
       PF::Driver::I2C::SFM3019::Sensor sensor(device, resetter, time);
 
-      auto status = sensor.setup();
+      sensor.setup();
 
       // THEN("status should be equal to setup") { REQUIRE(status == PF::InitializableState::setup); }
     }
@@ -55,8 +55,8 @@ SCENARIO("SFM3019: flow sensor behaves properly", "[sensor]") {
       uint32_t time = 0;
       auto status = state_machine.update(time);
 
-      float flow = NAN;
-      auto output_status = sensor.output(flow);
+      float flow;
+      sensor.output(flow);
 
       THEN("the final status should ok") {
         // REQUIRE(output_status == PF::InitializableState::ok);
