@@ -34,7 +34,7 @@ I2CDeviceStatus MockI2CDevice::read(uint8_t *buf, size_t count) {
     return return_status_;
   }
 
-  auto& read_buf = read_buf_queue_.front();
+  auto &read_buf = read_buf_queue_.front();
   for (index = 0; index < minumum; index++) {
     buf[index] = read_buf[index];
   }
@@ -48,7 +48,7 @@ void MockI2CDevice::add_read(const uint8_t *buf, size_t count) {
   size_t minumum = (count < read_buf_size) ? count : read_buf_size;
 
   read_buf_queue_.emplace();
-  auto& read_buf = read_buf_queue_.back();
+  auto &read_buf = read_buf_queue_.back();
 
   for (index = 0; index < minumum; index++) {
     read_buf[index] = buf[index];
@@ -62,7 +62,7 @@ I2CDeviceStatus MockI2CDevice::write(uint8_t *buf, size_t count) {
   }
 
   write_buf_queue_.emplace();
-  auto& write_buf = write_buf_queue_.back();
+  auto &write_buf = write_buf_queue_.back();
 
   write_count_ = (count < write_buf_size) ? count : write_buf_size;
   for (index = 0; index < write_count_; index++) {
@@ -79,7 +79,7 @@ void MockI2CDevice::get_write(uint8_t *buf, size_t &count) {
 
   size_t index = 0;
 
-  auto& write_buf = write_buf_queue_.front();
+  auto &write_buf = write_buf_queue_.front();
 
   count = write_count_;
   for (index = 0; index < count; index++) {
