@@ -21,6 +21,7 @@
 #pragma once
 
 #include <array>
+#include <queue>
 
 #include "Pufferfish/HAL/Interfaces/I2CDevice.h"
 
@@ -47,12 +48,12 @@ class MockI2CDevice : public I2CDevice {
   I2CDeviceStatus read(uint8_t *buf, size_t count) override;
 
   /**
-   * @brief  Updates the private buffer variable mReadBuf with the input data
-   * @param  buf update the private variable mReadBuf with the buffer input
-   * @param  count size of data to set
+   * @brief  Append the input data to the read queue
+   * @param  buf the input data to append
+   * @param  count size of input data to add to queue
    * @return None
    */
-  void set_read(const uint8_t *buf, size_t count);
+  void add_read(const uint8_t *buf, size_t count);
 
   /**
    * @brief  Updates the private buffer variable mWriteBuf with the input data
@@ -81,8 +82,11 @@ class MockI2CDevice : public I2CDevice {
   static const uint8_t read_buf_size = 50;
   static const uint8_t write_buf_size = 50;
 
-  std::array<uint8_t, read_buf_size> read_buf_{};
-  std::array<uint8_t, write_buf_size> write_buf_{};
+  using ReadBuffer = std::array<uint8_t, read_buf_size>;
+  using WriteBuffer = std::array<uint8_t, write_buf_size>;
+
+  std::queue<ReadBuffer> read_buf_queue_;
+  std::queue<WriteBuffer> write_buf_queue_;
 
   I2CDeviceStatus return_status_ = I2CDeviceStatus::ok;
 
