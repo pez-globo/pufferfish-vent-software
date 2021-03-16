@@ -33,7 +33,26 @@ Scenario: ConstructedDatagram: The write method correctly generates a body from 
       THEN("The body's payload section correctly stores the paylaod as '0xb7 0xe1 0x8d 0xaa 0x4d'")
       THEN("The output buffer is as expected '0x00 0x05 0xb7 0xe1 0x8d 0xaa 0x4d' ")
 
+  GIVEN("A Datagram constructed with a non-empty payload buffer of different lengths and sequence equal to 0")
+  // assertions carried out in GIVEN:
+  // The seq accessor method returns 0
+  // The value returned by the length accessor method ranges from 0 to 252
+  // The payload buffer returned by the payload accessor method has following properties:
+  // - contains 0x09 value at each position of the buffer
+  // - length of the paylaod buffer ranges from 0 to 252
+
+    WHEN("The sequence, length and paylaod are written to the output buffer")
+      THEN("The write method reports ok status")
+      THEN("After the write method is called, The value returned by the seq accessor method remains unchanged")
+      THEN("the value returned by the length accessor method remains unchanged")
+      THEN("The payload returned by the paylaod accessor method remains unchanged")
+      THEN("The seq field of the body's header matches the value returned by the seq accessor method")
+      THEN("The length field of the body's header matches the value returned by the length accessor method")
+      THEN("The body's payload section correctly stores the paylaod as '0x09 ...' for varying payload lengths")
+      THEN("The output buffer is as expected for all the different paylaod buffers")
+
     WHEN("The paylaod given to the constructor is altered ('0xb7 0xe1 0x8d 0xaa 0x4d 0x02') before write method is called")
+      THEN("Before the write method is called, The value returned by the length accessor method is inconsistent with the size of the altered paylaod")
       THEN("The write method reports ok status")
       THEN("After the write method is called, The value returned by the seq accessor method remains unchanged")
       THEN("the length accessor method returns a value equal to the size of the altered payload")
@@ -48,7 +67,7 @@ Scenario: ConstructedDatagram: The write method correctly generates a body from 
       THEN("After the write method is called, The value returned by the seq accessor method remains unchanged")
       THEN("the value returned by the length accessor method remains unchanged")
       THEN("The payload returned by the paylaod accessor method remains unchanged")
-      THEN("The output buffer is as expected 'empty' ")
+      THEN("The contents of the output buffer remain unchanged")
 
   GIVEN("A Datagram constructed with a non-empty paylaod buffer and non-zero sequence")
   // assertions carried out in GIVEN:
@@ -66,7 +85,7 @@ Scenario: ConstructedDatagram: The write method correctly generates a body from 
       THEN("The body's payload section correctly stores the paylaod as '0xc2 0x22 0x10 0xa6 0x3a 0xa5'")
       THEN("The output buffer is as expected '0x0a 0x06 0xc2 0x22 0x10 0xa6 0x3a 0xa5' ")
 
-  GIVEN("A Datagram constructed with a non-empty paylaod buffer and a sequence ranging from 0 to 0xff")
+  GIVEN("A Datagram constructed with a non-empty paylaod buffer and a arbitrary sequence ranging from 0 to 0xff")
   // assertions carried out in GIVEN:
   // The value returned by the seq accessor method ranges from 0 to 0xff
   // The value returned by the length accessor method is 7
@@ -107,7 +126,7 @@ Scenario: The parse function correctly updates the datagram's length member and 
       THEN("the payload accessor method returns a reference to the payload buffer given in the Datagram constructor")
       THEN("the payload given in the Datagram constructor is independent of the input buffer body")
 
-  GIVEN("A Datagram constructed with paylaod a non-empty paylaod buffer and sequence equal to 0")
+  GIVEN("A Datagram constructed with a non-empty paylaod buffer and sequence equal to 0")
   // assertions carried out in GIVEN:
   // The seq accessor method returns 0
   // The value returned by the length accessor method is 5
@@ -124,7 +143,7 @@ Scenario: The parse function correctly updates the datagram's length member and 
 
     WHEN("A body with an incomplete 2-byte header and an empty payload buffer is parsed")
       THEN("The parse method reports out of bounds status")
-      THEN("After the parse method is called, The value returned by the seq accessor method is equal to the sequence field of the input_buffer body's header")
+      THEN("After the parse method is called, The value returned by the seq accessor method remains unchanged")
       THEN("the value returned by the length accessor method remains unchanged")
       THEN("The paylaod returned by the paylaod accessor method remains unchanged")
       THEN("the payload accessor method returns a reference to the payload buffer given in the Datagram constructor") 
@@ -141,11 +160,12 @@ Scenario: The parse function correctly updates the datagram's length member and 
 
     WHEN("A body with a complete 2-byte header, and a non empty payload buffer consistent with the length field of the header, is altered after it's parsed")
       THEN("The parse method reports ok status")
-      THEN("After the parse method is called, The value returned by the seq accessor method is equal to the sequence field of the input_buffer body's header")
+      THEN("After the parse method is called, The value returned by the seq accessor method is equal to the sequence field of the original input_buffer body's header")
       THEN("The value returned by the length accessor method is equal to the length field of the original input_buffer body's header")
       THEN("The payload buffer returned from the payload accessor method is equal to the original payload from the body")
       THEN("the payload accessor method returns a reference to the payload buffer given in the Datagram constructor") 
       THEN("the payload given in the Datagram constructor is independent of the input buffer body")
+      THEN("After the input buffer is altered, The payload buffer returned from the payload accessor method is unchanged")
 
     WHEN("A body with a complete 2-byte header, and paylaod buffer as '0x00' consistent with the length field of the header is parsed")
       THEN("The parse method reports ok status")
@@ -155,7 +175,7 @@ Scenario: The parse function correctly updates the datagram's length member and 
       THEN("the payload accessor method returns a reference to the payload buffer given in the Datagram constructor") 
       THEN("the payload given in the Datagram constructor is independent of the input buffer body")
 
-    WHEN("A body with a complete 2-byte header, and a non-empty payload buffer where the length field of the header is inconsistent with the actual length of the payload buffer")
+    WHEN("The parse method is called on a body with a complete 2-byte header, and a non-empty payload buffer where the length field of the header is inconsistent with the actual length of the payload buffer")
       THEN("The parse method reports ok status")
       THEN("After the parse method is called, The value returned by the seq accessor method is equal to the sequence field of the input_buffer body's header")
       THEN("The value returned by the length accessor method is equal to the length field of the input_buffer body's header")
@@ -164,7 +184,7 @@ Scenario: The parse function correctly updates the datagram's length member and 
       THEN("the payload accessor method returns a reference to the payload buffer given in the Datagram constructor") 
       THEN("the payload given in the Datagram constructor is independent of the input buffer body")
 
-    WHEN("A body with sequence field of the header inconsistent with sequence given in the constructor of the datagram")
+    WHEN("The parse method is called on a body with sequence field of the header inconsistent with sequence given in the constructor of the datagram")
       THEN("The parse method reports ok status")
       THEN("After the parse method is called, The value returned by the seq accessor method is equal to the sequence field of the input_buffer body's header")
       THEN("The value returned by the length accessor method is equal to the length field of the input_buffer body's header")
@@ -230,7 +250,7 @@ Scenario: Datagram Receiver correctly parses datagram bodies and performs consis
       THEN("The data in the output_datagram's payload buffer is independent of the data in input_buffer")
       THEN("the constructor's payload buffer remains unchanged")
 
-    WHEN("A body with a complete 2-byte header, and a non-empty paylaod buffer inconsistent with the length field of the header")
+    WHEN("transform is called on a body with a complete 2-byte header, and a non-empty paylaod buffer inconsistent with the length field of the header")
       THEN("The transform method reports invalid length status")
       THEN("After the transform method is called, the value returned by the output_datagram's seq accessor method is equal to the sequence field of the input_buffer body's header")
       THEN("The value returned by the output_datagram's length accessor method is equal to the length field of the input_buffer body's header")
@@ -239,7 +259,7 @@ Scenario: Datagram Receiver correctly parses datagram bodies and performs consis
       THEN("The output_datagram's payload accessor method returns a reference to the payload given in its constructor")
       THEN("The data in the output_datagram's payload buffer is independent of the data in input_buffer")
 
-    WHEN("A body with a non-empty paylaod buffer and a complete 2-byte header where the sequence field of the header does not match sequence given in output_datagram's constructor")
+    WHEN("transform is called on a body with a non-empty paylaod buffer and a complete 2-byte header where the sequence field of the header does not match sequence given in output_datagram's constructor")
       THEN("The transform method reports invalid sequence status")
       THEN("After the transform method is called, the value returned by the output_datagram's seq accessor method is equal to the sequence field of the input_buffer body's header")
       THEN("The value returned by the output_datagram's length accessor method is equal to the length field of the input_buffer body's header")
@@ -270,7 +290,7 @@ Scenario: Datagram Receiver correctly parses datagram bodies and performs consis
       THEN("The data in the output_datagram's payload buffer is independent of the data in input_buffer")
       THEN("the constructor's payload buffer remains unchanged")
 
-    WHEN("A body with a complete 2-byte header, and a non-empty paylaod buffer inconsistent with the length field of the header")
+    WHEN("transform is called on a body with a complete 2-byte header, and a non-empty paylaod buffer inconsistent with the length field of the header")
       THEN("The transform method reports invalid length status")
       THEN("After the transform method is called, the value returned by the output_datagram's seq accessor method is equal to the sequence field of the input_buffer body's header")
       THEN("The value returned by the output_datagram's length accessor method is equal to the length field of the input_buffer body's header")
@@ -279,7 +299,7 @@ Scenario: Datagram Receiver correctly parses datagram bodies and performs consis
       THEN("The output_datagram's payload accessor method returns a reference to the payload given in its constructor")
       THEN("The data in the output_datagram's payload buffer is independent of the data in input_buffer")
 
-    WHEN("A body with a non-empty paylaod buffer and a complete 2-byte header where the sequence field of the header does not match sequence given in output_datagram's constructor")
+    WHEN("transform is called on a body with a non-empty paylaod buffer and a complete 2-byte header where the sequence field of the header does not match sequence given in output_datagram's constructor")
       THEN("The transform method reports invalid sequence status")
       THEN("After the transform method is called, the value returned by the output_datagram's seq accessor method is equal to the sequence field of the input_buffer body's header")
       THEN("The value returned by the output_datagram's length accessor method is equal to the length field of the input_buffer body's header")
@@ -297,99 +317,81 @@ Scenario: Datagram Receiver correctly parses datagram bodies and performs consis
 
 Scenario: Datagram Receiver correctly reports incrementing, rollover, and resetting of expected sequence number
 
-  GIVEN("A Datagram receiver of buffer size 254 bytes and expected sequence number equal to 1")      
+  GIVEN("A Datagram receiver of buffer size 254 bytes and expected sequence number equal to 1")     
+  // Setup:
+  // transform called on an input_buffer where the header's seq field has value 0
+
   // assertions carried out in GIVEN:
   // The output_datagram's seq accessor method returns 1
   // The value returned by the output_datagram's length accessor method is 9
   // The payload buffer returned by the output_datagram's payload accessor method is '0x00 0x07 0x48 0x17 0xb8 0x67 0x1c 0x45 0x28'  
 
-    WHEN("transform is called on two parseable datagram bodies, whose headers have sequence numbers as 1 & 2 respectively")
+    WHEN("transform is called on two parseable datagram bodies as input_buffers, whose headers have sequence numbers as 1 & 2 respectively")
       THEN("The first transform method reports ok status")
       THEN("After the first transform method is called, the value returned by the output_datagram's seq accessor method is equal to the sequence field of the input_buffer body's header")
-      THEN("The value returned by the output_datagram's length accessor method is equal to the length field of the input_buffer body's header")
       THEN("The paylaod returned by the output_datagram's paylaod accessor method is equal to the paylaod from the input_buffer body")
-      THEN("The output_datagram's payload accessor method returns a reference to the payload given in its constructor")
-      THEN("The data in the output_datagram's payload buffer is independent of the data in input_buffer")
 
       THEN("The second transform method reports ok status")
       THEN("After the second transform method is called, the value returned by the output_datagram's seq accessor method is equal to the sequence field of the input_buffer body's header")
-      THEN("The value returned by the output_datagram's length accessor method is equal to the length field of the input_buffer body's header")
       THEN("The paylaod returned by the output_datagram's paylaod accessor method is equal to the paylaod from the input_buffer body")
-      THEN("The output_datagram's payload accessor method returns a reference to the payload given in its constructor")
-      THEN("The data in the output_datagram's payload buffer is independent of the data in input_buffer")
 
-    WHEN("transform is called on two parseable datagram bodies, whose headers have sequence numbers as 2 & 3 respectively")
+    WHEN("transform is called on two parseable datagram bodies as input_buffers, whose headers have sequence numbers as 2 & 3 respectively")
       THEN("The first transform method reports invalid_sequence status")
       THEN("After the first transform method is called, the value returned by the output_datagram's seq accessor method is equal to the sequence field of the input_buffer body's header")
-      THEN("The value returned by the output_datagram's length accessor method is equal to the length field of the input_buffer body's header")
       THEN("The paylaod returned by the output_datagram's paylaod accessor method is equal to the paylaod from the input_buffer body")
-      THEN("The output_datagram's payload accessor method returns a reference to the payload given in its constructor")
-      THEN("The data in the output_datagram's payload buffer is independent of the data in input_buffer")
 
       THEN("The second transform method reports ok status")
       THEN("After the second transform method is called, the value returned by the output_datagram's seq accessor method is equal to the sequence field of the input_buffer body's header")
-      THEN("The value returned by the output_datagram's length accessor method is equal to the length field of the input_buffer body's header")
       THEN("The paylaod returned by the output_datagram's paylaod accessor method is equal to the paylaod from the input_buffer body")
-      THEN("The output_datagram's payload accessor method returns a reference to the payload given in its constructor")
-      THEN("The data in the output_datagram's payload buffer is independent of the data in input_buffer")
 
-    WHEN("transform is called on two parseable datagram bodies, whose headers have sequence numbers as 0xff & 0 respectively")
+    WHEN("transform is called on two parseable datagram bodies as input_buffers, whose headers have sequence numbers as 0xff & 0 respectively")
       THEN("The first transform method reports invalid_sequence status")
       THEN("After the first transform method is called, the value returned by the output_datagram's seq accessor method is equal to the sequence field of the input_buffer body's header")
-      THEN("The value returned by the output_datagram's length accessor method is equal to the length field of the input_buffer body's header")
       THEN("The paylaod returned by the output_datagram's paylaod accessor method is equal to the paylaod from the input_buffer body")
-      THEN("The output_datagram's payload accessor method returns a reference to the payload given in its constructor")
-      THEN("The data in the output_datagram's payload buffer is independent of the data in input_buffer")
 
       THEN("The second transform method reports ok status")
       THEN("After the second transform method is called, the value returned by the output_datagram's seq accessor method is equal to the sequence field of the input_buffer body's header")
-      THEN("The value returned by the output_datagram's length accessor method is equal to the length field of the input_buffer body's header")
       THEN("The paylaod returned by the output_datagram's paylaod accessor method is equal to the paylaod from the input_buffer body")
-      THEN("The output_datagram's payload accessor method returns a reference to the payload given in its constructor")
-      THEN("The data in the output_datagram's payload buffer is independent of the data in input_buffer")
 
-    WHEN("transform is called on three parseable datagram bodies, whose headers have sequence numbers as 1, 10 & 11 respectively")
+    WHEN("transform is called on three parseable datagram bodies as input_buffers, whose headers have sequence numbers as 1, 10 & 11 respectively")
       THEN("The first transform method reports ok status")
       THEN("After the first transform method is called, the value returned by the output_datagram's seq accessor method is equal to the sequence field of the input_buffer body's header")
-      THEN("The value returned by the output_datagram's length accessor method is equal to the length field of the input_buffer body's header")
       THEN("The paylaod returned by the output_datagram's paylaod accessor method is equal to the paylaod from the input_buffer body")
-      THEN("The output_datagram's payload accessor method returns a reference to the payload given in its constructor")
-      THEN("The data in the output_datagram's payload buffer is independent of the data in input_buffer")
 
-      THEN("The second transform method reports ok status")
+      THEN("The second transform method reports invalid_sequence status")
       THEN("After the second transform method is called, the value returned by the output_datagram's seq accessor method is equal to the sequence field of the input_buffer body's header")
-      THEN("The value returned by the output_datagram's length accessor method is equal to the length field of the input_buffer body's header")
       THEN("The paylaod returned by the output_datagram's paylaod accessor method is equal to the paylaod from the input_buffer body")
-      THEN("The output_datagram's payload accessor method returns a reference to the payload given in its constructor")
-      THEN("The data in the output_datagram's payload buffer is independent of the data in input_buffer")
 
       THEN("The third transform method reports ok status")
       THEN("After the third transform method is called, the value returned by the output_datagram's seq accessor method is equal to the sequence field of the input_buffer body's header")
-      THEN("The value returned by the output_datagram's length accessor method is equal to the length field of the input_buffer body's header")
       THEN("The paylaod returned by the output_datagram's paylaod accessor method is equal to the paylaod from the input_buffer body")
-      THEN("The output_datagram's payload accessor method returns a reference to the payload given in its constructor")
-      THEN("The data in the output_datagram's payload buffer is independent of the data in input_buffer")
 
   GIVEN("A Datagram receiver of buffer size 254 bytes and expected sequence number equal to 0xff")
+  // Setup:
+  // transform called on an input_buffer where the header's seq field has value 0xfe
+
   // assertions carried out in GIVEN:
-  // The output_datagram's seq accessor method returns 0xff
+  // The output_datagram's seq accessor method returns 0xfe
   // The value returned by the output_datagram's length accessor method is 8
   // The payload buffer returned by the output_datagram's payload accessor method is '0xff 0x06 0xcd 0x6a 0xc2 0x7f 0xa1 0x5b'  
 
-    WHEN("transform is called on two parseable datagram bodies, whose headers have sequence numbers as 0 & 1 respectively")
+    WHEN("transform is called on two parseable datagram bodies, whose headers have sequence numbers as 0xff & 0 respectively")
       THEN("The first transform method reports ok status")
       THEN("After the first transform method is called, the value returned by the output_datagram's seq accessor method is equal to the sequence field of the input_buffer body's header")
-      THEN("The value returned by the output_datagram's length accessor method is equal to the length field of the input_buffer body's header")
       THEN("The paylaod returned by the output_datagram's paylaod accessor method is equal to the paylaod from the input_buffer body")
-      THEN("The output_datagram's payload accessor method returns a reference to the payload given in its constructor")
-      THEN("The data in the output_datagram's payload buffer is independent of the data in input_buffer")
 
       THEN("The second transform method reports ok status")
       THEN("After the second transform method is called, the value returned by the output_datagram's seq accessor method is equal to the sequence field of the input_buffer body's header")
-      THEN("The value returned by the output_datagram's length accessor method is equal to the length field of the input_buffer body's header")
       THEN("The paylaod returned by the output_datagram's paylaod accessor method is equal to the paylaod from the input_buffer body")
-      THEN("The output_datagram's payload accessor method returns a reference to the payload given in its constructor")
-      THEN("The data in the output_datagram's payload buffer is independent of the data in input_buffer")
+
+    WHEN("transform is called on two parseable datagram bodies, whose headers have sequence numbers as 0xff & 1 respectively")      
+      THEN("The first transform method reports ok status")
+      THEN("After the first transform method is called, the value returned by the output_datagram's seq accessor method is equal to the sequence field of the input_buffer body's header")
+      THEN("The paylaod returned by the output_datagram's paylaod accessor method is equal to the paylaod from the input_buffer body")
+
+      THEN("The second transform method reports invalid_sequence status")
+      THEN("After the second transform method is called, the value returned by the output_datagram's seq accessor method is equal to the sequence field of the input_buffer body's header")
+      THEN("The paylaod returned by the output_datagram's paylaod accessor method is equal to the paylaod from the input_buffer body")
 
 /* Datagram sender
 
@@ -397,35 +399,45 @@ Scenario: Datagram Sender correctly generates datagram bodies from payloads
   GIVEN("A Datagram sender of buffer size 254 bytes with next sequence equal to 0")
     WHEN("A non empty payload buffer is given to the datagram sender")
       THEN("The transform method reports ok status")
-      THEN("The seq field of the body's header is equal to the next sequence")
+      THEN("The seq field of the body's header is equal to 0x00")
       THEN("The length field of the body's header is equal to the size of the payload buffer given")
       THEN("The body's payload section correctly stores the paylaod as '0xf9 0x23 0x4a 0xd4 0xe0'")
       THEN("The output datagram is as expected '0x00 0x05 0xf9 0x23 0x4a 0xd4 0xe0'")
 
     WHEN("The output datagram cannot hold enough data")
       THEN("The transform method reports to invalid length")
-      THEN("The output buffer is as expected")
+      THEN("The output datagram remains unchanged")
 
-    WHEN("The input paylaod is too large for the output datagram to hold")
-      THEN("The transform method reports invalid length")
-      THEN("The output buffer is as expected")
-    
     WHEN("The input payload to the datagram sender is '0x00 0x00'")
       THEN("The transform method reports ok status")
       THEN("The output datagram is as expected '\x00\x02\x00\x00' ")      
 
 Scenario: Datagram Sender correctly reports incrementing and rollover of expected sequence number
-  GIVEN("A Datagram sender of buffer size 254 bytes with next sequence equal to 0")
     
+  GIVEN("A Datagram sender of buffer size 254 bytes with next sequence equal to 0x01")
     WHEN("2 non-empty payload buffers of capacity 254 bytes is given to the sender")
       THEN("The first transform method reports ok status")      
-      THEN("The seq field of the body's header is equal to the next sequence")
+      THEN("The seq field of the body's header is equal to 0x01")
+      THEN("The length field of the body's header is equal to the size of the payload given")        
+      THEN("The body's payload section correctly stores the paylaod as '0x88 0xf3 0x52 0xec 0x5c 0x31'") {
+      THEN("The output datagram is as expected '0x01 0x06 0x88 0xf3 0x52 0xec 0x5c 0x31' ") {
+
+      THEN("The second transform method reports ok status")      
+      THEN("The seq field of the body's header is equal to 0x02")
+      THEN("The length field of the body's header is equal to the size of the payload given")        
+      THEN("The body's payload section correctly stores the paylaod as '0x1d 0xf5 0x2a 0xbc 0x97 0x2c'") {
+      THEN("The output datagram is as expected '0x02 0x06 0x1d 0xf5 0x2a 0xbc 0x97 0x2c' ") {
+
+  GIVEN("A Datagram sender of buffer size 254 bytes with next sequence equal to 0x00")
+    WHEN("2 non-empty payload buffers of capacity 254 bytes is given to the sender")
+      THEN("The first transform method reports ok status")      
+      THEN("The seq field of the body's header is equal to 0x00")
       THEN("The length field of the body's header is equal to the size of the payload given")        
       THEN("The body's payload section correctly stores the paylaod as '0xc0 0x18 0x65 0xd1 0x03 0x5c'")
       THEN("The output datagram is as expected '0x00 0x06 0xc0 0x18 0x65 0xd1 0x03 0x5c' ")
 
       THEN("The second transform method reports ok status")      
-      THEN("The seq field of the body's header is equal to the next sequence")
+      THEN("The seq field of the body's header is equal to 0x01")
       THEN("The length field of the body's header is equal to the size of the payload given")        
       THEN("The body's payload section correctly stores the paylaod as '0x6b 0x05 0xb9 0xf3 0xe5 0xb6'")
       THEN("The output datagram is as expected '0x01 0x06 0x6b 0x05 0xb9 0xf3 0xe5 0xb6' ")
@@ -434,13 +446,13 @@ Scenario: Datagram Sender correctly reports incrementing and rollover of expecte
     
     WHEN("2 non-empty payload buffers of capacity 254 bytes is given to the sender")
       THEN("The first transform method reports ok status")      
-      THEN("The seq field of the body's header is equal to the next sequence")
+      THEN("The seq field of the body's header is equal to 0xff")
       THEN("The length field of the body's header is equal to the size of the payload given")        
-      THEN("The body's payload section correctly stores the paylaod as '0xc0 0x18 0x65 0xd1 0x03 0x5c'")
-      THEN("The output datagram is as expected '0xff 0x06 0xc0 0x18 0x65 0xd1 0x03 0x5c' ")
+      THEN("The body's payload section correctly stores the paylaod as '0xa0 0x47 0x65 0x6b 0x20 0xe9'")
+      THEN("The output datagram is as expected '0xff 0x06 0xa0 0x47 0x65 0x6b 0x20 0xe9' ")
 
       THEN("The second transform method reports ok status")      
-      THEN("The seq field of the body's header is equal to the next sequence")
+      THEN("The seq field of the body's header is equal to 0x00")
       THEN("The length field of the body's header is equal to the size of the payload given")        
-      THEN("The body's payload section correctly stores the paylaod as '0x6b 0x05 0xb9 0xf3 0xe5 0xb6'")
-      THEN("The output datagram is as expected '0x00 0x06 0x6b 0x05 0xb9 0xf3 0xe5 0xb6' ")
+      THEN("The body's payload section correctly stores the paylaod as '0x51 0xb5 0x55 0x69 0x8f 0x67'")
+      THEN("The output datagram is as expected '0x00 0x06 0x51 0xb5 0x55 0x69 0x8f 0x67' ")
