@@ -58,11 +58,11 @@ I2CDeviceStatus Device::read_conversion_factors(ConversionFactors &conversion) {
   }
 
   conversion.scale_factor =
-      HAL::ntoh(Util::parse_network_order<uint16_t>(buffer.data(), buffer.size()));
+      HAL::ntoh(Util::parse_network_order<uint16_t>(buffer.data(), sizeof(uint16_t)));
   conversion.offset = HAL::ntoh(
-      Util::parse_network_order<uint16_t>(buffer.data() + sizeof(uint16_t), buffer.size()));
+      Util::parse_network_order<uint16_t>(buffer.data() + sizeof(uint16_t), sizeof(uint16_t)));
   conversion.flow_unit = HAL::ntoh(
-      Util::parse_network_order<uint16_t>(buffer.data() + 2 * sizeof(uint16_t), buffer.size()));
+      Util::parse_network_order<uint16_t>(buffer.data() + 2 * sizeof(uint16_t), sizeof(uint16_t)));
   return I2CDeviceStatus::ok;
 }
 
