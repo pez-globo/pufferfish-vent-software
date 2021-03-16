@@ -28,9 +28,6 @@ const useStyles = makeStyles((theme: Theme) => ({
     border: `1px solid ${theme.palette.common.black}`,
     padding: '5px 16px',
   },
-  alarmContainer: {
-    // border: '1px solid red',
-  },
   alarmValue: {
     marginRight: theme.spacing(3),
     border: `1px solid ${theme.palette.text.primary}`,
@@ -158,7 +155,8 @@ export const AlarmModal = ({
 
   useEffect(() => {
     requestCommitRange(rangeValue[0], rangeValue[1]);
-  }, [requestCommitRange, rangeValue]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requestCommitRange, JSON.stringify(rangeValue)]);
 
   const OnClickPage = () => {
     setActiveRotaryReference(null);
@@ -173,12 +171,7 @@ export const AlarmModal = ({
       onClick={OnClickPage}
     >
       {labelHeading && (
-        <Grid
-          container
-          item
-          xs
-          className={`${classes.alarmContainer} ${classes.borderBottom} ${classes.head}`}
-        >
+        <Grid container item xs className={`${classes.borderBottom} ${classes.head}`}>
           <Typography align="left" variant="h3">
             {label}
           </Typography>
@@ -192,7 +185,7 @@ export const AlarmModal = ({
           justify="center"
           alignItems="center"
           style={{ borderRight: `2px dashed ${theme.palette.background.default}` }}
-          className={`${classes.alarmContainer} ${classes.borderBottom}`}
+          className={classes.borderBottom}
         >
           <Grid
             ref={refs[`${stateKey}_LOWER`]}
@@ -230,7 +223,7 @@ export const AlarmModal = ({
           xs
           justify="center"
           alignItems="center"
-          className={`${classes.alarmContainer} ${classes.borderBottom}`}
+          className={classes.borderBottom}
         >
           <Grid
             ref={refs[`${stateKey}_HIGHER`]}
