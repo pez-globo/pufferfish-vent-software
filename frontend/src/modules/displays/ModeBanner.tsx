@@ -54,7 +54,7 @@ export const ModeBanner = ({ bannerType }: Props): JSX.Element => {
   return (
     <Grid container justify="center" alignItems="center">
       <Grid item>
-        <Typography align="center" variant="h2" className={color(bannerType)}>
+        <Typography align="center" variant="h3" className={color(bannerType)}>
           {getModeText(mode)}
         </Typography>
       </Grid>

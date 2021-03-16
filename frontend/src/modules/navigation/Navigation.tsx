@@ -7,7 +7,7 @@ import { ALARMS_ROUTE, SETTINGS_ROUTE } from './constants';
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
     width: '100%',
-    height: '100%',
+    height: 'auto',
   },
   tabs: {
     alignText: 'center',

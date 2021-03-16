@@ -25,7 +25,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 
   main: {
-    gridGap: '15px',
+    gridGap: '10px',
     display: 'grid',
     padding: '15px',
     height: '100vh',

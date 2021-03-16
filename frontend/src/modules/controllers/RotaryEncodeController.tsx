@@ -46,7 +46,7 @@ export const RotaryEncodeController = ({
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [rotaryEncoder?.step, rotaryEncoder?.buttonPressed, min, max],
+    [rotaryEncoder?.step, rotaryEncoder?.buttonPressed, min, max, value],
   );
 
   useEffect(() => {

@@ -129,7 +129,9 @@ export const ValueClicker = ({
       <RotaryEncodeController
         isActive={isRotaryActive}
         value={value}
-        onClick={onClick}
+        onClick={(num: number) => {
+          onClick(num);
+        }}
         min={min}
         max={max}
       />

@@ -8,6 +8,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     justifyContent: 'center',
     height: '100%',
     padding: theme.spacing(2),
+    alignItems: 'center',
   },
 }));
 
