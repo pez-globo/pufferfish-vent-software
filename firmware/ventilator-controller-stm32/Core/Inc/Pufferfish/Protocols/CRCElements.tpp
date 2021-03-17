@@ -20,6 +20,11 @@ template <typename PayloadBuffer>
 template <size_t output_size>
 IndexStatus CRCElement<PayloadBuffer>::write(
     Util::ByteVector<output_size> &output_buffer, HAL::CRC32 &crc32c) {
+  static_assert(
+      Util::ByteVector<output_size>::max_size() >=
+          (PayloadBuffer::max_size() + CRCElementHeaderProps::header_size),
+      "Write method unavailable as the size of the output buffer is too small");
+
   if (write_protected(output_buffer) != IndexStatus::ok) {
     return IndexStatus::out_of_bounds;
   }

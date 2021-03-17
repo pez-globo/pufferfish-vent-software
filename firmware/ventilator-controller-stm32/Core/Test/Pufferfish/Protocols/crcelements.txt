@@ -211,8 +211,3 @@ Scenario: CRCElementSender: correctly generates CRCElement bodies from payloads
       THEN("output buffer is as expected, equal to (crc + input_buffer)")
       THEN("The CRC field of the output buffer's header is consistent with the input_payload.")
       THEN("The contents of the output buffer remains unchanged")
-
-  GIVEN("A CRC element sender of buffer size 20 bytes")
-
-    WHEN("The output buffer is not large enough for the input payload")
-      THEN("the transform status is equal to invalid_length")

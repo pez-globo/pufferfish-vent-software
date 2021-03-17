@@ -126,7 +126,7 @@ SCENARIO(
 
     TestConstructedCRCElement crc_element{input_payload};
     WHEN("The crc and payload are written to the output buffer") {
-      TestCRCElementProps::PayloadBuffer output_buffer;
+      PF::Util::ByteVector<buffer_size> output_buffer;
 
       THEN("the crc accessor method returns 0 before the write method is called") {
         REQUIRE(crc_element.crc() == 0x00000000);
@@ -1045,33 +1045,6 @@ SCENARIO(
       }
       THEN("The contents of the output buffer remains unchanged") {
         REQUIRE(output_buffer == expected_output);
-      }
-    }
-  }
-
-  GIVEN("A CRC element sender of buffer size 20 bytes") {
-    constexpr size_t buffer_size = 20UL;
-    using TestCRCElementProps = PF::Protocols::CRCElementProps<buffer_size>;
-    using TestCRCElementSender = PF::Protocols::CRCElementSender<buffer_size>;
-
-    PF::HAL::SoftCRC32 crc32c{PF::HAL::crc32c_params};
-    TestCRCElementSender crc_element_sender{crc32c};
-
-    WHEN("The output buffer is not large enough for the input payload") {
-      auto body = std::string("\x81\xfc\x34\x57\x13\x03\x05\x06\x23\x01\x09", 11);
-      constexpr size_t output_buffer_size = 10UL;
-
-      TestCRCElementProps::PayloadBuffer input_payload;
-      for (auto& data : body) {
-        input_payload.push_back(data);
-      }
-
-      PF::Util::ByteVector<output_buffer_size> output_buffer;
-
-      auto transform_status = crc_element_sender.transform(input_payload, output_buffer);
-
-      THEN("the transform status is equal to invalid_length") {
-        REQUIRE(transform_status == TestCRCElementSender::Status::invalid_length);
       }
     }
   }
