@@ -33,6 +33,17 @@ Scenario: ConstructedDatagram: The write method correctly generates a body from 
       THEN("The body's payload section correctly stores the paylaod as '0xb7 0xe1 0x8d 0xaa 0x4d'")
       THEN("The output buffer is as expected '0x00 0x05 0xb7 0xe1 0x8d 0xaa 0x4d' ")
 
+    WHEN("The paylaod given to the constructor is altered ('0xb7 0xe1 0x8d 0xaa 0x4d 0x02') before write method is called")
+      THEN("Before the write method is called, The value returned by the length accessor method is inconsistent with the size of the altered paylaod")
+      THEN("The write method reports ok status")
+      THEN("After the write method is called, The value returned by the seq accessor method remains unchanged")
+      THEN("the length accessor method returns a value equal to the size of the altered payload")
+      THEN("The paylaod returned by the paylaod accessor method is same as the altered paylaod buffer")
+      THEN("The seq field of the body's header matches the value returned by the seq accessor method")
+      THEN("The length field of the body's header matches the value returned by the length accessor method")
+      THEN("The body's payload section correctly stores the paylaod as '0xb7 0xe1 0x8d 0xaa 0x4d 0x02'")
+      THEN("The output buffer is as expected '0x00 0x06 0x01 0x02 0x03 0x04 0x05 0x02' ")
+
   GIVEN("A Datagram constructed with a non-empty payload buffer of different lengths and sequence equal to 0")
   // assertions carried out in GIVEN:
   // The seq accessor method returns 0
@@ -50,24 +61,6 @@ Scenario: ConstructedDatagram: The write method correctly generates a body from 
       THEN("The length field of the body's header matches the value returned by the length accessor method")
       THEN("The body's payload section correctly stores the paylaod as '0x09 ...' for varying payload lengths")
       THEN("The output buffer is as expected for all the different paylaod buffers")
-
-    WHEN("The paylaod given to the constructor is altered ('0xb7 0xe1 0x8d 0xaa 0x4d 0x02') before write method is called")
-      THEN("Before the write method is called, The value returned by the length accessor method is inconsistent with the size of the altered paylaod")
-      THEN("The write method reports ok status")
-      THEN("After the write method is called, The value returned by the seq accessor method remains unchanged")
-      THEN("the length accessor method returns a value equal to the size of the altered payload")
-      THEN("The paylaod returned by the paylaod accessor method is same as the altered paylaod buffer")
-      THEN("The seq field of the body's header matches the value returned by the seq accessor method")
-      THEN("The length field of the body's header matches the value returned by the length accessor method")
-      THEN("The body's payload section correctly stores the paylaod as '0xb7 0xe1 0x8d 0xaa 0x4d 0x02'")
-      THEN("The output buffer is as expected '0x00 0x06 0x01 0x02 0x03 0x04 0x05 0x02' ")
-
-    WHEN("The output buffer is too short to hold the sequence, length and the paylaod fields")
-      THEN("The write method reports out of bounds status")
-      THEN("After the write method is called, The value returned by the seq accessor method remains unchanged")
-      THEN("the value returned by the length accessor method remains unchanged")
-      THEN("The payload returned by the paylaod accessor method remains unchanged")
-      THEN("The contents of the output buffer remain unchanged")
 
   GIVEN("A Datagram constructed with a non-empty paylaod buffer and non-zero sequence")
   // assertions carried out in GIVEN:
@@ -327,6 +320,8 @@ Scenario: Datagram Receiver correctly reports incrementing, rollover, and resett
       THEN("The final sequence value returned by output_datagram's seq accessor method is 0xff")
 
   GIVEN("A Datagram receiver of buffer size 254 bytes and expected sequence number equal to 1")     
+  // Setup:
+  // transform called on an input_buffer where the header's seq field has value 0
 
   // assertions carried out in GIVEN:
   // The output_datagram's seq accessor method returns 1
@@ -410,10 +405,6 @@ Scenario: Datagram Sender correctly generates datagram bodies from payloads
       THEN("The length field of the body's header is equal to the size of the payload buffer given")
       THEN("The body's payload section correctly stores the paylaod as '0xf9 0x23 0x4a 0xd4 0xe0'")
       THEN("The output datagram is as expected '0x00 0x05 0xf9 0x23 0x4a 0xd4 0xe0'")
-
-    WHEN("The output datagram cannot hold enough data")
-      THEN("The transform method reports to invalid length")
-      THEN("The output datagram remains unchanged")
 
     WHEN("The input payload to the datagram sender is '0x00 0x00'")
       THEN("The transform method reports ok status")
