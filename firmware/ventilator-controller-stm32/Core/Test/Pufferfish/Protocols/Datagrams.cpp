@@ -228,29 +228,6 @@ SCENARIO(
         REQUIRE(output_buffer == expected_buffer);
       }
     }
-
-    WHEN("The output buffer is too short and cannot hold the sequence, length and paylaod fields") {
-      constexpr size_t output_buffer_size = 2UL;
-      PF::Util::ByteVector<output_buffer_size> output_buffer;
-      auto write_status = datagram.write(output_buffer);
-
-      THEN("The write method reports out of bounds status") {
-        REQUIRE(write_status == PF::IndexStatus::out_of_bounds);
-      }
-      THEN(
-          "After the write method is called, The value returned by the seq accessor method remains "
-          "unchanged") {
-        REQUIRE(datagram.seq() == 0);
-      }
-      THEN("the value returned by the length accessor method remains unchanged") {
-        REQUIRE(datagram.length() == 5);
-      }
-      THEN("The payload returned by the paylaod accessor method remains unchanged") {
-        auto expected = std::string("\xb7\xe1\x8d\xaa\x4d", 5);
-        REQUIRE(datagram.payload() == expected);
-      }
-      THEN("The output buffer is as expected") { REQUIRE(output_buffer.empty() == true); }
-    }
   }
 
   GIVEN("A Datagram constructed with a non-empty paylaod buffer and non-zero sequence") {
@@ -1299,6 +1276,46 @@ SCENARIO(
   TestDatagramReceiver datagram_receiver{};
   PF::Util::ByteVector<buffer_size> input_buffer;
 
+  GIVEN("A Datagram receiver of buffer size 254 bytes and expected sequence number equal to 0") {
+    TestDatagram datagram{payload};
+
+    WHEN(
+        "transform is called each time on parseable bodies as input_buffers, whose headers have "
+        "sequence numbers incrementing from 0 to 255") {
+      int sequence = 0;
+      do {
+        auto data =
+            PF::Util::make_array<uint8_t>(sequence, 0x07, 0xaf, 0xa2, 0xf5, 0xc4, 0x55, 0xb4, 0x68);
+        for (size_t i = 0; i < 9; ++i) {
+          input_buffer.push_back(data[i]);
+        }
+        auto transform_status = datagram_receiver.transform(input_buffer, datagram);
+
+        THEN("The transform method reports ok status") {
+          REQUIRE(transform_status == TestDatagramReceiver::Status::ok);
+        }
+        THEN(
+            "After the transform method is called, the value returned by the output_datagram's "
+            "seq accessor method is equal to the sequence field of the input_buffer body's "
+            "header") {
+          REQUIRE(datagram.seq() == sequence);
+        }
+        THEN(
+            "The paylaod returned by the output_datagram's paylaod accessor method is equal to the "
+            "paylaod from the input_buffer body") {
+          auto expected_payload = std::string("\xaf\xa2\xf5\xc4\x55\xb4\x68", 7);
+          REQUIRE(datagram.payload() == expected_payload);
+        }
+        sequence++;
+        input_buffer.clear();
+      } while (sequence < 256);
+
+      THEN("The final sequence value returned by output_datagram's seq accessor method is 0xff") {
+        REQUIRE(datagram.seq() == 0xff);
+      }
+    }
+  }
+
   GIVEN("A Datagram receiver of buffer size 254 bytes and expected sequence number equal to 1") {
     TestDatagram datagram{payload};
 
@@ -1668,26 +1685,6 @@ SCENARIO(
         auto expected_datagram = std::string("\x00\x05\xf9\x23\x4a\xd4\xe0", 7);
         REQUIRE(output_datagram == expected_datagram);
       }
-    }
-
-    WHEN("The output datagram cannot hold enough data") {
-      using TestDatagramProps = PF::Protocols::DatagramProps<buffer_size>;
-      using TestDatagram = PF::Protocols::Datagram<TestDatagramProps::PayloadBuffer>;
-
-      auto data = std::string("\x01\x02\x03\x04\x05\x06\x07\x08\x09", 9);
-
-      TestDatagramProps::PayloadBuffer payload;
-      PF::Util::convert_string_to_byte_vector(data, payload);
-
-      constexpr size_t datagram_buffer_size = 10UL;
-      PF::Util::ByteVector<datagram_buffer_size> output_datagram;
-
-      auto transform_status = datagram_sender.transform(payload, output_datagram);
-
-      THEN("The transform method reports invalid length") {
-        REQUIRE(transform_status == TestDatagramSender::Status::invalid_length);
-      }
-      THEN("The output datagram remains unchanged") { REQUIRE(output_datagram.empty() == true); }
     }
 
     WHEN("The input payload to the transform method is '0x00 0x00'") {

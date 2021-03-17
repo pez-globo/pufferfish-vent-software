@@ -317,9 +317,16 @@ Scenario: Datagram Receiver correctly parses datagram bodies and performs consis
 
 Scenario: Datagram Receiver correctly reports incrementing, rollover, and resetting of expected sequence number
 
+  GIVEN("A Datagram receiver of buffer size 254 bytes and expected sequence number equal to 0") {
+
+    // Intent : we call transform multiple times until the final sequence number is 0xff
+    WHEN("transform is called each time on parseable bodies as input_buffers, whose headers have sequence numbers incrementing from 0 to 255") 
+      THEN("All of the transform methods report ok status")
+      THEN("After the transform method is called, the value returned by the output_datagram's seq accessor method is equal to the sequence field of the input_buffer body's header")
+      THEN("The paylaod returned by the output_datagram's paylaod accessor method is equal to the paylaod from the input_buffer body")
+      THEN("The final sequence value returned by output_datagram's seq accessor method is 0xff")
+
   GIVEN("A Datagram receiver of buffer size 254 bytes and expected sequence number equal to 1")     
-  // Setup:
-  // transform called on an input_buffer where the header's seq field has value 0
 
   // assertions carried out in GIVEN:
   // The output_datagram's seq accessor method returns 1
