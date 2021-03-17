@@ -72,65 +72,6 @@ SCENARIO(
   }
 
   GIVEN("A Datagram constructed with a non-empty payload buffer and sequence equal to 0") {
-    // as payload buffer is a ByteVector of size 252
-    int payload_size = GENERATE(0, 252);
-
-    for (size_t i = 0; i < payload_size; ++i) {
-      uint8_t val = 9;
-      input_payload.push_back(val);
-    }
-    TestDatagram datagram{input_payload};
-    REQUIRE(datagram.seq() == 0);
-    REQUIRE(datagram.length() == payload_size);
-
-    WHEN("The sequence, length and paylaod are written to the output buffer") {
-      auto write_status = datagram.write(output_buffer);
-
-      THEN("The write method reports ok status") { REQUIRE(write_status == PF::IndexStatus::ok); }
-      THEN(
-          "After the write method is called, The value returned by the seq accessor method remains "
-          "unchanged") {
-        REQUIRE(datagram.seq() == 0);
-      }
-      THEN("the value returned by the length accessor method remains unchanged") {
-        REQUIRE(datagram.length() == payload_size);
-      }
-      THEN("The payload returned by the paylaod accessor method remains unchanged") {
-        auto buffer = datagram.payload();
-        for (size_t i = 0; i < payload_size; ++i) {
-          uint8_t val = 9;
-          REQUIRE(buffer.operator[](i) == val);
-        }
-      }
-      THEN(
-          "The seq field of the body's header matches the value returned by the seq accessor "
-          "method") {
-        REQUIRE(output_buffer.operator[](0) == datagram.seq());
-      }
-      THEN(
-          "The length field of the body's header matches the value returned by the length accessor "
-          "method") {
-        REQUIRE(output_buffer.operator[](1) == datagram.length());
-      }
-      THEN(
-          "The body's payload section correctly stores the paylaod as '0xb7 0xe1 0x8d 0xaa 0x4d'") {
-        for (size_t i = 2; i < payload_size + 1; ++i) {
-          uint8_t val = 9;
-          REQUIRE(output_buffer.operator[](i) == val);
-        }
-      }
-      THEN("The output buffer is as expected") {
-        REQUIRE(output_buffer.operator[](0) == 0);
-        REQUIRE(output_buffer.operator[](1) == payload_size);
-        for (size_t i = 2; i < payload_size + 1; ++i) {
-          uint8_t val = 9;
-          REQUIRE(output_buffer.operator[](i) == val);
-        }
-      }
-    }
-  }
-
-  GIVEN("A Datagram constructed with a non-empty payload buffer and sequence equal to 0") {
     auto data = std::string("\xb7\xe1\x8d\xaa\x4d", 5);
     PF::Util::convert_string_to_byte_vector(data, input_payload);
 
@@ -184,8 +125,9 @@ SCENARIO(
       input_payload.push_back(0x02);
 
       THEN(
-          "Before the write method is called, The value returned by the length accessor method is "
-          "inconsistent with the size of the altered paylaod") {
+          "Before the write method is called, The value returned by the length accessor method "
+          "remains unchanged after paylaod alteration, thus the value is inconsistent with the "
+          "size of the altered paylaod") {
         REQUIRE(datagram.length() == 5);
       }
 
@@ -226,6 +168,68 @@ SCENARIO(
       THEN("The output buffer is as expected '0x00 0x06 0xb7 0xe1 0x8d 0xaa 0x4d 0x02'") {
         auto expected_buffer = std::string("\x00\x06\xb7\xe1\x8d\xaa\x4d\x02", 8);
         REQUIRE(output_buffer == expected_buffer);
+      }
+    }
+  }
+
+  GIVEN(
+      "A Datagram constructed with a non-empty payload buffer of any length from 0 to 252 and "
+      "sequence equal to 0") {
+    // as payload buffer is a ByteVector of size 252
+    int payload_size = GENERATE(0, 252);
+
+    for (size_t i = 0; i < payload_size; ++i) {
+      uint8_t val = 9;
+      input_payload.push_back(val);
+    }
+    TestDatagram datagram{input_payload};
+    REQUIRE(datagram.seq() == 0);
+    REQUIRE(datagram.length() == payload_size);
+
+    WHEN("The sequence, length and paylaod are written to the output buffer") {
+      auto write_status = datagram.write(output_buffer);
+
+      THEN("The write method reports ok status") { REQUIRE(write_status == PF::IndexStatus::ok); }
+      THEN(
+          "After the write method is called, The value returned by the seq accessor method remains "
+          "unchanged") {
+        REQUIRE(datagram.seq() == 0);
+      }
+      THEN("the value returned by the length accessor method remains unchanged") {
+        REQUIRE(datagram.length() == payload_size);
+      }
+      THEN("The payload returned by the paylaod accessor method remains unchanged") {
+        auto buffer = datagram.payload();
+        for (size_t i = 0; i < payload_size; ++i) {
+          uint8_t val = 9;
+          REQUIRE(buffer.operator[](i) == val);
+        }
+      }
+      THEN(
+          "The seq field of the body's header matches the value returned by the seq accessor "
+          "method") {
+        REQUIRE(output_buffer.operator[](0) == datagram.seq());
+      }
+      THEN(
+          "The length field of the body's header matches the value returned by the length accessor "
+          "method") {
+        REQUIRE(output_buffer.operator[](1) == datagram.length());
+      }
+      THEN(
+          "The body's payload section correctly stores the paylaod as '0x09 ...' for varying "
+          "payload lengths") {
+        for (size_t i = 2; i < payload_size + 1; ++i) {
+          uint8_t val = 9;
+          REQUIRE(output_buffer.operator[](i) == val);
+        }
+      }
+      THEN("The output buffer is as expected for all the different paylaod buffers") {
+        REQUIRE(output_buffer.operator[](0) == 0);
+        REQUIRE(output_buffer.operator[](1) == payload_size);
+        for (size_t i = 2; i < payload_size + 1; ++i) {
+          uint8_t val = 9;
+          REQUIRE(output_buffer.operator[](i) == val);
+        }
       }
     }
   }
@@ -809,13 +813,19 @@ SCENARIO(
         auto expected_payload = std::string("\xca\x9b\xc7\xf9\x5c\x10\xa1\x77\x23\x82", 10);
         REQUIRE(parsed_datagram.payload() == expected_payload);
       }
-      THEN("The input buffer is unchanged after parse") { REQUIRE(input_buffer == body); }
+      THEN(
+          "the payload given in the ParsedDatagram constructor is independent of the input buffer "
+          "body") {
+        input_buffer.push_back(0x02);
+        auto expected_payload = std::string("\xca\x9b\xc7\xf9\x5c\x10\xa1\x77\x23\x82", 10);
+        REQUIRE(parsed_datagram.payload() == expected_payload);
+      }
 
       // Write
       auto final_data = std::string("\x56\xd6\x42\xc5\xe1\xf0\x30\xe5\xc8\x4d", 10);
       TestDatagramProps::PayloadBuffer input_payload;
       PF::Util::convert_string_to_byte_vector(final_data, input_payload);
-      TestConstructedDatagram write_datagram(input_payload);
+      TestConstructedDatagram write_datagram(input_payload, 1);
 
       PF::Util::ByteVector<buffer_size> final_buffer;
       auto final_status = write_datagram.write(final_buffer);
@@ -825,7 +835,7 @@ SCENARIO(
       THEN(
           "After the write method is called, The value returned by the seq accessor method is "
           "equal to 0") {
-        REQUIRE(write_datagram.seq() == 0);
+        REQUIRE(write_datagram.seq() == 1);
       }
       THEN(
           "the length accessor method returns a value equal to the size of the payload given in "
@@ -857,8 +867,10 @@ SCENARIO(
           REQUIRE(final_buffer.operator[](i) == data[i - 2]);
         }
       }
-      THEN("The output buffer is as expected") {
-        auto expected_output = std::string("\x00\x0a\x56\xd6\x42\xc5\xe1\xf0\x30\xe5\xc8\x4d", 12);
+      THEN(
+          "The output buffer is as expected '0x01 0x0a 0x56 0xd6 0x42 0xc5 0xe1 0xf0 0x30 0xe5 "
+          "0xc8 0x4d'") {
+        auto expected_output = std::string("\x01\x0a\x56\xd6\x42\xc5\xe1\xf0\x30\xe5\xc8\x4d", 12);
         REQUIRE(final_buffer == expected_output);
       }
     }
